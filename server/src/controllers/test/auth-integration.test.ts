@@ -62,16 +62,13 @@ import bcrypt from 'bcryptjs';
 import request from 'supertest';
 
 import db from '~/infra/database';
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 import { SALT_LENGTH, UserApi } from '~/models/UserApi';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import {
-  formatResetLinkApi,
-  ResetLinks
-} from '~/repositories/resetLinkRepository';
 import { UsersEstablishments } from '~/repositories/user-establishment-repository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
@@ -231,7 +228,7 @@ describe('better-auth sign-in (integration)', () => {
       establishmentId: establishment.id
     });
     const link = genResetLinkApi(user.id);
-    await ResetLinks().insert(formatResetLinkApi(link));
+    await kysely.insertInto('resetLinks').values(link).execute();
 
     try {
       const signInResponse = await request(url)
@@ -256,7 +253,7 @@ describe('better-auth sign-in (integration)', () => {
       expect(formerSession.status).toBe(200);
       expect(formerSession.body).toBeNull();
     } finally {
-      await ResetLinks().where({ id: link.id }).delete();
+      await kysely.deleteFrom('resetLinks').where('id', '=', link.id).execute();
       await deleteBackfilledUser(user.id);
     }
   });

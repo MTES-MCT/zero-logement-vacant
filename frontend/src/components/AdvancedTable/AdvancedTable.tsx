@@ -251,7 +251,11 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                   {rows.map((row, i) => (
                     <tr
                       key={i}
-                      aria-selected={all !== row.getIsSelected()}
+                      aria-selected={
+                        enableSelection
+                          ? all !== row.getIsSelected()
+                          : undefined
+                      }
                       ref={rowRefs[row.id]}
                       style={
                         props.tableProps?.fixedRowHeight
@@ -326,6 +330,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
               value: String(option)
             }))}
             nativeSelectProps={{
+              'aria-label': 'Résultats par page',
               value: String(table.getState().pagination.pageSize),
               onChange: (event) => {
                 const value = Number(event.target.value);

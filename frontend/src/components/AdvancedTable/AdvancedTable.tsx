@@ -83,6 +83,14 @@ interface PaginationProps {
    * @default 50
    */
   defaultPageSize?: number;
+  /**
+   * When true, the "results per page" control is rendered as static,
+   * non-editable text ("N lignes par page") to the left of the pagination
+   * instead of an editable select. Use for small, fixed-size tables (e.g.
+   * inside a modal) where changing the page size is not meaningful.
+   * @default false
+   */
+  staticPageSize?: boolean;
 }
 
 const ROW_SIZE = 64;
@@ -107,6 +115,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   const enableSelection = props.selection !== undefined;
 
   const paginate = props.paginate ?? true;
+  const staticPageSize = props.staticPageSize ?? false;
   const perPageOptions = props.perPageOptions ?? PER_PAGE_OPTIONS;
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -323,30 +332,37 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
       {paginate ? (
         <Stack
           direction="row"
-          spacing="1rem"
+          spacing={staticPageSize ? '0.75rem' : '1rem'}
           useFlexGap
           sx={{
             justifyContent: 'center',
             alignItems: 'center',
-            flexWrap: 'wrap'
+            flexWrap: staticPageSize ? 'nowrap' : 'wrap'
           }}
         >
-          <SelectNext
-            label={null}
-            options={perPageOptions.map((option) => ({
-              label: `${option} résultats par page`,
-              value: String(option)
-            }))}
-            nativeSelectProps={{
-              value: String(table.getState().pagination.pageSize),
-              onChange: (event) => {
-                const value = Number(event.target.value);
-                if (value !== null) {
-                  table.setPageSize(value);
+          {staticPageSize ? (
+            <span className={fr.cx('fr-text--sm')}>
+              {table.getState().pagination.pageSize} ligne
+              {table.getState().pagination.pageSize > 1 ? 's' : ''} par page
+            </span>
+          ) : (
+            <SelectNext
+              label={null}
+              options={perPageOptions.map((option) => ({
+                label: `${option} résultats par page`,
+                value: String(option)
+              }))}
+              nativeSelectProps={{
+                value: String(table.getState().pagination.pageSize),
+                onChange: (event) => {
+                  const value = Number(event.target.value);
+                  if (value !== null) {
+                    table.setPageSize(value);
+                  }
                 }
-              }
-            }}
-          />
+              }}
+            />
+          )}
 
           <TablePagination
             count={table.getPageCount()}

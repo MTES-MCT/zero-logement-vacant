@@ -2,6 +2,7 @@ import { fr } from '@codegouvfr/react-dsfr';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
+import Stack from '@mui/material/Stack';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -80,19 +81,28 @@ export function createSelectGroupModal(
           }),
           columnHelper.display({
             id: 'actions',
-            header: 'Action',
-            cell: ({ row }) => (
-              <Button
-                priority="secondary"
-                size="small"
-                title={`Sélectionner le groupe ${row.original.title}`}
-                nativeButtonProps={{
-                  'aria-label': `Sélectionner le groupe ${row.original.title}`
-                }}
-                onClick={() => props.onSelect(row.original)}
+            header: () => (
+              <Stack
+                direction="row"
+                sx={{ justifyContent: 'flex-end', fontWeight: 'normal' }}
               >
-                Sélectionner
-              </Button>
+                Action
+              </Stack>
+            ),
+            cell: ({ row }) => (
+              <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
+                <Button
+                  priority="secondary"
+                  size="small"
+                  title={`Sélectionner le groupe ${row.original.title}`}
+                  nativeButtonProps={{
+                    'aria-label': `Sélectionner le groupe ${row.original.title}`
+                  }}
+                  onClick={() => props.onSelect(row.original)}
+                >
+                  Sélectionner
+                </Button>
+              </Stack>
             )
           })
         ],
@@ -149,7 +159,7 @@ export function createSelectGroupModal(
                 onSearch={search}
               />
 
-              <p role="status" className={fr.cx('fr-sr-only')}>
+              <p role="status" className={fr.cx('fr-text--bold', 'fr-mb-0')}>
                 {statusMessage}
               </p>
 
@@ -159,6 +169,7 @@ export function createSelectGroupModal(
                 data={filteredGroups}
                 perPageOptions={[5, 10, 50]}
                 defaultPageSize={5}
+                staticPageSize
                 tableProps={{ noCaption: true }}
               />
             </>

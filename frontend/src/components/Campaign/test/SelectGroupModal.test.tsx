@@ -230,6 +230,33 @@ describe('SelectGroupModal', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('should show the page size as static text instead of an editable select', async () => {
+    const housings = [genHousingDTO()];
+    data.groups.push(genGroupDTO(creator, housings));
+
+    renderModal(vi.fn(), 1);
+
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText('5 lignes par page');
+    expect(within(dialog).queryByRole('combobox')).not.toBeInTheDocument();
+  });
+
+  it('should display the group count as visible text above the table', async () => {
+    const housings = [genHousingDTO()];
+    data.groups.push(
+      genGroupDTO(creator, housings),
+      genGroupDTO(creator, housings)
+    );
+
+    renderModal(vi.fn(), 1);
+
+    const dialog = await screen.findByRole('dialog');
+    const status = await within(dialog).findByRole('status');
+    await waitFor(() => expect(status).toHaveTextContent('2 groupes trouvés'));
+    // The count must be visible, not screen-reader-only.
+    expect(status).not.toHaveClass('fr-sr-only');
+  });
+
   it('should restore the full list when an empty search is submitted', async () => {
     const housings = [genHousingDTO()];
     const match = { ...genGroupDTO(creator, housings), title: 'URBA-EXP' };

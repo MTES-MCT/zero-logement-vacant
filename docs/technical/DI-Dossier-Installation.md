@@ -213,8 +213,10 @@ NODE_ENV=development
 # Port sur lequel l'API écoute
 PORT=3001
 
-# URL publique de l'application
-APP_URL=http://localhost:3000
+# URL publique du frontend utilisée dans les liens envoyés par email
+HOST=http://localhost:3000
+# Origine autorisée du frontend pour les requêtes vers l'API
+ALLOWED_ORIGINS=http://localhost:3000
 
 # Connexion à la base de données
 # Format: postgres://utilisateur:motdepasse@hôte:port/nom_base
@@ -223,10 +225,10 @@ DATABASE_URL=postgres://postgres:postgres@localhost:5432/zlv
 # Connexion à Redis (cache et files d'attente)
 REDIS_URL=redis://localhost:6379
 
-# Secret pour les tokens d'authentification (au moins 32 caractères)
+# Secret de signature des sessions Better Auth (au moins 32 caractères)
 # En développement, utilisez une valeur quelconque
 AUTH_SECRET=votre-secret-local-au-moins-32-caracteres
-AUTH_EXPIRES_IN=7d
+ADMIN_2FA_ENABLED=false
 ```
 
 #### Configuration du Queue Worker
@@ -417,7 +419,7 @@ L'API dispose d'une documentation interactive Swagger accessible en développeme
 - Liste de tous les endpoints avec leurs paramètres
 - Schémas des requêtes et réponses
 - Possibilité de tester les endpoints directement
-- Authentification JWT supportée
+- Authentification par session Better Auth (cookie HttpOnly) supportée
 
 **En production :** Désactivé par défaut. Activation possible via `SWAGGER_ENABLED=true`. Activé automatiquement sur les review apps.
 
@@ -558,11 +560,12 @@ Quand un add-on est lié à une application, les variables de connexion sont aut
 # Configuration de base
 clever env set NODE_ENV=production
 clever env set PORT=8080
-clever env set APP_URL=https://zerologementvacant.beta.gouv.fr
+clever env set HOST=https://zerologementvacant.beta.gouv.fr
+clever env set ALLOWED_ORIGINS=https://zerologementvacant.beta.gouv.fr
 
 # Authentification
 clever env set AUTH_SECRET=<votre-secret-securise-32-chars-minimum>
-clever env set AUTH_EXPIRES_IN=7d
+clever env set ADMIN_2FA_ENABLED=true
 
 # Email (Brevo)
 clever env set BREVO_API_KEY=<votre-cle-api-brevo>

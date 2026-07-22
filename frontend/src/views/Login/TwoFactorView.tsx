@@ -9,15 +9,15 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useLocation, useNavigate } from 'react-router';
+import { Navigate, useLocation, useNavigate } from 'react-router';
 import { object, string, type InferType } from 'yup';
 
 import securityIcon from '~/assets/images/building.svg';
 import AppTextInputNext from '~/components/_app/AppTextInput/AppTextInputNext';
 import Image from '~/components/Image/Image';
+import { useAsyncSubmission } from '~/hooks/useAsyncSubmission';
+import { useAuth } from '~/hooks/useAuth';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
-import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
-import { verifyTwoFactor } from '~/store/thunks/auth-thunks';
 
 const schema = object({
   code: string()
@@ -30,15 +30,14 @@ type FormSchema = InferType<typeof schema>;
 
 interface TwoFactorState {
   email: string;
-  establishmentId?: string;
+  establishmentId: string;
 }
 
 const TwoFactorView = () => {
   useDocumentTitle('Vérification en deux étapes');
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const auth = useAppSelector((state) => state.authentication);
+  const auth = useAuth();
 
   // Get email from location state (passed from LoginView)
   const state = location.state as TwoFactorState | undefined;
@@ -46,6 +45,8 @@ const TwoFactorView = () => {
   const establishmentId = state?.establishmentId;
 
   const [error, setError] = useState<string | null>(null);
+  const { isSubmitting: isVerificationPending, submit: submitVerification } =
+    useAsyncSubmission();
 
   const form = useForm<FormSchema>({
     defaultValues: {
@@ -55,32 +56,29 @@ const TwoFactorView = () => {
     resolver: yupResolver(schema)
   });
 
-  if (!email) {
-    // If no email in state, redirect back to login
-    navigate('/admin');
-    return null;
+  if (!email || !establishmentId) {
+    return <Navigate to="/admin" replace />;
   }
+  const verifiedEmail = email;
+  const verifiedEstablishmentId = establishmentId;
 
-  function submit(data: FormSchema): void {
-    setError(null);
-
-    dispatch(
-      verifyTwoFactor({
-        email: email!,
-        code: data.code,
-        establishmentId
-      })
-    )
-      .unwrap()
-      .then(() => {
+  async function submit(data: FormSchema): Promise<void> {
+    await submitVerification(async () => {
+      setError(null);
+      try {
+        await auth.verifyAdminTwoFactor(
+          verifiedEmail,
+          data.code,
+          verifiedEstablishmentId
+        );
         navigate('/parc-de-logements');
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error('2FA verification failed', error);
         setError(
           'Code de vérification invalide ou expiré. Veuillez vérifier votre email et réessayer.'
         );
-      });
+      }
+    });
   }
 
   return (
@@ -110,7 +108,7 @@ const TwoFactorView = () => {
           )}
 
           <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(submit)} id="2fa_form">
+            <form onSubmit={form.handleSubmit(submit)} id="2fa_form" noValidate>
               <AppTextInputNext<FormSchema>
                 name="code"
                 label="Code de vérification (6 chiffres)"
@@ -152,13 +150,11 @@ const TwoFactorView = () => {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={auth.verifyTwoFactor.isLoading}
+                  disabled={isVerificationPending}
                   iconId="fr-icon-lock-line"
                   iconPosition="left"
                 >
-                  {auth.verifyTwoFactor.isLoading
-                    ? 'Vérification...'
-                    : 'Vérifier'}
+                  {isVerificationPending ? 'Vérification...' : 'Vérifier'}
                 </Button>
               </Stack>
             </form>

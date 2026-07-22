@@ -50,7 +50,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       logIn(email?: string, password?: string): Chainable<void>;
-      getToken(email?: string, password?: string): Chainable<string>;
+      authenticateApi(email?: string, password?: string): Chainable<void>;
       // API SDK
       listHousings(): Chainable<Response<PaginatedResponse<HousingDTO>>>;
       createGroup(payload: GroupPayload): Chainable<Response<GroupDTO>>;
@@ -78,37 +78,26 @@ Cypress.Commands.add(
 );
 
 Cypress.Commands.add(
-  'getToken',
+  'authenticateApi',
   (
     email: string = Cypress.env('EMAIL'),
     password: string = Cypress.env('PASSWORD')
   ) => {
-    const cached: string | undefined = Cypress.env('TOKEN');
-    if (cached) {
-      return cy.wrap(cached);
-    }
     return cy
       .request({
         method: 'POST',
-        url: Cypress.env('API') + '/authenticate',
+        url: Cypress.env('API') + '/auth/sign-in/email',
         body: { email, password }
       })
-      .then((response) => {
-        const { accessToken } = response.body;
-        Cypress.env('TOKEN', accessToken);
-        return accessToken;
-      });
+      .then(() => undefined);
   }
 );
 
 Cypress.Commands.add('listHousings', () => {
-  return cy.getToken().then((token) => {
+  return cy.authenticateApi().then(() => {
     return cy.request({
       method: 'GET',
       url: Cypress.env('API') + '/housing',
-      headers: {
-        'X-Access-Token': token
-      },
       qs: {
         page: 1,
         perPage: 10
@@ -118,14 +107,11 @@ Cypress.Commands.add('listHousings', () => {
 });
 
 Cypress.Commands.add('createGroup', (payload: GroupPayload) => {
-  return cy.getToken().then((token) =>
+  return cy.authenticateApi().then(() =>
     cy.request({
       method: 'POST',
       url: Cypress.env('API') + `/groups`,
-      body: payload,
-      headers: {
-        'X-Access-Token': token
-      }
+      body: payload
     })
   );
 });
@@ -133,14 +119,11 @@ Cypress.Commands.add('createGroup', (payload: GroupPayload) => {
 Cypress.Commands.add(
   'createCampaignFromGroup',
   (groupId: GroupDTO['id'], payload: CampaignCreationPayload) => {
-    return cy.getToken().then((token) =>
+    return cy.authenticateApi().then(() =>
       cy.request({
         method: 'POST',
         url: Cypress.env('API') + `/groups/${groupId}/campaigns`,
-        body: payload,
-        headers: {
-          'X-Access-Token': token
-        }
+        body: payload
       })
     );
   }

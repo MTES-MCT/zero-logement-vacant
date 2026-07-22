@@ -37,7 +37,9 @@ function Perimeters(props: Props) {
         type="fill"
         paint={{
           'fill-color': props.backgroundColor ?? '#f6f6f6',
-          'fill-opacity': isVisible ? 0.25 : 0
+          // Perimeters are rendered as outlines only: no fill, even faint, so
+          // they never wash the map with a translucent background.
+          'fill-opacity': 0
         }}
       />
       <Layer

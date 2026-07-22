@@ -48,13 +48,45 @@ async function getByEmailIncludingDeleted(
 
 async function update(user: UserApi): Promise<void> {
   logger.debug('Updating user...', { id: user.id });
-  await Users().where({ id: user.id }).update(toUserDBO(user));
+  const { password: _legacyPassword, ...userRow } = toUserDBO(user);
+  await Users().where({ id: user.id }).update(userRow);
+}
+
+async function updateEstablishment(
+  userId: string,
+  establishmentId: string
+): Promise<void> {
+  await Users().where({ id: userId }).update({
+    establishment_id: establishmentId,
+    updated_at: new Date()
+  });
+}
+
+async function recordTwoFactorFailure(
+  userId: string,
+  maximumAttempts: number,
+  lockedUntil: Date
+): Promise<void> {
+  await Users()
+    .where({ id: userId })
+    .update({
+      two_factor_failed_attempts: db.raw('two_factor_failed_attempts + 1'),
+      two_factor_locked_until: db.raw(
+        `CASE
+          WHEN two_factor_failed_attempts + 1 >= ?
+          THEN COALESCE(two_factor_locked_until, ?)
+          ELSE two_factor_locked_until
+        END`,
+        [maximumAttempts, lockedUntil]
+      ),
+      updated_at: new Date()
+    });
 }
 
 async function insert(userApi: UserApi): Promise<UserApi> {
   logger.info('Insert user with email', userApi.email);
   return db(USERS_TABLE)
-    .insert(toUserDBO(userApi))
+    .insert({ ...toUserDBO(userApi), password: null })
     .returning('*')
     .then((_) => fromUserDBO(_[0]));
 }
@@ -117,13 +149,24 @@ async function count(opts?: CountOptions): Promise<number> {
 
 async function remove(userId: string): Promise<void> {
   logger.info('Remove user', userId);
-  await db(USERS_TABLE).where('id', userId).update({ deleted_at: new Date() });
+  const deletedAt = new Date();
+
+  await db.transaction(async (transaction) => {
+    await transaction('session').where({ user_id: userId }).delete();
+    await transaction('account').where({ user_id: userId }).delete();
+    await transaction('auth_users').where({ id: userId }).delete();
+    await transaction(USERS_TABLE).where('id', userId).update({
+      deleted_at: deletedAt,
+      updated_at: deletedAt
+    });
+  });
 }
 
 export interface UserDBO {
   id: string;
   email: string;
-  password: string;
+  /** Legacy cutover source. Runtime authentication uses account.password. */
+  password: string | null;
   first_name: string | null;
   last_name: string | null;
   establishment_id: string | null;
@@ -149,7 +192,7 @@ export interface UserDBO {
 export const fromUserDBO = (userDBO: UserDBO): UserApi => ({
   id: userDBO.id,
   email: userDBO.email,
-  password: userDBO.password,
+  password: userDBO.password ?? '',
   firstName: userDBO.first_name,
   lastName: userDBO.last_name,
   establishmentId: userDBO.establishment_id,
@@ -223,6 +266,8 @@ export default {
   getByEmail,
   getByEmailIncludingDeleted,
   update,
+  updateEstablishment,
+  recordTwoFactorFailure,
   count,
   find,
   insert,

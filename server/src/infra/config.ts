@@ -1,6 +1,5 @@
 import dotenvx from '@dotenvx/dotenvx';
 import { LOG_LEVELS, LogLevel } from '@zerologementvacant/utils';
-import { StringValue } from 'ms';
 import { z } from 'zod';
 
 dotenvx.config({
@@ -23,14 +22,29 @@ export const configSchema = z.object({
     isReviewApp: z.stringbool().default(false),
     host: z.string().default('http://localhost:3001'),
     port: z.coerce.number().int().min(1).max(65535).default(3001),
-    system: z.string().default('admin@zerologementvacant.beta.gouv.fr')
+    system: z.string().default('admin@zerologementvacant.beta.gouv.fr'),
+    allowedOrigins: z
+      .string()
+      .min(1, 'ALLOWED_ORIGINS is required')
+      // Required in production (empty prefault fails min(1), forcing explicit
+      // config), defaulted to the dev frontend otherwise so existing dev/test/
+      // CI environments don't crash at startup. Mirrors the secret/db.url/s3
+      // prod-required pattern.
+      .prefault(isProduction ? '' : 'http://localhost:3000')
+      .transform((value) =>
+        value
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter((origin) => origin.length > 0)
+      )
+      .pipe(z.array(z.url()).min(1))
+      .transform((origins) => origins.map((origin) => new URL(origin).origin))
   }),
   auth: z.object({
     secret: z
       .string()
       .min(1)
       .prefault(isProduction ? '' : 'secret'),
-    expiresIn: z.string().default('12 hours'),
     admin2faEnabled: z.stringbool().default(false),
     testPassword: z.string().default('test')
   }),
@@ -245,11 +259,15 @@ const config = configSchema.parse({
     isReviewApp: env('IS_REVIEW_APP'),
     host: env('HOST'),
     port: env('PORT'),
-    system: env('SYSTEM_ACCOUNT')
+    system: env('SYSTEM_ACCOUNT'),
+    // Comma-separated list of origins allowed to call the API via CORS,
+    // e.g. `https://app.zlv.fr,https://staging.zlv.fr`. Replaces the
+    // single-origin WEBSITE_URL (renamed for clarity now that it accepts
+    // multiple values).
+    allowedOrigins: env('ALLOWED_ORIGINS')
   },
   auth: {
     secret: env('AUTH_SECRET'),
-    expiresIn: env('AUTH_EXPIRES_IN'),
     admin2faEnabled: env('ADMIN_2FA_ENABLED'),
     testPassword: env('TEST_PASSWORD')
   },
@@ -354,11 +372,8 @@ const config = configSchema.parse({
   }
 });
 
-// Cast to match the contract expected by the rest of the codebase:
-// - auth.expiresIn typed as ms StringValue
-// - metabase.token / apiToken typed as string (required in production; null only in dev)
-export default config as Omit<Config, 'auth' | 'metabase'> & {
-  auth: Omit<Config['auth'], 'expiresIn'> & { expiresIn: StringValue };
+// Metabase tokens are required in production and null only in development.
+export default config as Omit<Config, 'metabase'> & {
   metabase: {
     domain: string;
     token: string;

@@ -19,6 +19,7 @@ import { describe, expect, it } from 'vitest';
 
 import { HousingFiltersProvider } from '~/hooks/HousingFiltersContext';
 import data from '~/mocks/handlers/data';
+import { MockAuthProvider } from '~/test/auth';
 import { factories } from '~/test/factories';
 import configureTestStore from '~/utils/storeUtils';
 import HousingListView from '~/views/HousingList/HousingListView';
@@ -67,9 +68,11 @@ describe('CampaignView', () => {
 
     render(
       <Provider store={configureTestStore()}>
-        <HousingFiltersProvider>
-          <RouterProvider router={router} />
-        </HousingFiltersProvider>
+        <MockAuthProvider options={{ user: auth, establishment }}>
+          <HousingFiltersProvider>
+            <RouterProvider router={router} />
+          </HousingFiltersProvider>
+        </MockAuthProvider>
       </Provider>
     );
 

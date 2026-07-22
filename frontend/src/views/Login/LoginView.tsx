@@ -15,14 +15,14 @@ import * as yup from 'yup';
 
 import EstablishmentSearchableSelect from '~/components/establishment/EstablishmentSearchableSelect';
 import Image from '~/components/Image/Image';
+import { useAsyncSubmission } from '~/hooks/useAsyncSubmission';
+import { useAuth } from '~/hooks/useAuth';
 
 import building from '../../assets/images/building.svg';
 import AppLink from '../../components/_app/AppLink/AppLink';
 import AppTextInputNext from '../../components/_app/AppTextInput/AppTextInputNext';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useAppDispatch, useAppSelector } from '../../hooks/useStore';
 import { type Establishment } from '../../models/Establishment';
-import { logIn } from '../../store/thunks/auth-thunks';
 
 const schema = yup
   .object({
@@ -55,17 +55,20 @@ export type LoginSchema = yup.InferType<typeof schema>;
 
 const LoginView = () => {
   useDocumentTitle('Connexion');
-  const dispatch = useAppDispatch();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const auth = useAppSelector((state) => state.authentication);
+  // AuthProvider is mounted at app boot: route login through Better Auth's
+  // cookie session. Admin login uses a dedicated 2FA endpoint.
+  const auth = useAuth();
+  const [authError, setAuthError] = useState<string | null>(null);
+  const { isSubmitting: isLoginPending, submit: submitLogin } =
+    useAsyncSubmission();
 
   const [establishment, setEstablishment] = useState<Establishment | null>(
     null
   );
 
   const isAdminView = pathname === '/admin';
-
   const form = useForm<LoginSchema>({
     defaultValues: {
       isAdmin: isAdminView,
@@ -76,33 +79,57 @@ const LoginView = () => {
     resolver: yupResolver(schema)
   });
 
-  function submitLoginForm(data: LoginSchema): void {
-    dispatch(
-      logIn({
-        email: data.email,
-        password: data.password,
-        establishmentId: data.establishmentId || undefined
-      })
-    )
-      .unwrap()
-      .then((response) => {
-        // Check if 2FA is required
-        if ('requiresTwoFactor' in response && response.requiresTwoFactor) {
-          // Redirect to 2FA verification page
-          navigate('/verification-2fa', {
-            state: {
-              email: response.email,
-              establishmentId: data.establishmentId || undefined
-            }
-          });
-        } else {
-          // Normal login, redirect to dashboard
-          navigate('/parc-de-logements');
+  async function submitLoginForm(data: LoginSchema): Promise<void> {
+    if (isAdminView) {
+      if (!data.establishmentId) {
+        form.setError('establishmentId', {
+          message: 'Veuillez sélectionner un établissement.'
+        });
+        return;
+      }
+      const establishmentId = data.establishmentId;
+      await submitLogin(async () => {
+        setAuthError(null);
+        try {
+          const challenge = await auth.signInAdmin(
+            data.email,
+            data.password,
+            establishmentId
+          );
+          if (challenge.requiresTwoFactor) {
+            navigate('/verification-2fa', {
+              state: {
+                email: challenge.email,
+                establishmentId
+              }
+            });
+          } else {
+            navigate('/parc-de-logements');
+          }
+        } catch (error) {
+          setAuthError(
+            error instanceof Error
+              ? error.message
+              : 'Échec de l’authentification.'
+          );
         }
-      })
-      .catch((error) => {
-        console.error('Authentication failed', error);
       });
+      return;
+    }
+
+    await submitLogin(async () => {
+      setAuthError(null);
+      try {
+        await auth.signIn(data.email, data.password);
+        navigate('/parc-de-logements');
+      } catch (error) {
+        setAuthError(
+          error instanceof Error
+            ? error.message
+            : 'Échec de l’authentification.'
+        );
+      }
+    });
   }
 
   return (
@@ -110,11 +137,11 @@ const LoginView = () => {
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, md: 6 }}>
-            {auth.logIn.isError ? (
+            {authError ? (
               <Box data-testid="alert-error" sx={{ my: 2 }}>
                 <Alert
                   title="Erreur"
-                  description="Échec de l’authentification"
+                  description={authError}
                   severity="error"
                 />
               </Box>
@@ -163,7 +190,7 @@ const LoginView = () => {
                   Mot de passe perdu ?
                 </AppLink>
               </Box>
-              {auth.logIn.isLoading ? (
+              {isLoginPending ? (
                 <Stack
                   direction="row"
                   alignItems="center"

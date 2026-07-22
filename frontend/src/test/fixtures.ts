@@ -19,10 +19,7 @@ import {
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { addHours } from 'date-fns';
-import jwt from 'jsonwebtoken';
 import randomstring from 'randomstring';
-
-import type { Establishment } from '~/models/Establishment';
 
 import type { Address } from '../models/Address';
 import type { Draft } from '../models/Draft';
@@ -38,12 +35,7 @@ import {
 } from '../models/Owner';
 import type { Prospect } from '../models/Prospect';
 import type { SignupLink } from '../models/SignupLink';
-import {
-  type AuthUser,
-  fromUserDTO,
-  toUserDTO,
-  type User
-} from '../models/User';
+import { fromUserDTO, toUserDTO, type User } from '../models/User';
 
 export const genBoolean = () => Math.random() < 0.5;
 
@@ -70,26 +62,6 @@ export function genNumber(length = 10): number {
       charset: 'numeric'
     })
   );
-}
-
-export function genAuthUser(
-  user: User,
-  establishment: Establishment
-): AuthUser {
-  const accessToken = jwt.sign(
-    {
-      userId: user.id,
-      establishmentId: establishment.id,
-      role: user.role
-    },
-    faker.string.alphanumeric(10),
-    { algorithm: 'HS256' }
-  );
-  return {
-    accessToken,
-    user,
-    establishment
-  };
 }
 
 export function genUser(

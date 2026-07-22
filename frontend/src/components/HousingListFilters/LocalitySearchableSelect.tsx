@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import SearchableSelectNext from '~/components/SearchableSelectNext/SearchableSelectNext';
 import { useIntercommunalities } from '~/hooks/useIntercommunalities';
 import { useLocalityList } from '~/hooks/useLocalityList';
-import { useAppSelector } from '~/hooks/useStore';
+import { useUser } from '~/hooks/useUser';
 import { getCity, getDistricts } from '~/models/Locality';
 
 interface Props {
@@ -15,10 +15,8 @@ interface Props {
 }
 
 function LocalitySearchableSelect(props: Props) {
-  const authData = useAppSelector((state) => state.authentication.logIn.data);
-  const establishment = authData?.establishment;
+  const { effectiveGeoCodes, establishment } = useUser();
   // effectiveGeoCodes is undefined when no perimeter restriction applies
-  const effectiveGeoCodes = authData?.effectiveGeoCodes;
 
   const { localities, listLocalitiesQuery } = useLocalityList(
     establishment?.id ?? null

@@ -1,4 +1,7 @@
-import { SirenStrasbourg } from '~/infra/database/seeds/development/20240404235442_establishments';
+import {
+  SirenSaintLo,
+  SirenStrasbourg
+} from '~/infra/database/seeds/development/20240404235442_establishments';
 
 import {
   CeremaUser,
@@ -11,6 +14,13 @@ export const MOCK_ANY_SIREN = '*';
 
 export class MockCeremaService implements ConsultUserService {
   async consultUsers(email: string): Promise<CeremaUser[]> {
+    if (email === 'test.strasbourg@zlv.fr') {
+      return [
+        defaultOK(email, SirenStrasbourg),
+        defaultOK(email, SirenSaintLo)
+      ];
+    }
+
     const testAccount = getTestAccount(email);
     if (testAccount) {
       return [testAccount];
@@ -28,7 +38,31 @@ function defaultOK(email: string, siren: string): CeremaUser {
     email,
     establishmentSiren: siren,
     hasAccount: true,
-    hasCommitment: true
+    hasCommitment: true,
+    cguValide: '2026-01-01T00:00:00.000Z',
+    userExpiresAt: null,
+    structureAccessExpiresAt: '2028-01-01T00:00:00.000Z',
+    structureHasLovac: true,
+    groupHasLovac: true,
+    group: {
+      id_groupe: 1,
+      nom: 'Aucune restriction',
+      structure: 1,
+      perimetre: 1,
+      niveau_acces: 'lovac',
+      df_ano: false,
+      df_non_ano: false,
+      lovac: true
+    },
+    perimeter: {
+      perimetre_id: 1,
+      origine: 'mock',
+      fr_entiere: false,
+      reg: [],
+      dep: [],
+      epci: [siren],
+      comm: []
+    }
   };
 }
 

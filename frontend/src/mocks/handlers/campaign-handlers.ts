@@ -21,14 +21,12 @@ import { Array, Order, pipe, Predicate } from 'effect';
 import { identity } from 'effect/Function';
 import { http, HttpResponse, RequestHandler } from 'msw';
 
-import { toUserDTO } from '~/models/User';
-
 import {
   type CampaignSortable,
   isCampaignSortable
 } from '../../models/Campaign';
 import config from '../../utils/config';
-import { decodeAuth } from './auth-helpers';
+import { getMockSession } from './auth-helpers';
 import data from './data';
 
 const find = http.get<Record<string, never>, never, CampaignDTO[]>(
@@ -65,7 +63,7 @@ const createFromGroup = http.post<
     );
   }
 
-  const auth = decodeAuth(request);
+  const auth = getMockSession();
   if (!auth) {
     throw new HttpResponse(
       {
@@ -89,7 +87,7 @@ const createFromGroup = http.post<
     },
     status: 'draft',
     createdAt: new Date().toJSON(),
-    createdBy: toUserDTO(auth.user),
+    createdBy: auth.user,
     groupId: group.id,
     returnCount: null,
     returnRate: null,

@@ -43,13 +43,7 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         external: [
           /node_modules\/(?!@codegouvfr)\/react-dsfr\/.+\\.js$/,
-          /node_modules\/\.store\/(?!@codegouvfr-react-dsfr-npm-[^/]+)\/package\/.*\.js$/,
-          // fetch-intercept/lib/browser.js has a dead-code path that requires
-          // whatwg-fetch as a polyfill fallback; the package is not installed
-          // because modern browsers have native fetch. Rolldown (Vite 8) is
-          // stricter than Rollup and treats the unresolved import as an error,
-          // so we mark it as external to keep the same runtime behaviour.
-          'whatwg-fetch'
+          /node_modules\/\.store\/(?!@codegouvfr-react-dsfr-npm-[^/]+)\/package\/.*\.js$/
         ]
       }
     },

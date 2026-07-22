@@ -19,24 +19,20 @@ export function useMapImages(
     let cancelled = false;
 
     async function registerImage(image: MapImage) {
-      if (!isStyleLoaded(mapRef) || hasImage(mapRef, image.id) !== false) {
+      if (hasImage(mapRef, image.id) !== false) {
         return;
       }
 
       try {
         const response = await mapRef.loadImage(image.path);
 
-        if (
-          !cancelled &&
-          isStyleLoaded(mapRef) &&
-          hasImage(mapRef, image.id) === false
-        ) {
+        if (!cancelled && hasImage(mapRef, image.id) === false) {
           mapRef.addImage(image.id, response.data, {
             sdf: false
           });
         }
       } catch (error) {
-        if (!cancelled && isStyleLoaded(mapRef)) {
+        if (!cancelled && hasImage(mapRef, image.id) !== undefined) {
           console.error(error);
         }
       }
@@ -58,14 +54,6 @@ export function useMapImages(
       mapRef.off('style.load', onStyleLoad);
     };
   }, [map, images]);
-}
-
-function isStyleLoaded(map: MapRef): boolean {
-  try {
-    return Boolean(map.isStyleLoaded());
-  } catch {
-    return false;
-  }
 }
 
 function hasImage(map: MapRef, id: string): boolean | undefined {

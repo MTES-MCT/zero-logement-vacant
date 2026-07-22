@@ -17,7 +17,6 @@ export interface AddressSearchResult {
 }
 
 const http = createHttpService('address', {
-  authenticated: false,
   host: config.banEndpoint,
   json: true
 });

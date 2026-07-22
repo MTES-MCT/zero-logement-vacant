@@ -2,32 +2,39 @@ import { usePostHog } from 'posthog-js/react';
 import { type PropsWithChildren, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router';
 
-import { useFetchInterceptor } from '../../hooks/useFetchInterceptor';
-import { useUser } from '../../hooks/useUser';
+import { useAuth } from '~/hooks/useAuth';
+import { useUser } from '~/hooks/useUser';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface RequireAuthProps {}
 
 function RequireAuth(props: PropsWithChildren<RequireAuthProps>) {
-  const { establishment, isAuthenticated, isUsual, isVisitor, user } =
-    useUser();
+  const auth = useAuth();
+  const user = useUser();
   const location = useLocation();
   const posthog = usePostHog();
 
-  useFetchInterceptor();
-
   useEffect(() => {
-    if (isUsual || isVisitor) {
-      if (user?.establishmentId) {
-        // Identify users by establishment to avoid tracking them individually
-        posthog.identify(user.establishmentId, {
-          name: establishment?.name
+    if (user.isUsual || user.isVisitor) {
+      if (user.establishment?.id) {
+        posthog.identify(user.establishment.id, {
+          name: user.establishment.name
         });
       }
     }
-  }, [isUsual, isVisitor, user, posthog, establishment?.name]);
+  }, [
+    user.isUsual,
+    user.isVisitor,
+    posthog,
+    user.establishment?.id,
+    user.establishment?.name
+  ]);
 
-  if (isAuthenticated) {
+  if (auth.isLoading) {
+    return null;
+  }
+
+  if (auth.isAuthenticated) {
     return props.children;
   }
 

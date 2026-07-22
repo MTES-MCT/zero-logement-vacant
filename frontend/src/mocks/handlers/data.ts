@@ -93,6 +93,13 @@ const prospects: ProspectDTO[] = [];
 const signupLinks: SignupLinkDTO[] = [];
 
 const users: UserDTO[] = [];
+const authSession: {
+  userId: UserDTO['id'] | null;
+  establishmentId: EstablishmentDTO['id'] | null;
+} = {
+  userId: null,
+  establishmentId: null
+};
 
 function reset(): void {
   buildings.length = 0;
@@ -117,6 +124,8 @@ function reset(): void {
   prospects.length = 0;
   signupLinks.length = 0;
   users.length = 0;
+  authSession.userId = null;
+  authSession.establishmentId = null;
 }
 
 // Export immediately to avoid Vite SSR module wrapping
@@ -148,6 +157,7 @@ export default {
   prospects,
   signupLinks,
   users,
+  authSession,
 
   reset
 };

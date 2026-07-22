@@ -12,14 +12,13 @@ import image from '../../../assets/images/thousand-structures.svg';
 import AppLink from '../../../components/_app/AppLink/AppLink';
 import AppTextInputNext from '../../../components/_app/AppTextInput/AppTextInputNext';
 import Image from '../../../components/Image/Image';
+import { useAuth } from '../../../hooks/useAuth';
 import {
   passwordConfirmationValidator,
   passwordFormatValidator
 } from '../../../hooks/useForm';
 import { useProspect } from '../../../hooks/useProspect';
-import { useAppDispatch } from '../../../hooks/useStore';
 import { useCreateUserMutation } from '../../../services/user.service';
-import { logIn } from '../../../store/actions/authenticationAction';
 
 const schema = object({
   password: passwordFormatValidator.required(),
@@ -27,7 +26,7 @@ const schema = object({
 }).required();
 
 function AccountPasswordCreationView() {
-  const dispatch = useAppDispatch();
+  const auth = useAuth();
   const navigate = useNavigate();
   const { linkExists, loading, prospect } = useProspect();
 
@@ -51,13 +50,7 @@ function AccountPasswordCreationView() {
         password: password,
         establishmentId: prospect.establishment.id
       });
-      await dispatch(
-        logIn({
-          email: prospect.email,
-          password,
-          establishmentId: prospect.establishment.id
-        })
-      );
+      await auth.signIn(prospect.email, password);
       navigate('/parc-de-logements', {
         replace: true,
         state: {

@@ -163,7 +163,7 @@ const HousingListView = () => {
                   />
                 </Stack>
                 <Tooltip
-                  align="start"
+                  align="end"
                   place="bottom"
                   title="Pour retrouver une liste de logements, copiez-collez dans la barre de recherche la liste de leurs identifiants fiscaux séparés par un espace. Exemple : « 750123456789 750123456790 750123456791 »"
                 />

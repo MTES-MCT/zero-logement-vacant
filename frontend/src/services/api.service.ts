@@ -3,7 +3,7 @@ import { Record } from 'effect';
 import qs from 'qs';
 
 import config from '../utils/config';
-import authService from './auth.service';
+import { createSessionAwareBaseQuery } from './session-aware-base-query';
 
 const TAG_TYPE_VALUES = [
   'Account',
@@ -33,10 +33,10 @@ const TAG_TYPE_VALUES = [
 ] as const;
 export type TagType = (typeof TAG_TYPE_VALUES)[number];
 
-export const zlvApi = createApi({
-  baseQuery: fetchBaseQuery({
+const baseQuery = createSessionAwareBaseQuery(
+  fetchBaseQuery({
     baseUrl: config.apiEndpoint,
-    prepareHeaders: (headers: Headers) => authService.withAuthHeader(headers),
+    credentials: 'include',
     paramsSerializer: (query) =>
       qs.stringify(
         Record.map(query, (value) => {
@@ -47,7 +47,11 @@ export const zlvApi = createApi({
         }),
         { arrayFormat: 'comma' }
       )
-  }),
+  })
+);
+
+export const zlvApi = createApi({
+  baseQuery,
   tagTypes: TAG_TYPE_VALUES,
   endpoints: () => ({})
 });

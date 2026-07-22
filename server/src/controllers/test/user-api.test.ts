@@ -1,4 +1,5 @@
 import { constants } from 'http2';
+import { randomUUID } from 'node:crypto';
 
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
@@ -14,6 +15,7 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 import { vi } from 'vitest';
 
+import { createPasswordVerifier } from '~/infra/auth-password';
 import db from '~/infra/database';
 
 // Generate valid French phone numbers
@@ -53,6 +55,7 @@ import {
 } from '~/repositories/prospectRepository';
 import { UsersEstablishments } from '~/repositories/user-establishment-repository';
 import { toUserDBO, Users, USERS_TABLE } from '~/repositories/userRepository';
+import { insertUserWithAuthIdentity } from '~/services/authIdentityService';
 import ceremaService from '~/services/ceremaService';
 import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
 import {
@@ -331,6 +334,28 @@ describe('User API', () => {
         establishment_id: prospect.establishment?.id,
         role: UserRole.USUAL
       });
+
+      const authUser = await db('auth_users')
+        .where({ id: body.id, email: prospect.email.toLowerCase() })
+        .first();
+      expect(authUser).toMatchObject({
+        email: prospect.email.toLowerCase()
+      });
+
+      const account = await db('account')
+        .where({
+          user_id: body.id,
+          account_id: prospect.email.toLowerCase(),
+          provider_id: 'credential'
+        })
+        .first();
+      expect(account).toBeDefined();
+      await expect(
+        createPasswordVerifier({ rehash: null })({
+          hash: account.password,
+          password: validPassword
+        })
+      ).resolves.toBeTrue();
     });
 
     it('should activate user establishment if needed', async () => {
@@ -563,6 +588,58 @@ describe('User API', () => {
           id: user.id
         });
       });
+
+      it('should sync password changes to the better-auth credential account', async () => {
+        const currentPassword = 'CurrentPassword123!';
+        const nextPassword = 'NextPassword123!';
+        const user: UserApi = {
+          ...genUserApi(establishment.id),
+          password: await bcrypt.hash(currentPassword, SALT_LENGTH)
+        };
+        await Users().insert(toUserDBO(user));
+        await db('auth_users').insert({
+          id: user.id,
+          name: `${user.firstName} ${user.lastName}`.trim(),
+          email: user.email.toLowerCase(),
+          email_verified: true
+        });
+        await db('account').insert({
+          id: randomUUID(),
+          account_id: user.email,
+          provider_id: 'credential',
+          user_id: user.id,
+          password: user.password
+        });
+
+        const payload: UserUpdatePayload = {
+          firstName: user.firstName ?? faker.person.firstName(),
+          lastName: user.lastName ?? faker.person.lastName(),
+          phone: genFrenchPhone(),
+          position: faker.person.jobTitle(),
+          timePerWeek: faker.helpers.arrayElement(TIME_PER_WEEK_VALUES),
+          password: {
+            before: currentPassword,
+            after: nextPassword
+          }
+        };
+
+        const { status } = await request(url)
+          .put(testRoute(user.id))
+          .send(payload)
+          .type('json')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        const account = await db('account')
+          .where({ user_id: user.id, provider_id: 'credential' })
+          .first();
+        await expect(
+          createPasswordVerifier({ rehash: null })({
+            hash: account.password,
+            password: nextPassword
+          })
+        ).resolves.toBeTrue();
+      });
     });
 
     describe('As an authenticated admin', () => {
@@ -645,11 +722,12 @@ describe('User API', () => {
         },
         { interruptAfterTimeLimit: TIMEOUT }
       )('should validate inputs', async (payload) => {
+        const credentialHash = await bcrypt.hash(TEST_PASSWORD, SALT_LENGTH);
         const user: UserApi = {
           ...genUserApi(establishment.id),
-          password: await bcrypt.hash(TEST_PASSWORD, SALT_LENGTH)
+          password: credentialHash
         };
-        await Users().insert(toUserDBO(user));
+        await insertUserWithAuthIdentity(user, credentialHash);
 
         const { status } = await request(url)
           .put(testRoute(user.id))
@@ -695,11 +773,41 @@ describe('User API', () => {
 
     describe('As an authenticated admin', () => {
       it('should delete any user', async () => {
+        await db('auth_users').insert({
+          id: user.id,
+          name: [user.firstName, user.lastName].filter(Boolean).join(' '),
+          email: user.email.toLowerCase(),
+          email_verified: true
+        });
+        await db('account').insert({
+          id: randomUUID(),
+          account_id: user.email,
+          provider_id: 'credential',
+          user_id: user.id,
+          password: user.password
+        });
+        await db('session').insert({
+          id: randomUUID(),
+          token: randomUUID(),
+          user_id: user.id,
+          active_establishment_id: establishment.id,
+          expires_at: new Date(Date.now() + 60_000)
+        });
+
         const { status } = await request(url)
           .delete(testRoute(user.id))
           .use(tokenProvider(admin));
 
         expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+
+        const authUser = await db('auth_users').where({ id: user.id }).first();
+        expect(authUser).toBeUndefined();
+        await expect(
+          db('account').where({ user_id: user.id }).first()
+        ).resolves.toBeUndefined();
+        await expect(
+          db('session').where({ user_id: user.id }).first()
+        ).resolves.toBeUndefined();
       });
     });
   });

@@ -31,6 +31,7 @@
     "@nx/cypress": "22.7.1",
     "@nx/esbuild": "22.7.1",
     "@nx/js": "22.7.1",
+    "@nx/playwright": "22.7.1",
     "@nx/react": "22.7.1",
     "@nx/vite": "22.7.1",
     "@nx/vitest": "22.7.1",

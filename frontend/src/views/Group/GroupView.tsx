@@ -16,7 +16,6 @@ import {
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useNotification } from '~/hooks/useNotification';
 import { useAppSelector } from '~/hooks/useStore';
-import authService from '~/services/auth.service';
 import { useCreateCampaignFromGroupMutation } from '~/services/campaign.service';
 import {
   useGetGroupQuery,
@@ -126,8 +125,7 @@ function GroupViewContent() {
 
   const onGroupExport: GroupProps['onExport'] = () => {
     if (group) {
-      const token = authService.authHeader()?.['x-access-token'];
-      const url = `${config.apiEndpoint}/groups/${group.id}/export?x-access-token=${token}`;
+      const url = `${config.apiEndpoint}/groups/${group.id}/export`;
       window.open(url, '_self');
     }
   };

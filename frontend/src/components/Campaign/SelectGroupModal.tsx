@@ -1,9 +1,11 @@
+import { ClassNames } from '@emotion/react';
 import { fr } from '@codegouvfr/react-dsfr';
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import Stack from '@mui/material/Stack';
 import { createColumnHelper } from '@tanstack/react-table';
+import { Array, Order, pipe } from 'effect';
 import { useEffect, useMemo, useState } from 'react';
 
 import AppSearchBar from '~/components/_app/AppSearchBar/AppSearchBar';
@@ -14,6 +16,8 @@ import {
 } from '~/components/modals/ConfirmationModal/ExtendedModal';
 import type { Group } from '~/models/Group';
 import { useFindGroupsQuery } from '~/services/group.service';
+
+import LabelNext from '../Label/LabelNext';
 
 export type SelectGroupModalOptions = Partial<ExtendedModalOptions>;
 
@@ -63,14 +67,17 @@ export function createSelectGroupModal(
       }, [openCount]);
 
       const filteredGroups = useMemo(() => {
-        const eligible = (groups ?? []).filter(isEligible);
-        const matches = searchText
-          ? eligible.filter((group) =>
-              group.title.toLowerCase().includes(searchText.toLowerCase())
-            )
-          : eligible;
-        return [...matches].sort(
-          (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+        return pipe(
+          groups ?? [],
+          Array.filter(isEligible),
+          (groups) =>
+            searchText
+              ? groups.filter((group) =>
+                  group.title.toLowerCase().includes(searchText.toLowerCase())
+                )
+              : groups,
+          // Most recent first: reverse the ascending Date order.
+          Array.sortWith((group) => group.createdAt, Order.reverse(Order.Date))
         );
       }, [groups, searchText]);
 
@@ -129,6 +136,7 @@ export function createSelectGroupModal(
             stepCount={2}
             title="Sélectionner le groupe de logements"
             nextTitle="Créer une campagne"
+            className="fr-mb-2w"
           />
 
           {isError ? (
@@ -151,28 +159,38 @@ export function createSelectGroupModal(
               </Button>
             </>
           ) : (
-            <>
+            <Stack>
               <AppSearchBar
                 key={openCount}
                 label="Rechercher un groupe"
                 allowEmptySearch
                 onSearch={search}
+                className='fr-mb-2w'
               />
 
-              <p role="status" className={fr.cx('fr-text--bold', 'fr-mb-0')}>
+              <LabelNext role="status" sx={{ fontWeight: 'normal' }}>
                 {statusMessage}
-              </p>
+              </LabelNext>
 
-              <AdvancedTable
-                caption="Groupes de logements"
-                columns={columns}
-                data={filteredGroups}
-                perPageOptions={[5, 10, 50]}
-                defaultPageSize={5}
-                staticPageSize
-                tableProps={{ noCaption: true }}
-              />
-            </>
+              <ClassNames>
+                {({ css }) => (
+                  <AdvancedTable
+                    caption="Groupes de logements"
+                    columns={columns}
+                    data={filteredGroups}
+                    perPageOptions={[5, 10, 50]}
+                    defaultPageSize={5}
+                    staticPageSize
+                    classes={{
+                      pagination: {
+                        container: css({ justifyContent: 'flex-start' })
+                      }
+                    }}
+                    tableProps={{ noCaption: true }}
+                  />
+                )}
+              </ClassNames>
+            </Stack>
           )}
         </modal.Component>
       );

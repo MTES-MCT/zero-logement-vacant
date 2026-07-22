@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs';
+
 import { AddressKinds } from '@zerologementvacant/models';
+import type { RelativeLocation } from '@zerologementvacant/models';
 import { describe, it, expect } from 'vitest';
 
 import { AddressApi } from '~/models/AddressApi';
@@ -10,6 +13,41 @@ import {
   calculateGeographicClassification,
   calculateDistance
 } from '../ownerDistanceService';
+
+interface DistanceContractAddress {
+  banId?: string;
+  label: string;
+  postalCode: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+interface DistanceContractCase {
+  name: string;
+  owner: DistanceContractAddress;
+  housing: DistanceContractAddress;
+  expectedRelativeLocation: RelativeLocation;
+  expectedDatabaseValue: number;
+}
+
+const distanceContract = JSON.parse(
+  readFileSync(
+    new URL('../../test/owner-distance-contract.json', import.meta.url),
+    'utf8'
+  )
+) as { cases: DistanceContractCase[] };
+
+function contractAddress(
+  address: DistanceContractAddress,
+  addressKind: AddressKinds
+): AddressApi {
+  return {
+    refId: `${addressKind.toLowerCase()}-id`,
+    addressKind,
+    city: '',
+    ...address
+  };
+}
 
 describe('Owner Distance Service', () => {
   describe('haversineDistance', () => {
@@ -133,11 +171,11 @@ describe('Owner Distance Service', () => {
       expect(result).toBe('same-address');
     });
 
-    it('should return same-address for very close distance (< 50m)', () => {
+    it('should return same-commune for very close distance without matching banIds', () => {
       const result = calculateGeographicClassification('75001', '75001', {
         absoluteDistance: 30
       });
-      expect(result).toBe('same-address');
+      expect(result).toBe('same-commune');
     });
 
     it('should return same-commune for identical postal codes but distance >= 50m', () => {
@@ -206,6 +244,18 @@ describe('Owner Distance Service', () => {
       longitude
     });
 
+    it.each(distanceContract.cases)(
+      'follows the shared location contract: $name',
+      ({ owner, housing, expectedRelativeLocation }) => {
+        const result = calculateDistance(
+          contractAddress(owner, AddressKinds.Owner),
+          contractAddress(housing, AddressKinds.Housing)
+        );
+
+        expect(result.relativeLocation).toBe(expectedRelativeLocation);
+      }
+    );
+
     it('should calculate both distance and classification', () => {
       const ownerAddress = createMockAddress('75001', 48.8566, 2.3522);
       const housingAddress = createMockAddress('69001', 45.764, 4.8357);
@@ -217,23 +267,61 @@ describe('Owner Distance Service', () => {
       expect(result.absoluteDistance!).toBeGreaterThan(380000);
     });
 
-    it('should return null distance if owner has no coordinates', () => {
-      const ownerAddress = createMockAddress('75001');
+    it('should leave owner unclassified when only its banId is available', () => {
+      const ownerAddress: AddressApi = {
+        ...createMockAddress('75001'),
+        banId: 'owner-ban-id'
+      };
       const housingAddress = createMockAddress('69001', 45.764, 4.8357);
 
       const result = calculateDistance(ownerAddress, housingAddress);
 
-      expect(result.relativeLocation).toBe('metropolitan');
+      expect(result.relativeLocation).toBe('other');
       expect(result.absoluteDistance).toBeNull();
     });
 
-    it('should return null distance if housing has no coordinates', () => {
-      const ownerAddress = createMockAddress('75001', 48.8566, 2.3522);
-      const housingAddress = createMockAddress('69001');
+    it('should leave an unverified foreign postal address unclassified', () => {
+      const ownerAddress: AddressApi = {
+        ...createMockAddress('10115'),
+        label: '10115 Berlin'
+      };
+      const housingAddress: AddressApi = {
+        ...createMockAddress('75015', 48.8422, 2.2996),
+        banId: 'housing-ban-id'
+      };
 
       const result = calculateDistance(ownerAddress, housingAddress);
 
-      expect(result.relativeLocation).toBe('metropolitan');
+      expect(result.relativeLocation).toBe('other');
+      expect(result.absoluteDistance).toBeNull();
+    });
+
+    it('should leave unverified French-looking address text unclassified', () => {
+      const ownerAddress: AddressApi = {
+        ...createMockAddress('75001'),
+        label: '1 rue de la Paix 75001 Paris'
+      };
+      const housingAddress: AddressApi = {
+        ...createMockAddress('69001', 45.764, 4.8357),
+        banId: 'housing-ban-id'
+      };
+
+      const result = calculateDistance(ownerAddress, housingAddress);
+
+      expect(result.relativeLocation).toBe('other');
+      expect(result.absoluteDistance).toBeNull();
+    });
+
+    it('should leave housing unclassified when only its banId is available', () => {
+      const ownerAddress = createMockAddress('75001', 48.8566, 2.3522);
+      const housingAddress: AddressApi = {
+        ...createMockAddress('69001'),
+        banId: 'housing-ban-id'
+      };
+
+      const result = calculateDistance(ownerAddress, housingAddress);
+
+      expect(result.relativeLocation).toBe('other');
       expect(result.absoluteDistance).toBeNull();
     });
 
@@ -244,14 +332,13 @@ describe('Owner Distance Service', () => {
       expect(result.absoluteDistance).toBeNull();
     });
 
-    it('should return same-address for very close addresses (< 50m)', () => {
-      // Two addresses very close to each other (same building)
+    it('should return same-commune for identical coordinates without matching banIds', () => {
       const ownerAddress = createMockAddress('75001', 48.8566, 2.3522);
       const housingAddress = createMockAddress('75001', 48.8566, 2.3522);
 
       const result = calculateDistance(ownerAddress, housingAddress);
 
-      expect(result.relativeLocation).toBe('same-address');
+      expect(result.relativeLocation).toBe('same-commune');
       expect(result.absoluteDistance).toBe(0);
     });
 
@@ -280,6 +367,65 @@ describe('Owner Distance Service', () => {
       const result = calculateDistance(ownerAddress, housingAddress);
 
       expect(result.relativeLocation).toBe('same-address');
+    });
+
+    it('should return same-address for same non-empty banId without coordinates', () => {
+      const ownerAddress: AddressApi = {
+        ...createMockAddress('75001'),
+        banId: 'same-ban-id'
+      };
+      const housingAddress: AddressApi = {
+        ...createMockAddress('75001'),
+        banId: 'same-ban-id'
+      };
+
+      const result = calculateDistance(ownerAddress, housingAddress);
+
+      expect(result.relativeLocation).toBe('same-address');
+      expect(result.absoluteDistance).toBeNull();
+    });
+
+    it('should not return same-address for nearby addresses with distinct banIds', () => {
+      const ownerAddress: AddressApi = {
+        ...createMockAddress('75001', 48.8566, 2.3522),
+        banId: 'owner-ban-id'
+      };
+      const housingAddress: AddressApi = {
+        ...createMockAddress('75001', 48.8567, 2.3523),
+        banId: 'housing-ban-id'
+      };
+
+      const result = calculateDistance(ownerAddress, housingAddress);
+
+      expect(result.relativeLocation).toBe('same-commune');
+      expect(result.absoluteDistance).not.toBeNull();
+      expect(result.absoluteDistance!).toBeLessThan(50);
+    });
+
+    it('should leave distinct banIds without coordinates unclassified', () => {
+      const ownerAddress: AddressApi = {
+        ...createMockAddress('75001'),
+        banId: 'owner-ban-id'
+      };
+      const housingAddress: AddressApi = {
+        ...createMockAddress('75001'),
+        banId: 'housing-ban-id'
+      };
+
+      const result = calculateDistance(ownerAddress, housingAddress);
+
+      expect(result.relativeLocation).toBe('other');
+      expect(result.absoluteDistance).toBeNull();
+    });
+
+    it('should leave addresses with invalid coordinates unclassified', () => {
+      const ownerAddress = createMockAddress('75001', 91, 2.3522);
+      const housingAddress = createMockAddress('69001', 45.764, 4.8357);
+
+      const result = calculateDistance(ownerAddress, housingAddress);
+
+      expect(result.relativeLocation).toBe('other');
+      expect(result.absoluteDistance).toBeNull();
     });
   });
 });

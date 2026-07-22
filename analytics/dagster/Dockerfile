@@ -26,7 +26,8 @@ RUN uv sync --frozen
 ENV DAGSTER_HOME=/opt/dagster/dagster_home/
 RUN mkdir -p $DAGSTER_HOME
 COPY dagster.yaml workspace.yaml $DAGSTER_HOME
-COPY src/ $DAGSTER_HOME
+COPY src/ $DAGSTER_HOME/src/
+COPY scripts/backfill_ban_owners.py $DAGSTER_HOME/scripts/backfill_ban_owners.py
 
 # Définir le répertoire de travail
 WORKDIR $DAGSTER_HOME

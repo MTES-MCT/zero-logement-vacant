@@ -28,6 +28,7 @@ RUN mkdir -p $DAGSTER_HOME
 COPY analytics/dagster/dagster.yaml analytics/dagster/workspace.yaml $DAGSTER_HOME
 
 COPY analytics/dagster/src $DAGSTER_HOME/src
+COPY analytics/dagster/scripts/backfill_ban_owners.py $DAGSTER_HOME/scripts/backfill_ban_owners.py
 
 COPY analytics/dbt /opt/dagster/dbt
 

@@ -1582,7 +1582,10 @@ Concrete example (owner-housing-distances script):
 ## References
 
 - Reference scripts:
+  - `analytics/dagster/src/owner_housing_locations/calculator.py`
+    (canonical implementation)
   - `server/src/scripts/owner-housing-distances/calculate_distances.py`
+    (compatibility entrypoint)
   - `server/src/scripts/owner-housing-distances/test_calculate_distances.py` (tests)
   - `server/src/scripts/import-dpe/import-dpe.py`
 

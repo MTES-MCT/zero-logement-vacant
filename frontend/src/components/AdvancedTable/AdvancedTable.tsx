@@ -365,7 +365,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
           className={props.classes?.pagination?.container}
         >
           {staticPageSize ? (
-            <LabelNext>
+            <LabelNext sx={{ fontWeight: 'normal' }}>
               {table.getState().pagination.pageSize} ligne
               {table.getState().pagination.pageSize > 1 ? 's' : ''} par page
             </LabelNext>

@@ -205,6 +205,113 @@ describe('Establishment repository', () => {
       expect(actual).toBeArrayOfSize(1);
       expect(actual[0].users).toBeUndefined();
     });
+
+    it('should filter establishments by kind', async () => {
+      const establishment = { ...genEstablishmentApi(), kind: 'COM' as const };
+      await Establishments().insert(formatEstablishmentApi(establishment));
+
+      const actual = await establishmentRepository.find({
+        filters: { kind: ['COM'] }
+      });
+
+      expect(actual.length).toBeGreaterThan(0);
+      expect(actual).toSatisfyAll<EstablishmentApi>((e) => e.kind === 'COM');
+    });
+
+    it('should filter establishments by query (accent- and case-insensitive)', async () => {
+      const establishment = {
+        ...genEstablishmentApi(),
+        name: 'Métropole Étoile'
+      };
+      await Establishments().insert(formatEstablishmentApi(establishment));
+
+      const actual = await establishmentRepository.find({
+        filters: { query: 'metropole etoile' }
+      });
+
+      const ids = actual.map((e) => e.id);
+      expect(ids).toContain(establishment.id);
+    });
+
+    it('should return no establishments when query does not match', async () => {
+      const establishment = genEstablishmentApi();
+      await Establishments().insert(formatEstablishmentApi(establishment));
+
+      const actual = await establishmentRepository.find({
+        filters: { query: 'zzzzzznonexistentzzzzzz' }
+      });
+
+      const ids = actual.map((e) => e.id);
+      expect(ids).not.toContain(establishment.id);
+    });
+
+    it('should filter establishments by normalized name', async () => {
+      const establishment = {
+        ...genEstablishmentApi(),
+        name: "Communauté d'Agglomération de Test (CAT)"
+      };
+      await Establishments().insert(formatEstablishmentApi(establishment));
+
+      // The `name` filter normalizes the stored name by dropping apostrophes
+      // and any parenthetical suffix, replacing spaces/hyphens with a single
+      // hyphen, lowercasing and unaccenting it, then does a trailing LIKE —
+      // so the query value must already be normalized the same way.
+      const actual = await establishmentRepository.find({
+        filters: { name: 'communaute-dagglomeration-de-test' }
+      });
+
+      const ids = actual.map((e) => e.id);
+      expect(ids).toContain(establishment.id);
+    });
+
+    it('should return no establishments when name does not match', async () => {
+      const establishment = genEstablishmentApi();
+      await Establishments().insert(formatEstablishmentApi(establishment));
+
+      const actual = await establishmentRepository.find({
+        filters: { name: 'zzzzzznonexistentzzzzzz' }
+      });
+
+      const ids = actual.map((e) => e.id);
+      expect(ids).not.toContain(establishment.id);
+    });
+  });
+
+  describe('stream', () => {
+    it('should stream all establishments as a web ReadableStream', async () => {
+      const establishment = genEstablishmentApi();
+      await Establishments().insert(formatEstablishmentApi(establishment));
+
+      const results: EstablishmentApi[] = [];
+      const reader = establishmentRepository.stream().getReader();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        results.push(value);
+      }
+
+      const ids = results.map((e) => e.id);
+      expect(ids).toContain(establishment.id);
+    });
+
+    it('should only stream establishments updated after the given date', async () => {
+      const establishment = genEstablishmentApi();
+      await Establishments().insert(formatEstablishmentApi(establishment));
+      const cutoff = new Date(Date.now() + 1000 * 60 * 60);
+
+      const results: EstablishmentApi[] = [];
+      const reader = establishmentRepository
+        .stream({ updatedAfter: cutoff })
+        .getReader();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        results.push(value);
+      }
+
+      const ids = results.map((e) => e.id);
+      expect(ids).not.toContain(establishment.id);
+    });
   });
 
   describe('get', () => {
@@ -301,6 +408,12 @@ describe('Establishment repository', () => {
       expect(actual!.users).toBeDefined();
       expect(actual!.users).toBeArrayOfSize(1);
       expect(actual!.users![0].id).toBe(user.id);
+    });
+
+    it('should find an unfiltered establishment when siren is not provided', async () => {
+      const actual = await establishmentRepository.findOne({});
+
+      expect(actual).not.toBeNull();
     });
   });
 

@@ -25,7 +25,7 @@ import userRepository, {
 import {
   flipCampaignHousingsToWaiting,
   flipHousingsToWaiting
-} from '~/services/campaignHousingService';
+} from '~/services/campaign-housing-service';
 import {
   genEstablishmentApi,
   genUserApi,
@@ -33,7 +33,7 @@ import {
   genCampaignApi
 } from '~/test/testFixtures';
 
-describe('campaignHousingService', () => {
+describe('campaign-housing-service', () => {
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
   let system: UserApi;

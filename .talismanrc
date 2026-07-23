@@ -141,6 +141,8 @@ fileignoreconfig:
   checksum: 9f910ce0e1ff3471d4eacc28e9a76fb310993f6c9226f01ee309530a19f5424d
 - filename: docs/superpowers/plans/2026-07-23-kysely-phase3-establishmentRepository-migration.md
   checksum: c0b52a4b4ba148447c6178bd5453b9309a3009903f1d255133513540ca8e5901
+- filename: docs/superpowers/plans/2026-07-23-kysely-phase2-userRepository-tests.md
+  checksum: cd24e660591c6b35b35aab8d74fb26cb86afdc3fe946b8aefb8bbf0f4d80b0cf
 - filename: server/src/scripts/import-dpe/import-dpe.py
   checksum: ba1ea278d8321501976c7c9da7e9428fe8819776369f7eef0ff1fbf1ee4ed8bf
 - filename: server/src/scripts/import-dpe/import_dpe_raw.py

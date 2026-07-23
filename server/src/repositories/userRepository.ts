@@ -317,7 +317,7 @@ export const toUserDBO = (userApi: UserApi): UserDBO => ({
 
 type UserRow = Selectable<DB['users']>;
 
-function parseUserRow(row: UserRow): UserApi {
+export function parseUserRow(row: UserRow): UserApi {
   return {
     id: row.id,
     email: row.email,
@@ -353,7 +353,7 @@ function parseUserRow(row: UserRow): UserApi {
   };
 }
 
-function toUserInsert(userApi: UserApi) {
+export function toUserInsert(userApi: UserApi) {
   return {
     id: userApi.id,
     email: userApi.email,
@@ -391,7 +391,7 @@ function toUserInsert(userApi: UserApi) {
 
 // update() never writes `password` — auth-v2 owns credentials via
 // account.password; this legacy field must never round-trip back in.
-function toUserUpdate(userApi: UserApi) {
+export function toUserUpdate(userApi: UserApi) {
   const { password: _legacyPassword, id: _id, ...rest } = toUserInsert(userApi);
   return rest;
 }

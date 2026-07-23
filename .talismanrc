@@ -161,6 +161,8 @@ fileignoreconfig:
   checksum: 5cdf8d316f37257420dfa761977b4dc6b7988c8f840a87774658aca3772eee85
 - filename: docs/superpowers/plans/2026-07-23-kysely-phase2-localityRepository-tests.md
   checksum: 28dac6a111cc8caf2361afad9666ff74e9a3a2fd581aacb80456f520503bea4e
+- filename: docs/superpowers/plans/2026-07-23-kysely-phase3-localityRepository-migration.md
+  checksum: 34b9dd41d580f56aa96188817c54bc3748b0bf52f7c175db919deb15351f2719
 - filename: server/src/services/metabase/metabase-normalize.ts
   checksum: 1bd122150d2d7806ebf7cb708750814288d528fad4b3a1a3da0e1f9ae91f2f5d
 - filename: server/src/scripts/repairs/lib/apply.ts

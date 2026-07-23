@@ -165,6 +165,8 @@ fileignoreconfig:
   checksum: 34b9dd41d580f56aa96188817c54bc3748b0bf52f7c175db919deb15351f2719
 - filename: docs/superpowers/plans/2026-07-23-kysely-phase2-datafoncierHousingRepository-tests.md
   checksum: 8b9b22ce0713709c9af2376a8871856a9aed67fc700464aa71af0f1373db326a
+- filename: docs/superpowers/plans/2026-07-23-kysely-phase3-datafoncierHousingRepository-migration.md
+  checksum: 086da35b5f54d842fd58e2216daedea6ce9f8759ee5253183924db49992d1481
 - filename: server/src/services/metabase/metabase-normalize.ts
   checksum: 1bd122150d2d7806ebf7cb708750814288d528fad4b3a1a3da0e1f9ae91f2f5d
 - filename: server/src/scripts/repairs/lib/apply.ts

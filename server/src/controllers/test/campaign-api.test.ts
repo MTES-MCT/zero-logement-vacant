@@ -6,6 +6,7 @@ import {
   CampaignDTO,
   CampaignRemovalPayload,
   CampaignUpdatePayload,
+  HOUSING_STATUS_LABELS,
   HOUSING_STATUS_VALUES,
   HousingStatus,
   type CampaignCreationPayload,
@@ -37,7 +38,8 @@ import {
   Events,
   formatCampaignEventApi,
   formatEventApi,
-  HOUSING_EVENTS_TABLE
+  HOUSING_EVENTS_TABLE,
+  HousingEvents
 } from '~/repositories/eventRepository';
 import {
   formatGroupApi,
@@ -929,6 +931,122 @@ describe('Campaign API', () => {
         .where({ geo_code: housing.geoCode, id: housing.id })
         .first();
       expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
+    });
+
+    it('reverts auto-flipped housings when sentAt is postponed to the future', async () => {
+      const system = (await userRepository.getByEmail(config.app.system))!;
+      const sentCampaign = await factories
+        .campaign(establishment)
+        .create(
+          { sentAt: '2020-01-01' },
+          { associations: { createdBy: user } }
+        );
+
+      const housing: HousingApi = {
+        ...genHousingApi(oneOf(establishment.geoCodes)),
+        status: HousingStatus.WAITING,
+        subStatus: null
+      };
+      await Housing().insert(formatHousingRecordApi(housing));
+      await CampaignsHousing().insert({
+        campaign_id: sentCampaign.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      });
+      // Pristine system-authored auto-flip: the mark that this WAITING came from
+      // the send-date rule.
+      const flip = genEventApi({
+        type: 'housing:status-updated',
+        creator: system,
+        nextOld: {
+          status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+        },
+        nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] }
+      });
+      await Events().insert(formatEventApi(flip));
+      await HousingEvents().insert({
+        event_id: flip.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      });
+
+      const payload: CampaignUpdatePayload = {
+        title: sentCampaign.title,
+        description: sentCampaign.description,
+        sentAt: '2999-01-01'
+      };
+      const { status } = await request(url)
+        .put(testRoute(sentCampaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await Housing()
+        .where({ geo_code: housing.geoCode, id: housing.id })
+        .first();
+      expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
+
+      const revertEvents = await Events()
+        .where({ type: 'housing:status-updated' })
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({ housing_geo_code: housing.geoCode, housing_id: housing.id })
+        .andWhere('created_by', system.id)
+        .andWhereRaw(`next_new ->> 'status' = ?`, [
+          HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+        ]);
+      expect(revertEvents).toHaveLength(1);
+    });
+
+    it('does not revert a manually-set WAITING housing when postponed', async () => {
+      const sentCampaign = await factories
+        .campaign(establishment)
+        .create(
+          { sentAt: '2020-01-01' },
+          { associations: { createdBy: user } }
+        );
+
+      const housing: HousingApi = {
+        ...genHousingApi(oneOf(establishment.geoCodes)),
+        status: HousingStatus.WAITING,
+        subStatus: null
+      };
+      await Housing().insert(formatHousingRecordApi(housing));
+      await CampaignsHousing().insert({
+        campaign_id: sentCampaign.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      });
+      // A caseworker set WAITING by hand — the flip event is authored by the user,
+      // not the system, so it must not be reverted.
+      const manual = genEventApi({
+        type: 'housing:status-updated',
+        creator: user,
+        nextOld: {
+          status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+        },
+        nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] }
+      });
+      await Events().insert(formatEventApi(manual));
+      await HousingEvents().insert({
+        event_id: manual.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      });
+
+      const payload: CampaignUpdatePayload = {
+        title: sentCampaign.title,
+        description: sentCampaign.description,
+        sentAt: '2999-01-01'
+      };
+      await request(url)
+        .put(testRoute(sentCampaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      const actual = await Housing()
+        .where({ geo_code: housing.geoCode, id: housing.id })
+        .first();
+      expect(actual?.status).toBe(HousingStatus.WAITING);
     });
 
     it('does not re-run the flip when sentAt is unchanged', async () => {

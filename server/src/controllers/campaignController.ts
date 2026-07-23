@@ -22,6 +22,7 @@ import { logger } from '~/infra/logger';
 import {
   CampaignApi,
   CampaignSortableApi,
+  isSendDateInFuture,
   isSendDateReached,
   toCampaignDTO
 } from '~/models/CampaignApi';
@@ -42,7 +43,8 @@ import senderRepository from '~/repositories/senderRepository';
 import {
   flipCampaignHousingsToWaiting,
   flipHousingsToWaiting,
-  resolveSystemUser
+  resolveSystemUser,
+  revertCampaignHousingsToNeverContacted
 } from '~/services/campaign-housing-service';
 import { today } from '~/utils/date';
 
@@ -271,21 +273,30 @@ const update: RequestHandler<
     sentAt: body.sentAt ?? campaign.sentAt
   };
 
-  // Only a genuine sentAt change (same-day confirmation or a retroactive
-  // correction to a past date) should trigger the flip — otherwise every
-  // metadata-only edit of an already-sent campaign would re-scan and
-  // rewrite all of its housings for no reason.
+  // A genuine sentAt change either flips housings to waiting (date reached) or,
+  // when postponed to the future, reverts the ones the send-date rule
+  // auto-flipped. Never on a metadata-only edit. The two are mutually exclusive.
+  const currentDate = today();
   const sentAtChanged = updated.sentAt !== campaign.sentAt;
   const shouldFlip =
-    sentAtChanged && isSendDateReached(updated.sentAt, today());
+    sentAtChanged && isSendDateReached(updated.sentAt, currentDate);
+  const shouldRevert =
+    sentAtChanged && isSendDateInFuture(updated.sentAt, currentDate);
   // Resolved outside the transaction: a misconfigured/deleted system account
-  // must not roll back the campaign's own metadata save, only defer the flip.
-  const system = shouldFlip ? await resolveSystemUser() : null;
+  // must not roll back the campaign's own metadata save, only defer the change.
+  const system = shouldFlip || shouldRevert ? await resolveSystemUser() : null;
 
   await startTransaction(async () => {
     await campaignRepository.save(updated);
-    if (system) {
+    if (system && shouldFlip) {
       await flipCampaignHousingsToWaiting(updated, system);
+    }
+    if (system && shouldRevert) {
+      await revertCampaignHousingsToNeverContacted(
+        updated,
+        system,
+        currentDate
+      );
     }
   });
 

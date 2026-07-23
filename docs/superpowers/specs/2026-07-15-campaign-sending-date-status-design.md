@@ -20,7 +20,7 @@ This also raises a data-correctness question: every campaign created under the o
 - **`update`** — a campaign's `sentAt` moves from `null` to a date, or can be corrected to a different date (it can never be unset once set — already enforced). Whenever the saved `sentAt` is `<= today`, call the same function for that campaign's still-`NEVER_CONTACTED` housings. This covers same-day confirmation and retroactive correction without waiting for the next cron run.
 - **New daily cron job** — added to `clevercloud/cron.json`, following the existing Cerema-sync pattern. Once a day, find campaigns where `sentAt <= today` that still have `NEVER_CONTACTED` housings attached, and flip them. This is what makes a future-dated campaign transition automatically once its date arrives, with no user action required, and is idempotent (harmless to re-scan already-settled campaigns).
 
-**Non-goal:** if a campaign's `sentAt` is edited from an already-past date to a later future date, housings already flipped to `WAITING` are **not** reverted automatically. Only forward flips happen as a side effect of create/update/cron; reverting a housing's status only ever happens via the existing explicit-removal path (`shouldReset`, unaffected by this change) or the backfill repair below.
+**~~Non-goal~~ (superseded 2026-07-23):** this spec originally declared that editing a campaign's `sentAt` from an already-past date to a later future date would **not** revert housings already flipped to `WAITING`. That decision was reversed — see [2026-07-23-campaign-sending-date-revert-design.md](2026-07-23-campaign-sending-date-revert-design.md), which adds the automatic reverse (postpone-to-future → `WAITING` back to `NEVER_CONTACTED`, with a system-attributed event) plus a backfill re-authoring old auto-flip events. Reverting via the existing explicit-removal path (`shouldReset`) is unaffected either way.
 
 ## Decision: backfill via the repair harness, not a bespoke script
 
@@ -68,6 +68,6 @@ The repair and the ongoing create/update/cron logic act on disjoint `sentAt` ran
 
 ## What this does not cover
 
-- Reversing a housing's status if a campaign's `sentAt` is pushed later after housings already flipped (see non-goal above).
+- ~~Reversing a housing's status if a campaign's `sentAt` is pushed later after housings already flipped (see non-goal above).~~ Now covered by [2026-07-23-campaign-sending-date-revert-design.md](2026-07-23-campaign-sending-date-revert-design.md).
 - Campaign creation paths other than `createFromGroup` — this is currently the only way to create a campaign (confirmed via `server/src/routers/protected.ts`).
 - Recomputing campaign-level aggregates (`housingCount`, `ownerCount`, `returnCount`, `returnRate`) as part of the backfill — out of scope unless investigation during implementation shows they're derived from housing status rather than computed independently.

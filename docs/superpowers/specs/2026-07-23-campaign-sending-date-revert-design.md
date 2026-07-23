@@ -70,12 +70,12 @@ A campaign-`WAITING` housing is reverted only if **both** hold:
 1. **No attached campaign has genuinely sent** — none of its campaigns
    satisfies `isSendDateReached(sentAt, today)`. The campaign being postponed is
    now future (saved earlier in the same transaction), so this protects housings
-   kept `WAITING` by a *different*, already-sent campaign. (Mirrors the repair's
+   kept `WAITING` by a _different_, already-sent campaign. (Mirrors the repair's
    rule #1.)
 2. **Untouched since our auto-flip** — the housing's most recent
    `housing:status-updated` event is the pristine flip: `nextOld.status =
-   "Non suivi"`, `nextNew.status = "En attente de retour"`, **and `createdBy =
-   system.id`**.
+"Non suivi"`, `nextNew.status = "En attente de retour"`, **and `createdBy =
+system.id`**.
 
 The `createdBy = system` clause is what lets the live path stay precise. The
 repair needs a fragile ±tolerance timestamp-correlation (its rule #3) because
@@ -155,7 +155,7 @@ there, and update the single import in `campaignController.ts`.
 
 ### The gap
 
-The `createdBy = system` clause matches only auto-flips created by the *new*
+The `createdBy = system` clause matches only auto-flips created by the _new_
 rule. Auto-flips from **before this branch** were authored by the human user
 (commit `6755ca3ad` changed attribution only going forward — it is code-only,
 no historical migration). So:
@@ -171,7 +171,7 @@ no historical migration). So:
 ### Fix — re-author old sent-campaign auto-flips to system
 
 Extend the existing `campaign-sending-date` repair with a **second decision
-branch** for the case rule #1 currently *skips* (housing has a genuinely-sent
+branch** for the case rule #1 currently _skips_ (housing has a genuinely-sent
 campaign). When such a housing's latest `housing:status-updated` event is a
 **pristine, correlated, human-authored** flip, re-author it to the system
 account, leaving the housing `WAITING`:
@@ -193,7 +193,7 @@ only housing-field `update`, `createEvents`, `deleteEventIds`), so the rewrite
 is expressed as **delete-old + create-replacement** — same `createdAt`/labels,
 new id, system author. No harness change.
 
-Identifying *which* old events are auto-flips (vs a genuine manual `"Non suivi"
+Identifying _which_ old events are auto-flips (vs a genuine manual `"Non suivi"
 → "En attente de retour"` change) reuses the repair's existing signals:
 pristine label shape (rule #2) **and** correlation with a `campaign-attached`
 event within `ATTACHMENT_CORRELATION_TOLERANCE_MS` (rule #3). Doing this
@@ -228,6 +228,7 @@ false; future → true (property-based over dates around `today`).
 
 **`campaign-housing-service.test.ts`** (renamed) —
 `revertCampaignHousingsToNeverContacted`:
+
 - reverts a pristine system-flipped housing and writes one reverse event;
 - skips when a sibling campaign is genuinely sent (rule #1);
 - skips when the latest status event is not the pristine shape (wrong labels);
@@ -236,6 +237,7 @@ false; future → true (property-based over dates around `today`).
 - returns the count of rows actually reverted.
 
 **`campaign-api.test.ts` — `PUT /campaigns/{id}`:**
+
 - postpone-to-future reverts an auto-flipped housing **and** writes the event;
 - the existing "does not flip housings when sentAt is set to the future" case
   (housing was `NEVER_CONTACTED`, never flipped) still passes as a no-op;
@@ -243,6 +245,7 @@ false; future → true (property-based over dates around `today`).
   for the postponement path too.
 
 **Repair tests (`repairs/test/campaign-sending-date.test.ts`):**
+
 - new branch: a sent-campaign housing with a pristine, correlated,
   human-authored flip yields `{ deleteEventIds, createEvents(system) }` and
   **no** status update;

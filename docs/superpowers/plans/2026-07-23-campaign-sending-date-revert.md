@@ -23,10 +23,12 @@
 ### Task 1: `isSendDateInFuture` helper
 
 **Files:**
+
 - Modify: `server/src/models/CampaignApi.ts` (append next to `isSendDateReached`, ~line 102)
 - Test: `server/src/models/test/CampaignApi.test.ts`
 
 **Interfaces:**
+
 - Produces: `isSendDateInFuture(sentAt: CampaignApi['sentAt'], today: string): boolean` — the exact complement of `isSendDateReached` for a **non-null** date.
 
 - [ ] **Step 1: Write the failing test**
@@ -103,6 +105,7 @@ git commit -m "feat(server): add isSendDateInFuture campaign helper"
 Pure rename + import updates, no behavior change. Isolated so a reviewer can verify green tests before new logic lands.
 
 **Files:**
+
 - Rename: `server/src/services/campaignHousingService.ts` → `server/src/services/campaign-housing-service.ts`
 - Rename: `server/src/services/test/campaignHousingService.test.ts` → `server/src/services/test/campaign-housing-service.test.ts`
 - Modify: `server/src/controllers/campaignController.ts:44` (import path)
@@ -110,6 +113,7 @@ Pure rename + import updates, no behavior change. Isolated so a reviewer can ver
 - Modify: the renamed test file's own import path
 
 **Interfaces:**
+
 - Produces: module `~/services/campaign-housing-service` exporting the unchanged `resolveSystemUser`, `flipHousingsToWaiting`, `flipCampaignHousingsToWaiting`.
 
 - [ ] **Step 1: Rename both files with git**
@@ -146,10 +150,12 @@ git commit -m "refactor(server): rename campaignHousingService to kebab-case"
 ### Task 3: `revertCampaignHousingsToNeverContacted` service
 
 **Files:**
+
 - Modify: `server/src/services/campaign-housing-service.ts` (add function + private enrichment helper + imports)
 - Test: `server/src/services/test/campaign-housing-service.test.ts` (new `describe` block)
 
 **Interfaces:**
+
 - Consumes: `isSendDateReached` from `~/models/CampaignApi`; `withinTransaction` from `~/infra/database/transaction`; `Campaigns` from `~/repositories/campaignRepository`; `EVENTS_TABLE`, `HOUSING_EVENTS_TABLE`, `HousingEvents` from `~/repositories/eventRepository`; `housingRepository.find/updateMany`, `eventRepository.insertManyHousingEvents` (already imported); `chunksOf` from `effect/Array`.
 - Produces: `revertCampaignHousingsToNeverContacted(campaign: Pick<CampaignApi, 'id'>, system: UserApi, today: string): Promise<number>` — returns the number of housings actually reverted.
 
@@ -158,7 +164,10 @@ git commit -m "refactor(server): rename campaignHousingService to kebab-case"
 Add these imports to the top of `server/src/services/test/campaign-housing-service.test.ts` (extend the existing `eventRepository` import to include `HousingEvents` and `formatEventApi`; add `genEventApi` to the testFixtures import; add `HOUSING_STATUS_LABELS` to the models import):
 
 ```typescript
-import { HOUSING_STATUS_LABELS, HousingStatus } from '@zerologementvacant/models';
+import {
+  HOUSING_STATUS_LABELS,
+  HousingStatus
+} from '@zerologementvacant/models';
 // eventRepository import becomes:
 import {
   Events,
@@ -265,9 +274,7 @@ describe('revertCampaignHousingsToNeverContacted', () => {
       ...genCampaignApi(establishment.id, user),
       sentAt: '2020-01-01'
     };
-    await Campaigns().insert(
-      [campaign, sentSibling].map(formatCampaignApi)
-    );
+    await Campaigns().insert([campaign, sentSibling].map(formatCampaignApi));
     const housing = await setupWaitingHousing(campaign);
     // Also attach the housing to the already-sent sibling.
     await CampaignsHousing().insert({
@@ -471,7 +478,11 @@ async function selectUntouchedAutoFlips(
     );
     const latestEventByHousing = new Map<
       string,
-      { nextOld: { status?: string } | null; nextNew: { status?: string } | null; createdBy: string }
+      {
+        nextOld: { status?: string } | null;
+        nextNew: { status?: string } | null;
+        createdBy: string;
+      }
     >();
     for (const chunk of chunksOf(pairs, 1000)) {
       const rows = await HousingEvents(transaction)
@@ -551,10 +562,12 @@ git commit -m "feat(server): revert auto-flipped housings on send-date postpone"
 ### Task 4: Wire the revert into `campaignController.update`
 
 **Files:**
+
 - Modify: `server/src/controllers/campaignController.ts` (imports ~line 22-47; `update` body ~line 278-290)
 - Test: `server/src/controllers/test/campaign-api.test.ts` (`PUT /campaigns/{id}` describe block, after line 932)
 
 **Interfaces:**
+
 - Consumes: `isSendDateInFuture` (Task 1), `revertCampaignHousingsToNeverContacted` (Task 3).
 
 - [ ] **Step 1: Write the failing tests**
@@ -702,33 +715,28 @@ import {
 Replace the flip block in `update` (currently lines ~276-290) with:
 
 ```typescript
-  // A genuine sentAt change either flips housings to waiting (date reached) or,
-  // when postponed to the future, reverts the ones the send-date rule
-  // auto-flipped. Never on a metadata-only edit. The two are mutually exclusive.
-  const currentDate = today();
-  const sentAtChanged = updated.sentAt !== campaign.sentAt;
-  const shouldFlip =
-    sentAtChanged && isSendDateReached(updated.sentAt, currentDate);
-  const shouldRevert =
-    sentAtChanged && isSendDateInFuture(updated.sentAt, currentDate);
-  // Resolved outside the transaction: a misconfigured/deleted system account
-  // must not roll back the campaign's own metadata save, only defer the change.
-  const system =
-    shouldFlip || shouldRevert ? await resolveSystemUser() : null;
+// A genuine sentAt change either flips housings to waiting (date reached) or,
+// when postponed to the future, reverts the ones the send-date rule
+// auto-flipped. Never on a metadata-only edit. The two are mutually exclusive.
+const currentDate = today();
+const sentAtChanged = updated.sentAt !== campaign.sentAt;
+const shouldFlip =
+  sentAtChanged && isSendDateReached(updated.sentAt, currentDate);
+const shouldRevert =
+  sentAtChanged && isSendDateInFuture(updated.sentAt, currentDate);
+// Resolved outside the transaction: a misconfigured/deleted system account
+// must not roll back the campaign's own metadata save, only defer the change.
+const system = shouldFlip || shouldRevert ? await resolveSystemUser() : null;
 
-  await startTransaction(async () => {
-    await campaignRepository.save(updated);
-    if (system && shouldFlip) {
-      await flipCampaignHousingsToWaiting(updated, system);
-    }
-    if (system && shouldRevert) {
-      await revertCampaignHousingsToNeverContacted(
-        updated,
-        system,
-        currentDate
-      );
-    }
-  });
+await startTransaction(async () => {
+  await campaignRepository.save(updated);
+  if (system && shouldFlip) {
+    await flipCampaignHousingsToWaiting(updated, system);
+  }
+  if (system && shouldRevert) {
+    await revertCampaignHousingsToNeverContacted(updated, system, currentDate);
+  }
+});
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -751,10 +759,12 @@ git commit -m "feat(server): flip campaign housings back when send date is postp
 Adds a second `decide` branch: when a housing has a genuinely-sent campaign (currently skipped) and its latest status event is a pristine, correlated, **human-authored** flip, re-author it to the system account (delete-old + create-replacement, new id, same `createdAt`), leaving the status `WAITING`.
 
 **Files:**
+
 - Modify: `server/src/scripts/repairs/campaign-sending-date.ts` (add `systemId` to context + resolve it in `query`; restructure `decide`; import `uuidv4`, `userRepository`, `config`)
 - Test: `server/src/scripts/repairs/test/campaign-sending-date.test.ts` (update the "already sent" case; add idempotency + no-system cases; assert `systemId` in the integration test)
 
 **Interfaces:**
+
 - Consumes: `resolveSystemUser` semantics are inlined via `userRepository.getByEmail(config.app.system)`.
 - Produces: `HousingWithContext` gains `systemId: string | null`. `decide` returns a re-author `RepairAction` (`{ deleteEventIds, createEvents }`, no `update`) for the sent-campaign human-authored branch.
 
@@ -848,22 +858,22 @@ export interface HousingWithContext extends HousingApi {
 In `buildCandidates`, resolve the system id once (near `const now = today();`):
 
 ```typescript
-      const now = today();
-      const system = await userRepository.getByEmail(config.app.system);
-      const systemId = system?.id ?? null;
+const now = today();
+const system = await userRepository.getByEmail(config.app.system);
+const systemId = system?.id ?? null;
 ```
 
 and add `systemId` to the returned object in the final `waiting.map(...)`:
 
 ```typescript
-        return {
-          ...housing,
-          today: now,
-          systemId,
-          campaigns: campaignsByHousing.get(k) ?? [],
-          lastStatusUpdatedEvent: statusEventByHousing.get(k) ?? null,
-          campaignAttachedEvents: attachedByHousing.get(k) ?? []
-        };
+return {
+  ...housing,
+  today: now,
+  systemId,
+  campaigns: campaignsByHousing.get(k) ?? [],
+  lastStatusUpdatedEvent: statusEventByHousing.get(k) ?? null,
+  campaignAttachedEvents: attachedByHousing.get(k) ?? []
+};
 ```
 
 Replace `decide` with the restructured version (shared pristine + correlation checks first, then branch on sent-campaign):
@@ -970,6 +980,7 @@ git commit -m "style(server): format campaign send-date revert changes" || echo 
 ## Self-Review
 
 **Spec coverage:**
+
 - Part 1 trigger (changed + strictly future, mutually exclusive) → Task 1 (`isSendDateInFuture`) + Task 4 (controller wiring). ✓
 - Part 1 eligibility (no sibling sent; pristine system-authored latest event) → Task 3 (`selectUntouchedAutoFlips`). ✓
 - Part 1 write + reverse event → Task 3 (`onlyIfStatus: WAITING`, one event per reverted row). ✓

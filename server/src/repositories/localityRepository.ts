@@ -1,13 +1,13 @@
 import { LocalityKind, TaxKind } from '@zerologementvacant/models';
-import { Knex } from 'knex';
+import type { Selectable } from 'kysely';
+import { sql } from 'kysely';
 
 import db from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { createLogger } from '~/infra/logger';
 import { LocalityApi } from '~/models/LocalityApi';
-import {
-  Establishments,
-  establishmentsTable
-} from '~/repositories/establishmentRepository';
+import { establishmentsTable } from '~/repositories/establishmentRepository';
 
 export const localitiesTable = 'localities';
 export const Localities = (transaction = db) =>
@@ -28,47 +28,52 @@ interface FindOptions {
 }
 
 async function find(options: FindOptions): Promise<ReadonlyArray<LocalityApi>> {
-  const localities = await Localities()
-    .select(`${localitiesTable}.*`)
-    .modify(filterQuery(options?.filters))
-    .orderBy(`${localitiesTable}.name`);
-
-  return localities.map(parseLocalityApi);
-}
-
-async function get(geoCode: string): Promise<LocalityApi | null> {
-  logger.debug('Get locality', { geoCode });
-  const locality = await Localities().where({ geo_code: geoCode }).first();
-  return locality ? parseLocalityApi(locality) : null;
-}
-
-function filterQuery(filters?: LocalityFilters) {
-  return (query: Knex.QueryBuilder<LocalityDBO>): void => {
+  const filters = options?.filters;
+  const rows = await kysely
+    .selectFrom('localities')
+    .selectAll()
     // Filter by specific geoCodes (user perimeter filtering takes priority)
     // Note: geoCodes is an array when a restriction applies
     //   - non-empty array: filter to localities with these geoCodes
     //   - empty array: user should see NO localities (intersection with perimeter is empty)
-    if (filters?.geoCodes !== undefined) {
-      if (filters.geoCodes.length === 0) {
-        // Empty geoCodes means no access - return no localities
-        query.whereRaw('1 = 0');
-      } else {
-        query.whereIn('geo_code', filters.geoCodes);
-      }
-    } else if (filters?.establishmentId) {
-      // Filter by establishment geoCodes (default behavior)
-      query.whereIn(
-        'geo_code',
-        Establishments()
-          .select(
-            db.raw(
-              `UNNEST(${establishmentsTable}.localities_geo_code::varchar[])`
+    .$if(
+      filters?.geoCodes !== undefined && filters.geoCodes.length === 0,
+      (query) => query.where(sql<boolean>`1 = 0`)
+    )
+    .$if(!!filters?.geoCodes?.length, (query) =>
+      query.where('geoCode', 'in', filters?.geoCodes ?? [])
+    )
+    // Filter by establishment geoCodes (default behavior) — only when geoCodes wasn't provided at all
+    .$if(
+      filters?.geoCodes === undefined && !!filters?.establishmentId,
+      (query) =>
+        query.where(
+          'geoCode',
+          'in',
+          kysely
+            .selectFrom('establishments')
+            .select(
+              sql<string>`UNNEST(${sql.raw(establishmentsTable)}.localities_geo_code::varchar[])`.as(
+                'geoCode'
+              )
             )
-          )
-          .where({ id: filters.establishmentId })
-      );
-    }
-  };
+            .where('id', '=', filters?.establishmentId ?? '')
+        )
+    )
+    .orderBy('name')
+    .execute();
+
+  return rows.map(parseLocalityRow);
+}
+
+async function get(geoCode: string): Promise<LocalityApi | null> {
+  logger.debug('Get locality', { geoCode });
+  const row = await kysely
+    .selectFrom('localities')
+    .selectAll()
+    .where('geoCode', '=', geoCode)
+    .executeTakeFirst();
+  return row ? parseLocalityRow(row) : null;
 }
 
 export interface LocalityDBO {
@@ -83,12 +88,17 @@ export interface LocalityDBO {
 async function update(localityApi: LocalityApi): Promise<LocalityApi> {
   logger.info('Update localityApi with geoCode', localityApi.geoCode);
 
-  const { geo_code, tax_rate, tax_kind } = formatLocalityApi(localityApi);
-  return db(localitiesTable)
-    .where('geo_code', geo_code)
-    .update({ tax_rate: tax_rate ?? db.raw('null'), tax_kind })
-    .returning('*')
-    .then((_) => parseLocalityApi(_[0]));
+  const row = await kysely
+    .updateTable('localities')
+    .set({
+      taxRate: localityApi.taxRate ?? null,
+      taxKind: localityApi.taxKind
+    })
+    .where('geoCode', '=', localityApi.geoCode)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+
+  return parseLocalityRow(row);
 }
 
 export const formatLocalityApi = (locality: LocalityApi): LocalityDBO => ({
@@ -100,14 +110,19 @@ export const formatLocalityApi = (locality: LocalityApi): LocalityDBO => ({
   tax_rate: locality.taxRate
 });
 
-export const parseLocalityApi = (locality: LocalityDBO): LocalityApi => ({
-  id: locality.id,
-  geoCode: locality.geo_code,
-  name: locality.name,
-  kind: locality.locality_kind as LocalityKind,
-  taxKind: locality.tax_kind as TaxKind,
-  taxRate: locality.tax_rate
-});
+function parseLocalityRow(row: Selectable<DB['localities']>): LocalityApi {
+  return {
+    id: row.id,
+    geoCode: row.geoCode,
+    name: row.name,
+    kind: row.localityKind as LocalityKind | null,
+    taxKind: row.taxKind as TaxKind,
+    // DB column is nullable and the pre-Kysely code already returned a
+    // literal `null` here despite LocalityDTO.taxRate being typed
+    // `number | undefined` — preserved as-is, not fixed.
+    taxRate: row.taxRate as number | undefined
+  };
+}
 
 export default {
   find,

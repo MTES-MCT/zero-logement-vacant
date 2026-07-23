@@ -5,7 +5,9 @@ import {
   HousingStatus
 } from '@zerologementvacant/models';
 import { chunksOf } from 'effect/Array';
+import { v4 as uuidv4 } from 'uuid';
 
+import config from '~/infra/config';
 import { isSendDateReached } from '~/models/CampaignApi';
 import type { CampaignApi } from '~/models/CampaignApi';
 import type {
@@ -26,6 +28,7 @@ import {
   HousingEvents
 } from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
+import userRepository from '~/repositories/userRepository';
 import { today } from '~/utils/date';
 
 import { rows } from './lib/row-stream';
@@ -44,6 +47,7 @@ export const ATTACHMENT_CORRELATION_TOLERANCE_MS = 10_000;
 
 export interface HousingWithContext extends HousingApi {
   today: string;
+  systemId: string | null;
   campaigns: Pick<CampaignApi, 'id' | 'sentAt'>[];
   lastStatusUpdatedEvent: HousingEventApi | null;
   campaignAttachedEvents: CampaignHousingEventApi[];
@@ -78,6 +82,8 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
 
     async function buildCandidates(): Promise<HousingWithContext[]> {
       const now = today();
+      const system = await userRepository.getByEmail(config.app.system);
+      const systemId = system?.id ?? null;
 
       const waiting = (
         await housingRepository.find({
@@ -223,6 +229,7 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
         return {
           ...housing,
           today: now,
+          systemId,
           campaigns: campaignsByHousing.get(k) ?? [],
           lastStatusUpdatedEvent: statusEventByHousing.get(k) ?? null,
           campaignAttachedEvents: attachedByHousing.get(k) ?? []
@@ -232,17 +239,8 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
   },
 
   decide(housing) {
-    // 1. No sent campaign: if any attached campaign has already sent, the
-    //    housing is legitimately WAITING because of it — leave it.
-    const hasSentCampaign = housing.campaigns.some((campaign) =>
-      isSendDateReached(campaign.sentAt, housing.today)
-    );
-    if (hasSentCampaign) {
-      return { action: 'skip' };
-    }
-
-    // 2. Untouched since the auto-flip: the latest status-updated event must be
-    //    the pristine "Non suivi" -> "En attente de retour" shape.
+    // The latest status-updated event must be the pristine
+    // "Non suivi" -> "En attente de retour" auto-flip shape.
     const event = housing.lastStatusUpdatedEvent;
     if (!event || event.type !== 'housing:status-updated') {
       return { action: 'skip' };
@@ -256,8 +254,8 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
       return { action: 'skip' };
     }
 
-    // 3. Attributable to a campaign attachment: a campaign-attached event for
-    //    this housing sits within the tolerance window of the status event.
+    // Attributable to a campaign attachment: a campaign-attached event for this
+    // housing sits within the tolerance window of the status event.
     const statusTime = new Date(event.createdAt).getTime();
     const correlated = housing.campaignAttachedEvents.some(
       (attached) =>
@@ -268,6 +266,28 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
       return { action: 'skip' };
     }
 
+    const hasSentCampaign = housing.campaigns.some((campaign) =>
+      isSendDateReached(campaign.sentAt, housing.today)
+    );
+
+    if (hasSentCampaign) {
+      // The housing legitimately stays WAITING because a campaign genuinely
+      // sent. Only re-author the flip event from the user to the system account
+      // (delete-old + create-replacement, new id, same createdAt) so the live
+      // postpone-revert rule can later recognise and revert it. Skip if the
+      // system account is unavailable or the event is already system-authored
+      // (idempotent).
+      if (housing.systemId === null || event.createdBy === housing.systemId) {
+        return { action: 'skip' };
+      }
+      return {
+        deleteEventIds: [event.id],
+        createEvents: [{ ...event, id: uuidv4(), createdBy: housing.systemId }]
+      };
+    }
+
+    // No campaign has sent: the housing was flipped early and should be
+    // reverted to NEVER_CONTACTED; the erroneous event is hard-deleted.
     return {
       update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null },
       deleteEventIds: [event.id]

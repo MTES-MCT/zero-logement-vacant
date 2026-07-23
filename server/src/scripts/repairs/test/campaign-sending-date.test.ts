@@ -7,6 +7,7 @@ import {
 } from '@zerologementvacant/models';
 import { describe, expect, it } from 'vitest';
 
+import config from '~/infra/config';
 import type {
   CampaignHousingEventApi,
   HousingEventApi
@@ -30,7 +31,10 @@ import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import userRepository, {
+  toUserDBO,
+  Users
+} from '~/repositories/userRepository';
 import {
   genCampaignApi,
   genEstablishmentApi,
@@ -84,6 +88,7 @@ function base() {
     status: HousingStatus.WAITING,
     subStatus: null,
     today: TODAY,
+    systemId: 'system-id',
     campaigns: [{ id: 'campaign-id', sentAt: null }],
     lastStatusUpdatedEvent: statusEvent(),
     campaignAttachedEvents: [attachedEvent(STATUS_EVENT_TIME)]
@@ -98,9 +103,40 @@ describe('campaignSendingDateRepair.decide', () => {
     });
   });
 
-  it('skips when a campaign has already sent', () => {
+  it('re-authors a human-authored flip when a campaign has already sent', () => {
     const housing = {
       ...base(),
+      campaigns: [{ id: 'c', sentAt: '2020-01-01' }]
+    };
+    const decision = campaignSendingDateRepair.decide(housing);
+    expect(decision).toMatchObject({ deleteEventIds: ['status-event-id'] });
+    const action = decision as {
+      createEvents: HousingEventApi[];
+      update?: unknown;
+    };
+    expect(action.update).toBeUndefined();
+    expect(action.createEvents).toHaveLength(1);
+    expect(action.createEvents[0].createdBy).toBe('system-id');
+    expect(action.createEvents[0].id).not.toBe('status-event-id');
+    // createdAt is preserved from the original flip.
+    expect(action.createEvents[0].createdAt).toBe(STATUS_EVENT_TIME);
+  });
+
+  it('skips a sent-campaign flip already authored by the system', () => {
+    const housing = {
+      ...base(),
+      campaigns: [{ id: 'c', sentAt: '2020-01-01' }],
+      lastStatusUpdatedEvent: statusEvent({ createdBy: 'system-id' })
+    };
+    expect(campaignSendingDateRepair.decide(housing)).toEqual({
+      action: 'skip'
+    });
+  });
+
+  it('skips re-authoring when the system account is unavailable', () => {
+    const housing = {
+      ...base(),
+      systemId: null,
       campaigns: [{ id: 'c', sentAt: '2020-01-01' }]
     };
     expect(campaignSendingDateRepair.decide(housing)).toEqual({
@@ -163,6 +199,7 @@ describe('campaignSendingDateRepair.query (integration)', () => {
   const user = genUserApi(establishment.id);
 
   it('enriches an early-flipped WAITING housing so decide reverts it', async () => {
+    const system = (await userRepository.getByEmail(config.app.system))!;
     await Establishments().insert(formatEstablishmentApi(establishment));
     await Users().insert(toUserDBO(user));
 
@@ -229,6 +266,7 @@ describe('campaignSendingDateRepair.query (integration)', () => {
     );
     const target = enriched.find((h) => h.id === housing.id);
     expect(target).toBeDefined();
+    expect(target!.systemId).toBe(system.id);
     expect(target!.campaigns).toEqual([{ id: campaign.id, sentAt: null }]);
     // `nextNew` is a discriminated union keyed on `event.type`; cast to the
     // `housing:status-updated` payload shape since `lastStatusUpdatedEvent`'s

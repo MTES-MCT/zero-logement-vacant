@@ -18,7 +18,6 @@ import type { DB } from '~/infra/database/db';
 import { kysely } from '~/infra/database/kysely';
 import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
-import { AddressApi } from '~/models/AddressApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
@@ -298,16 +297,18 @@ const findByHousing = async (
 
 const insert = async (draftOwnerApi: OwnerApi): Promise<OwnerApi> => {
   logger.info('Insert draftOwnerApi');
-  return Owners()
-    .insert({
-      address_dgfip: draftOwnerApi.rawAddress,
-      full_name: draftOwnerApi.fullName,
-      birth_date: draftOwnerApi.birthDate,
+  const row = await kysely
+    .insertInto('owners')
+    .values({
+      addressDgfip: draftOwnerApi.rawAddress,
+      fullName: draftOwnerApi.fullName,
+      birthDate: draftOwnerApi.birthDate,
       email: draftOwnerApi.email,
       phone: draftOwnerApi.phone
     })
-    .returning('*')
-    .then((_) => parseOwnerApi(_[0]));
+    .returningAll()
+    .executeTakeFirstOrThrow();
+  return parseOwnerRow(row);
 };
 
 type BetterSaveOptions = ConflictOptions<OwnerDBO>;
@@ -400,102 +401,22 @@ function kyselyOwnerConflict(opts: BetterSaveOptions) {
   };
 }
 
-interface SaveOptions {
-  /**
-   * @default 'ignore'
-   */
-  onConflict?: 'merge' | 'ignore';
-}
-
-/**
- * @deprecated Use {@link betterSave} instead
- * @param owner
- * @param opts
- */
-async function save(owner: OwnerApi, opts?: SaveOptions): Promise<void> {
-  return saveMany([owner], opts);
-}
-
-/**
- * @deprecated Use {@link betterSave} instead
- * @param owners
- * @param opts
- */
-async function saveMany(owners: OwnerApi[], opts?: SaveOptions): Promise<void> {
-  logger.debug(`Saving ${owners.length} owners...`);
-
-  const ownersWithoutBirthdate = owners
-    .filter((owner) => !owner.birthDate)
-    .map(formatOwnerApi);
-  const ownersWithBirthdate = owners
-    .filter((owner) => !!owner.birthDate)
-    .map(formatOwnerApi);
-
-  const onConflict = opts?.onConflict ?? 'merge';
-
-  await db.transaction(async (transaction) => {
-    const queries = [];
-
-    if (ownersWithBirthdate.length > 0) {
-      queries.push(
-        transaction<OwnerDBO>(ownerTable)
-          .insert(ownersWithBirthdate)
-          .modify((builder) => {
-            if (onConflict === 'merge') {
-              return builder
-                .onConflict(['full_name', 'address_dgfip', 'birth_date'])
-                .merge(['administrator', 'kind_class']);
-            }
-            return builder
-              .onConflict(['full_name', 'address_dgfip', 'birth_date'])
-              .ignore();
-          })
-      );
-    }
-
-    if (ownersWithoutBirthdate.length > 0) {
-      queries.push(
-        transaction<OwnerDBO>(ownerTable)
-          .insert(ownersWithoutBirthdate)
-          .modify((builder) => {
-            if (onConflict === 'merge') {
-              return builder
-                .onConflict(
-                  db.raw(
-                    '(full_name, address_dgfip, (birth_date IS NULL)) where birth_date is null'
-                  )
-                )
-                .merge(['administrator', 'kind_class']);
-            }
-            return builder
-              .onConflict(
-                db.raw(
-                  '(full_name, address_dgfip, (birth_date IS NULL)) where birth_date is null'
-                )
-              )
-              .ignore();
-          })
-      );
-    }
-
-    await Promise.all(queries);
-  });
-}
-
 const update = async (ownerApi: OwnerApi): Promise<OwnerApi> => {
   try {
-    return db(ownerTable)
-      .where('id', ownerApi.id)
-      .update({
-        address_dgfip: ownerApi.rawAddress,
-        full_name: ownerApi.fullName,
-        birth_date: ownerApi.birthDate,
+    const row = await kysely
+      .updateTable('owners')
+      .set({
+        addressDgfip: ownerApi.rawAddress,
+        fullName: ownerApi.fullName,
+        birthDate: ownerApi.birthDate,
         email: ownerApi.email ?? null,
         phone: ownerApi.phone ?? null,
-        additional_address: ownerApi.additionalAddress ?? null
+        additionalAddress: ownerApi.additionalAddress ?? null
       })
-      .returning('*')
-      .then((_) => parseOwnerApi(_[0]));
+      .where('id', '=', ownerApi.id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    return parseOwnerRow(row);
   } catch (err) {
     console.error('Updating owner failed', err, ownerApi);
     throw new Error('Updating owner failed');
@@ -506,20 +427,25 @@ const insertHousingOwners = async (
   housingOwners: HousingOwnerApi[]
 ): Promise<number> => {
   try {
-    return db(housingOwnersTable)
-      .insert(
+    const rows = await kysely
+      .insertInto('ownersHousing')
+      .values(
         housingOwners.map((ho) => ({
-          owner_id: ho.id,
-          housing_id: ho.housingId,
-          housing_geo_code: ho.housingGeoCode,
+          ownerId: ho.id,
+          housingId: ho.housingId,
+          housingGeoCode: ho.housingGeoCode,
           rank: ho.rank,
-          start_date: ho.startDate,
-          end_date: ho.endDate,
+          // startDate/endDate are DATE columns; the pg driver serializes a
+          // JS Date to the right date literal on write regardless of the
+          // Kysely-generated (string) insert type — cast to satisfy it.
+          startDate: ho.startDate as unknown as string,
+          endDate: ho.endDate as unknown as string,
           origin: ho.origin
         }))
       )
-      .returning('*')
-      .then((_) => _.length);
+      .returningAll()
+      .execute();
+    return rows.length;
   } catch (err) {
     console.error('Inserting housing owners failed', err);
     throw new Error('Inserting housing owners failed');
@@ -531,50 +457,16 @@ const deleteHousingOwners = async (
   ownerIds: string[]
 ): Promise<number> => {
   try {
-    return db(housingOwnersTable)
-      .delete()
-      .whereIn('owner_id', ownerIds)
-      .andWhere('housing_id', housingId);
+    const result = await kysely
+      .deleteFrom('ownersHousing')
+      .where('ownerId', 'in', ownerIds)
+      .where('housingId', '=', housingId)
+      .executeTakeFirst();
+    return Number(result.numDeletedRows);
   } catch (err) {
     console.error('Removing owners from housing failed', err, ownerIds);
     throw new Error('Removing owners from housing failed');
   }
-};
-
-const updateAddressList = async (
-  ownerAdresses: { addressId: string; addressApi: AddressApi }[]
-): Promise<HousingApi[]> => {
-  try {
-    if (ownerAdresses.filter((oa) => oa.addressId).length) {
-      const update =
-        'UPDATE owners as o SET ' +
-        'postal_code = c.postal_code, house_number = c.house_number, street = c.street, city = c.city ' +
-        'FROM (values' +
-        ownerAdresses
-          .filter((oa) => oa.addressId)
-          .map(
-            (ha) =>
-              `('${ha.addressId}', '${ha.addressApi.postalCode}', '${
-                ha.addressApi.houseNumber ?? ''
-              }', '${escapeValue(ha.addressApi.street)}', '${escapeValue(
-                ha.addressApi.city
-              )}')`
-          ) +
-        ') as c(id, postal_code, house_number, street, city)' +
-        ' WHERE o.id::text = c.id';
-
-      return db.raw(update);
-    } else {
-      return Promise.resolve([]);
-    }
-  } catch (err) {
-    console.error('Listing housing failed', err);
-    throw new Error('Listing housing failed');
-  }
-};
-
-const escapeValue = (value?: string) => {
-  return value ? value.replace(/'/g, "''") : '';
 };
 
 type OwnerInclude = 'banAddress' | 'housings';
@@ -843,10 +735,7 @@ export default {
   insert,
   betterSave,
   betterSaveMany,
-  save,
-  saveMany,
   update,
-  updateAddressList,
   deleteHousingOwners,
   insertHousingOwners,
   refreshMultiOwnerFlags

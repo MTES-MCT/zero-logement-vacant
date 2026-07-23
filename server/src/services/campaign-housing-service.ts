@@ -2,15 +2,23 @@ import {
   HOUSING_STATUS_LABELS,
   HousingStatus
 } from '@zerologementvacant/models';
+import { chunksOf } from 'effect/Array';
 import { v4 as uuidv4 } from 'uuid';
 
 import config from '~/infra/config';
+import { withinTransaction } from '~/infra/database/transaction';
 import { logger } from '~/infra/logger';
 import type { CampaignApi } from '~/models/CampaignApi';
+import { isSendDateReached } from '~/models/CampaignApi';
 import type { HousingEventApi } from '~/models/EventApi';
 import type { HousingApi, HousingId } from '~/models/HousingApi';
 import type { UserApi } from '~/models/UserApi';
-import eventRepository from '~/repositories/eventRepository';
+import { Campaigns } from '~/repositories/campaignRepository';
+import eventRepository, {
+  EVENTS_TABLE,
+  HOUSING_EVENTS_TABLE,
+  HousingEvents
+} from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
 
@@ -112,4 +120,175 @@ export async function flipCampaignHousingsToWaiting(
     pagination: { paginate: false }
   });
   return flipHousingsToWaiting(housings, system);
+}
+
+/**
+ * Revert the housings a campaign's send-date rule auto-flipped, when that
+ * campaign's `sentAt` is postponed to a future date. Only touches housings we
+ * can prove the system auto-flipped and that nothing has touched since:
+ *   1. no *other* attached campaign has genuinely sent (`sentAt <= today`) —
+ *      the postponed campaign itself is excluded, it is future by construction;
+ *   2. the housing's most recent `housing:status-updated` event is the pristine
+ *      `Non suivi -> En attente de retour` flip authored by the system account.
+ * The write is an atomic conditional transition (`onlyIfStatus: WAITING`),
+ * mirroring the forward flip's guard against concurrent writers, and one
+ * `housing:status-updated` event is written per row actually reverted. Runs
+ * within the caller's transaction. Returns the count reverted.
+ */
+export async function revertCampaignHousingsToNeverContacted(
+  campaign: Pick<CampaignApi, 'id'>,
+  system: UserApi,
+  today: string
+): Promise<number> {
+  const waiting = await housingRepository.find({
+    filters: {
+      campaignIds: [campaign.id],
+      status: HousingStatus.WAITING
+    },
+    pagination: { paginate: false }
+  });
+  if (waiting.length === 0) {
+    return 0;
+  }
+
+  const eligible = await selectUntouchedAutoFlips(
+    waiting,
+    campaign.id,
+    system,
+    today
+  );
+  if (eligible.length === 0) {
+    return 0;
+  }
+
+  const reverted = await housingRepository.updateMany(
+    eligible.map<HousingId>((housing) => ({
+      geoCode: housing.geoCode,
+      id: housing.id
+    })),
+    { status: HousingStatus.NEVER_CONTACTED, subStatus: null },
+    { onlyIfStatus: HousingStatus.WAITING }
+  );
+  if (reverted.length === 0) {
+    return 0;
+  }
+
+  const now = new Date().toJSON();
+  const events = reverted.map<HousingEventApi>((housing) => ({
+    id: uuidv4(),
+    type: 'housing:status-updated',
+    nextOld: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] },
+    nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED] },
+    createdAt: now,
+    createdBy: system.id,
+    housingGeoCode: housing.geoCode,
+    housingId: housing.id
+  }));
+  await eventRepository.insertManyHousingEvents(events);
+
+  return reverted.length;
+}
+
+/**
+ * Filter `waiting` to the housings eligible for the postpone revert. Enrichment
+ * reads run on the ambient transaction so they see the campaign's just-saved
+ * future `sentAt`. `currentCampaignId` is excluded from the sibling-sent check —
+ * it is future by construction, and reading its freshly-saved value is
+ * unnecessary.
+ */
+async function selectUntouchedAutoFlips(
+  waiting: ReadonlyArray<HousingApi>,
+  currentCampaignId: string,
+  system: UserApi,
+  today: string
+): Promise<ReadonlyArray<HousingApi>> {
+  return withinTransaction(async (transaction) => {
+    const siblingIds = [
+      ...new Set(
+        waiting
+          .flatMap((housing) => housing.campaignIds ?? [])
+          .filter((id) => id !== currentCampaignId)
+      )
+    ];
+    const sentAtById = new Map<string, string | null>();
+    for (const chunk of chunksOf(siblingIds, 1000)) {
+      const rows = await Campaigns(transaction)
+        .whereIn('id', chunk)
+        .select('id', 'sent_at');
+      for (const row of rows) {
+        sentAtById.set(
+          row.id,
+          row.sent_at ? new Date(row.sent_at).toJSON().slice(0, 10) : null
+        );
+      }
+    }
+
+    const pairs = waiting.map(
+      (housing) => [housing.geoCode, housing.id] as [string, string]
+    );
+    const latestEventByHousing = new Map<
+      string,
+      {
+        nextOld: { status?: string } | null;
+        nextNew: { status?: string } | null;
+        createdBy: string;
+      }
+    >();
+    for (const chunk of chunksOf(pairs, 1000)) {
+      const rows = await HousingEvents(transaction)
+        .join(
+          EVENTS_TABLE,
+          `${EVENTS_TABLE}.id`,
+          `${HOUSING_EVENTS_TABLE}.event_id`
+        )
+        .where(`${EVENTS_TABLE}.type`, 'housing:status-updated')
+        .whereIn(
+          [
+            `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
+            `${HOUSING_EVENTS_TABLE}.housing_id`
+          ],
+          chunk
+        )
+        .orderBy(`${EVENTS_TABLE}.created_at`, 'desc')
+        .select(
+          `${HOUSING_EVENTS_TABLE}.housing_geo_code as housing_geo_code`,
+          `${HOUSING_EVENTS_TABLE}.housing_id as housing_id`,
+          `${EVENTS_TABLE}.next_old as next_old`,
+          `${EVENTS_TABLE}.next_new as next_new`,
+          `${EVENTS_TABLE}.created_by as created_by`
+        );
+      for (const row of rows) {
+        const key = `${row.housing_geo_code}:${row.housing_id}`;
+        // Rows are DESC by created_at, so the first seen per housing is latest.
+        if (!latestEventByHousing.has(key)) {
+          latestEventByHousing.set(key, {
+            nextOld: row.next_old,
+            nextNew: row.next_new,
+            createdBy: row.created_by
+          });
+        }
+      }
+    }
+
+    return waiting.filter((housing) => {
+      const hasSentSibling = (housing.campaignIds ?? [])
+        .filter((id) => id !== currentCampaignId)
+        .some((id) => isSendDateReached(sentAtById.get(id) ?? null, today));
+      if (hasSentSibling) {
+        return false;
+      }
+
+      const event = latestEventByHousing.get(
+        `${housing.geoCode}:${housing.id}`
+      );
+      return (
+        !!event &&
+        event.nextOld?.status ===
+          HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED] &&
+        event.nextNew?.status ===
+          HOUSING_STATUS_LABELS[HousingStatus.WAITING] &&
+        event.createdBy === system.id
+      );
+    });
+  });
 }

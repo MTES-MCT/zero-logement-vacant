@@ -1,4 +1,7 @@
-import { HousingStatus } from '@zerologementvacant/models';
+import {
+  HOUSING_STATUS_LABELS,
+  HousingStatus
+} from '@zerologementvacant/models';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import config from '~/infra/config';
@@ -13,7 +16,12 @@ import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import { Events, HOUSING_EVENTS_TABLE } from '~/repositories/eventRepository';
+import {
+  Events,
+  formatEventApi,
+  HOUSING_EVENTS_TABLE,
+  HousingEvents
+} from '~/repositories/eventRepository';
 import {
   Housing,
   formatHousingRecordApi
@@ -24,13 +32,15 @@ import userRepository, {
 } from '~/repositories/userRepository';
 import {
   flipCampaignHousingsToWaiting,
-  flipHousingsToWaiting
+  flipHousingsToWaiting,
+  revertCampaignHousingsToNeverContacted
 } from '~/services/campaign-housing-service';
 import {
   genEstablishmentApi,
   genUserApi,
   genHousingApi,
-  genCampaignApi
+  genCampaignApi,
+  genEventApi
 } from '~/test/testFixtures';
 
 describe('campaign-housing-service', () => {
@@ -172,6 +182,156 @@ describe('campaign-housing-service', () => {
         flipCampaignHousingsToWaiting(campaign, system)
       );
       expect(second).toBe(0);
+    });
+  });
+
+  describe('revertCampaignHousingsToNeverContacted', () => {
+    const TODAY = '2026-07-15';
+
+    // Attach `housing` to `campaign`, mark it WAITING, and give it a pristine
+    // auto-flip status event authored by `author` (defaults to the system).
+    async function setupWaitingHousing(
+      campaign: ReturnType<typeof genCampaignApi>,
+      author: UserApi = system,
+      flipOverrides: Partial<{
+        nextOld: { status: string };
+        nextNew: { status: string };
+      }> = {}
+    ) {
+      const housing = {
+        ...genHousingApi(),
+        status: HousingStatus.WAITING,
+        subStatus: null
+      };
+      await Housing().insert(formatHousingRecordApi(housing));
+      await CampaignsHousing().insert({
+        campaign_id: campaign.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
+      const flip = genEventApi({
+        type: 'housing:status-updated',
+        creator: author,
+        nextOld: {
+          status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+        },
+        nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] },
+        ...flipOverrides
+      });
+      await Events().insert(formatEventApi(flip));
+      await HousingEvents().insert({
+        event_id: flip.id,
+        housing_geo_code: housing.geoCode,
+        housing_id: housing.id
+      });
+      return housing;
+    }
+
+    async function statusOf(housing: { geoCode: string; id: string }) {
+      const row = await Housing()
+        .where({ geo_code: housing.geoCode, id: housing.id })
+        .first();
+      return row?.status;
+    }
+
+    async function revertEventsFor(housing: { geoCode: string; id: string }) {
+      return Events()
+        .where({ type: 'housing:status-updated' })
+        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
+        .where({ housing_geo_code: housing.geoCode, housing_id: housing.id })
+        .andWhere('created_by', system.id)
+        .andWhereRaw(`next_new ->> 'status' = ?`, [
+          HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+        ]);
+    }
+
+    it('reverts a pristine system-flipped housing and writes one reverse event', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+      const housing = await setupWaitingHousing(campaign);
+
+      const count = await startTransaction(() =>
+        revertCampaignHousingsToNeverContacted(campaign, system, TODAY)
+      );
+
+      expect(count).toBe(1);
+      expect(await statusOf(housing)).toBe(HousingStatus.NEVER_CONTACTED);
+      expect(await revertEventsFor(housing)).toHaveLength(1);
+    });
+
+    it('skips when a sibling campaign has genuinely sent', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      const sentSibling = {
+        ...genCampaignApi(establishment.id, user),
+        sentAt: '2020-01-01'
+      };
+      await Campaigns().insert([campaign, sentSibling].map(formatCampaignApi));
+      const housing = await setupWaitingHousing(campaign);
+      // Also attach the housing to the already-sent sibling.
+      await CampaignsHousing().insert({
+        campaign_id: sentSibling.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
+
+      const count = await startTransaction(() =>
+        revertCampaignHousingsToNeverContacted(campaign, system, TODAY)
+      );
+
+      expect(count).toBe(0);
+      expect(await statusOf(housing)).toBe(HousingStatus.WAITING);
+    });
+
+    it('skips when the latest status event is not the pristine flip shape', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+      const housing = await setupWaitingHousing(campaign, system, {
+        nextOld: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] },
+        nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.IN_PROGRESS] }
+      });
+
+      const count = await startTransaction(() =>
+        revertCampaignHousingsToNeverContacted(campaign, system, TODAY)
+      );
+
+      expect(count).toBe(0);
+      expect(await statusOf(housing)).toBe(HousingStatus.WAITING);
+    });
+
+    it('skips when the pristine flip was authored by a user, not the system', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+      const housing = await setupWaitingHousing(campaign, user);
+
+      const count = await startTransaction(() =>
+        revertCampaignHousingsToNeverContacted(campaign, system, TODAY)
+      );
+
+      expect(count).toBe(0);
+      expect(await statusOf(housing)).toBe(HousingStatus.WAITING);
+    });
+
+    it('skips a WAITING housing with no status-updated event', async () => {
+      const campaign = genCampaignApi(establishment.id, user);
+      await Campaigns().insert(formatCampaignApi(campaign));
+      const housing = {
+        ...genHousingApi(),
+        status: HousingStatus.WAITING,
+        subStatus: null
+      };
+      await Housing().insert(formatHousingRecordApi(housing));
+      await CampaignsHousing().insert({
+        campaign_id: campaign.id,
+        housing_id: housing.id,
+        housing_geo_code: housing.geoCode
+      });
+
+      const count = await startTransaction(() =>
+        revertCampaignHousingsToNeverContacted(campaign, system, TODAY)
+      );
+
+      expect(count).toBe(0);
+      expect(await statusOf(housing)).toBe(HousingStatus.WAITING);
     });
   });
 });

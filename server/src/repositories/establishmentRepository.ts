@@ -1,4 +1,3 @@
-import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 
 import {
@@ -6,13 +5,18 @@ import {
   EstablishmentKind,
   EstablishmentSource
 } from '@zerologementvacant/models';
-import { Knex } from 'knex';
+import { Record } from 'effect';
+import { snakeToCamel } from 'effect/String';
+import type { Insertable, Selectable, Updateable } from 'kysely';
+import { sql } from 'kysely';
 
-import db, { likeUnaccent, notDeleted } from '~/infra/database';
+import db from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { createLogger } from '~/infra/logger';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 
-import { fromUserDBO, UserDBO, USERS_TABLE } from './userRepository';
+import { fromUserDBO, UserDBO } from './userRepository';
 
 export const establishmentsTable = 'establishments';
 export const Establishments = (transaction = db) =>
@@ -30,10 +34,9 @@ async function find(
 ): Promise<ReadonlyArray<EstablishmentApi>> {
   logger.debug('Find establishments', opts);
 
-  const establishments: EstablishmentDBO[] =
-    await listQuery(opts).orderBy('name');
+  const rows = await listQuery(opts).orderBy('establishments.name').execute();
 
-  return establishments.map(parseEstablishmentApi);
+  return rows.map(parseEstablishmentRow);
 }
 
 interface GetOptions {
@@ -46,12 +49,12 @@ async function get(
 ): Promise<EstablishmentApi | null> {
   logger.debug('Get establishment', { id });
 
-  const establishment = await listQuery({
+  const row = await listQuery({
     filters: { id: [id] },
     includes: options?.includes
-  }).first();
+  }).executeTakeFirst();
 
-  return establishment ? parseEstablishmentApi(establishment) : null;
+  return row ? parseEstablishmentRow(row) : null;
 }
 
 interface FindOneOptions {
@@ -64,24 +67,33 @@ async function findOne(
 ): Promise<EstablishmentApi | null> {
   logger.info('Find establishment by', options);
 
-  const result = await listQuery({
+  const row = await listQuery({
     filters: { siren: options.siren ? [options.siren.toString()] : undefined },
     includes: options.includes
-  }).first();
+  }).executeTakeFirst();
 
-  return result ? parseEstablishmentApi(result) : null;
+  return row ? parseEstablishmentRow(row) : null;
 }
 
 async function update(establishmentApi: EstablishmentApi): Promise<void> {
-  await Establishments()
-    .where('id', establishmentApi.id)
-    .update(formatEstablishmentApi(establishmentApi));
+  const dbo = formatEstablishmentApi(establishmentApi);
+  const row = Record.mapKeys(
+    dbo as unknown as Record<string, unknown>,
+    snakeToCamel
+  ) as Updateable<DB['establishments']>;
+  await kysely
+    .updateTable('establishments')
+    .set(row)
+    .where('id', '=', establishmentApi.id)
+    .execute();
 }
 
 async function setAvailable(establishment: EstablishmentApi): Promise<void> {
-  await Establishments()
-    .where({ id: establishment.id })
-    .update({ available: true });
+  await kysely
+    .updateTable('establishments')
+    .set({ available: true })
+    .where('id', '=', establishment.id)
+    .execute();
 }
 
 interface StreamOptions {
@@ -90,17 +102,23 @@ interface StreamOptions {
 }
 
 function stream(options?: StreamOptions): ReadableStream<EstablishmentApi> {
-  return Readable.toWeb(
-    listQuery({ includes: options?.includes })
-      .orderBy('name')
-      .modify((query) => {
-        if (options?.updatedAfter) {
-          query.andWhere('updated_at', '>', options.updatedAfter);
-        }
-      })
-      .stream()
-      .map(parseEstablishmentApi)
-  );
+  const query = listQuery({ includes: options?.includes })
+    .orderBy('establishments.name')
+    .$if(!!options?.updatedAfter, (query) =>
+      query.where(
+        'establishments.updatedAt',
+        '>',
+        options?.updatedAfter ?? new Date(0)
+      )
+    );
+
+  async function* rows() {
+    for await (const row of query.stream()) {
+      yield parseEstablishmentRow(row);
+    }
+  }
+
+  return ReadableStream.from(rows());
 }
 
 async function save(establishment: EstablishmentDBO): Promise<void> {
@@ -108,7 +126,11 @@ async function save(establishment: EstablishmentDBO): Promise<void> {
     establishment
   });
 
-  await Establishments().insert(establishment);
+  const row = Record.mapKeys(
+    establishment as unknown as Record<string, unknown>,
+    snakeToCamel
+  ) as Insertable<DB['establishments']>;
+  await kysely.insertInto('establishments').values(row).execute();
   logger.info('Saved establishment', { establishment: establishment.id });
 }
 
@@ -118,82 +140,92 @@ interface ListOptions {
 }
 
 function listQuery(opts?: ListOptions) {
-  return Establishments()
-    .select(`${establishmentsTable}.*`)
-    .modify(filter(opts?.filters))
-    .modify(include(opts?.includes ?? []));
+  const filters = opts?.filters;
+  const includes = opts?.includes ?? [];
+
+  return kysely
+    .selectFrom('establishments')
+    .selectAll('establishments')
+    .$if(filters?.id !== undefined, (query) =>
+      query.where('establishments.id', 'in', filters?.id ?? [])
+    )
+    .$if(filters?.available !== undefined, (query) =>
+      query.where('establishments.available', '=', filters?.available ?? false)
+    )
+    .$if(!!filters?.active, (query) =>
+      query.where((eb) =>
+        eb.exists(
+          eb
+            .selectFrom('users')
+            .select('users.id')
+            .whereRef('users.establishmentId', '=', 'establishments.id')
+            .where('users.deletedAt', 'is', null)
+        )
+      )
+    )
+    .$if(!!filters?.query?.length, (query) =>
+      query.where(
+        sql<boolean>`upper(unaccent(establishments.name)) like '%' || upper(unaccent(${filters?.query})) || '%'`
+      )
+    )
+    .$if(!!filters?.related, (query) =>
+      query
+        .where('establishments.id', '!=', filters?.related ?? '')
+        .where(
+          sql<boolean>`establishments.localities_geo_code && (SELECT localities_geo_code FROM establishments WHERE id = ${filters?.related})`
+        )
+    )
+    .$if(filters?.geoCodes !== undefined, (query) =>
+      query.where(
+        sql<boolean>`${sql.val(filters?.geoCodes ?? [])} && establishments.localities_geo_code`
+      )
+    )
+    .$if(!!filters?.kind, (query) =>
+      query.where('establishments.kind', 'in', filters?.kind ?? [])
+    )
+    .$if(!!filters?.name, (query) =>
+      query.where(
+        sql<boolean>`lower(unaccent(regexp_replace(regexp_replace(establishments.name, '''| [(].*[)]', '', 'g'), ' | - ', '-', 'g'))) like '%' || ${filters?.name}`
+      )
+    )
+    .$if(!!filters?.siren, (query) =>
+      query.where(
+        'establishments.siren',
+        'in',
+        (filters?.siren ?? []).map(Number)
+      )
+    )
+    .$if(includes.includes('users'), (query) =>
+      query.select((eb) =>
+        eb
+          .selectFrom('users')
+          .select(
+            sql<UserDBO[]>`coalesce(json_agg(users.*), '[]'::json)`.as('users')
+          )
+          .whereRef('users.establishmentId', '=', 'establishments.id')
+          .where('users.deletedAt', 'is', null)
+          .as('users')
+      )
+    );
 }
 
 type EstablishmentInclude = 'users';
 
-function include(includes: EstablishmentInclude[]) {
-  const joins: Record<
-    EstablishmentInclude,
-    (query: Knex.QueryBuilder) => void
-  > = {
-    users: (query) =>
-      query.select('u.users').joinRaw(
-        `LEFT JOIN LATERAL (
-          SELECT COALESCE(json_agg(${USERS_TABLE}.*), '[]'::json) AS users
-          FROM ${USERS_TABLE}
-          WHERE ${USERS_TABLE}.establishment_id = ${establishmentsTable}.id
-            AND ${USERS_TABLE}.deleted_at IS NULL
-        ) u ON true`
-      )
-  };
+type EstablishmentRow = Selectable<DB['establishments']> & {
+  users?: UserDBO[] | null;
+};
 
-  return (query: Knex.QueryBuilder) => {
-    includes.forEach((includeType) => {
-      joins[includeType](query);
-    });
-  };
-}
-
-function filter(filters?: EstablishmentFiltersDTO) {
-  return (builder: Knex.QueryBuilder<EstablishmentDBO>) => {
-    if (filters?.id) {
-      builder.whereIn('id', filters.id);
-    }
-    if (filters?.available !== undefined) {
-      builder.where('available', filters.available);
-    }
-    if (filters?.active) {
-      builder.whereExists((subquery) => {
-        subquery
-          .select('id')
-          .from(USERS_TABLE)
-          .where({
-            establishment_id: db.ref(`${establishmentsTable}.id`)
-          })
-          .where(notDeleted);
-      });
-    }
-    if (filters?.query?.length) {
-      builder.whereRaw(likeUnaccent('name', filters.query));
-    }
-    if (filters?.related) {
-      builder
-        .where('id', '!=', filters.related)
-        .whereRaw(
-          `localities_geo_code && (SELECT localities_geo_code FROM ${establishmentsTable} WHERE id = ?)`,
-          [filters.related]
-        );
-    }
-    if (filters?.geoCodes) {
-      builder.whereRaw('? && localities_geo_code', [filters.geoCodes]);
-    }
-    if (filters?.kind) {
-      builder.whereIn('kind', filters.kind);
-    }
-    if (filters?.name) {
-      builder.whereRaw(
-        `lower(unaccent(regexp_replace(regexp_replace(name, '''| [(].*[)]', '', 'g'), ' | - ', '-', 'g'))) like '%' || ?`,
-        filters?.name
-      );
-    }
-    if (filters?.siren) {
-      builder.whereIn('siren', filters.siren);
-    }
+function parseEstablishmentRow(row: EstablishmentRow): EstablishmentApi {
+  return {
+    id: row.id,
+    name: row.name,
+    shortName: row.name,
+    siren: (row.siren as number).toString(),
+    available: row.available,
+    geoCodes: row.localitiesGeoCode as string[],
+    kind: row.kind as EstablishmentKind,
+    source: row.source as EstablishmentSource,
+    users: row.users?.map(fromUserDBO)
   };
 }
 

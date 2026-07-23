@@ -12,7 +12,7 @@ import { housingTable } from '~/repositories/housingRepository';
 import {
   flipCampaignHousingsToWaiting,
   resolveSystemUser
-} from '~/services/campaignHousingService';
+} from '~/services/campaign-housing-service';
 
 const logger = createLogger('flip-sent-campaign-housings');
 

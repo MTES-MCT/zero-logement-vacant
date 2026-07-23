@@ -43,7 +43,7 @@ import {
   flipCampaignHousingsToWaiting,
   flipHousingsToWaiting,
   resolveSystemUser
-} from '~/services/campaignHousingService';
+} from '~/services/campaign-housing-service';
 import { today } from '~/utils/date';
 
 const list: RequestHandler<

@@ -6,6 +6,7 @@ import {
   CampaignDTO,
   CampaignRemovalPayload,
   CampaignUpdatePayload,
+  HOUSING_STATUS_LABELS,
   HOUSING_STATUS_VALUES,
   HousingStatus,
   UserRole,
@@ -22,7 +23,7 @@ import type { DB } from '~/infra/database/db';
 import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
-import { CampaignEventApi } from '~/models/EventApi';
+import { CampaignEventApi, HousingEventApi } from '~/models/EventApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { UserApi } from '~/models/UserApi';
@@ -1062,6 +1063,155 @@ describe('Campaign API', () => {
         .where('id', '=', housing.id)
         .executeTakeFirst();
       expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
+    });
+
+    it('reverts auto-flipped housings when sentAt is postponed to the future', async () => {
+      const system = (await userRepository.getByEmail(config.app.system))!;
+      const sentCampaign = await factories
+        .campaign(establishment)
+        .create(
+          { sentAt: '2020-01-01' },
+          { associations: { createdBy: user } }
+        );
+
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+        status: HousingStatus.WAITING,
+        subStatus: null
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: sentCampaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+      // Pristine system-authored auto-flip: the mark that this WAITING came from
+      // the send-date rule.
+      const flip: HousingEventApi = {
+        ...genEventApi({
+          type: 'housing:status-updated',
+          creator: system,
+          nextOld: {
+            status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+          },
+          nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
+      };
+      await kysely.insertInto('events').values(toEventInsert(flip)).execute();
+      await kysely
+        .insertInto('housingEvents')
+        .values({
+          eventId: flip.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+
+      const payload: CampaignUpdatePayload = {
+        title: sentCampaign.title,
+        description: sentCampaign.description,
+        sentAt: '2999-01-01'
+      };
+      const { status } = await request(url)
+        .put(testRoute(sentCampaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
+
+      const statusEvents = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'housing:status-updated')
+        .where('housingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('housingEvents.housingId', '=', housing.id)
+        .where('events.createdBy', '=', system.id)
+        .execute();
+      const revertEvents = statusEvents.filter(
+        (event) =>
+          (event.nextNew as { status?: string } | null)?.status ===
+          HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+      );
+      expect(revertEvents).toHaveLength(1);
+    });
+
+    it('does not revert a manually-set WAITING housing when postponed', async () => {
+      const sentCampaign = await factories
+        .campaign(establishment)
+        .create(
+          { sentAt: '2020-01-01' },
+          { associations: { createdBy: user } }
+        );
+
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+        status: HousingStatus.WAITING,
+        subStatus: null
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: sentCampaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+      // A caseworker set WAITING by hand — the flip event is authored by the user,
+      // not the system, so it must not be reverted.
+      const manual: HousingEventApi = {
+        ...genEventApi({
+          type: 'housing:status-updated',
+          creator: user,
+          nextOld: {
+            status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+          },
+          nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
+      };
+      await kysely
+        .insertInto('events')
+        .values(toEventInsert(manual))
+        .execute();
+      await kysely
+        .insertInto('housingEvents')
+        .values({
+          eventId: manual.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+
+      const payload: CampaignUpdatePayload = {
+        title: sentCampaign.title,
+        description: sentCampaign.description,
+        sentAt: '2999-01-01'
+      };
+      await request(url)
+        .put(testRoute(sentCampaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual?.status).toBe(HousingStatus.WAITING);
     });
 
     it('does not re-run the flip when sentAt is unchanged', async () => {

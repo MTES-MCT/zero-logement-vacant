@@ -133,6 +133,8 @@ fileignoreconfig:
   checksum: a5d6773a09975c740d23c245eeea88dec1b964de1a9e2752c6f8775a1a85ac85
 - filename: server/src/repositories/test/datafoncierOwnersRepository.test.ts
   checksum: 6b06f44ccd0a8ccbda81af4833caeed8554aebe4e523f540bd18f79fd4e564ba
+- filename: docs/superpowers/plans/2026-07-23-kysely-phase3-datafoncierOwnersRepository-migration.md
+  checksum: e49edb7b866a0d09e7cfa0e66e75dadfe1743a7dfe2c44f060641d67394a5a07
 - filename: server/src/scripts/import-dpe/import-dpe.py
   checksum: ba1ea278d8321501976c7c9da7e9428fe8819776369f7eef0ff1fbf1ee4ed8bf
 - filename: server/src/scripts/import-dpe/import_dpe_raw.py

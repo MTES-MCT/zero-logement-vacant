@@ -1,12 +1,13 @@
 import { EventPayloads, EventType } from '@zerologementvacant/models';
 import { Array } from 'effect';
-import type { Insertable } from 'kysely';
+import type { ExpressionBuilder, Insertable, Selectable } from 'kysely';
+import { sql } from 'kysely';
 import pMap from 'p-map';
 
 import db from '~/infra/database';
 import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
-import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import {
   CampaignEventApi,
@@ -24,11 +25,7 @@ import {
 } from '~/models/EventApi';
 import { HousingId } from '~/models/HousingApi';
 import { OwnerApi } from '~/models/OwnerApi';
-import {
-  fromUserDBO,
-  UserDBO,
-  USERS_TABLE
-} from '~/repositories/userRepository';
+import { fromUserDBO, UserDBO } from '~/repositories/userRepository';
 
 const logger = createLogger('eventRepository');
 
@@ -171,6 +168,17 @@ async function insertManyHousingOwnerEvents(
   });
 }
 
+function toPrecisionHousingEventInsert(
+  event: PrecisionHousingEventApi
+): Insertable<DB['precisionHousingEvents']> {
+  return {
+    eventId: event.id,
+    housingGeoCode: event.housingGeoCode,
+    housingId: event.housingId,
+    precisionId: event.precisionId ?? null
+  };
+}
+
 async function insertManyPrecisionHousingEvents(
   events: ReadonlyArray<PrecisionHousingEventApi>
 ): Promise<void> {
@@ -181,11 +189,17 @@ async function insertManyPrecisionHousingEvents(
   logger.debug('Inserting precision housing events...', {
     events: events.length
   });
-  await db.transaction(async (transaction) => {
-    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
-    await transaction.batchInsert(
-      PRECISION_HOUSING_EVENTS_TABLE,
-      events.map(formatPrecisionHousingEventApi)
+  await withinKyselyTransaction(async (trx) => {
+    await pMap(
+      Array.chunksOf(events, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('precisionHousingEvents')
+          .values(batch.map(toPrecisionHousingEventInsert))
+          .execute();
+      },
+      { concurrency: 1 }
     );
   });
 }
@@ -250,6 +264,15 @@ function toCampaignHousingEventInsert(
   };
 }
 
+function toCampaignEventInsert(
+  event: CampaignEventApi
+): Insertable<DB['campaignEvents']> {
+  return {
+    eventId: event.id,
+    campaignId: event.campaignId
+  };
+}
+
 async function insertManyCampaignEvents(
   events: ReadonlyArray<CampaignEventApi>
 ): Promise<void> {
@@ -260,11 +283,17 @@ async function insertManyCampaignEvents(
   logger.debug('Inserting campaign events...', {
     events: events.length
   });
-  await withinTransaction(async (transaction) => {
-    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
-    await transaction.batchInsert(
-      CAMPAIGN_EVENTS_TABLE,
-      events.map(formatCampaignEventApi)
+  await withinKyselyTransaction(async (trx) => {
+    await pMap(
+      Array.chunksOf(events, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('campaignEvents')
+          .values(batch.map(toCampaignEventInsert))
+          .execute();
+      },
+      { concurrency: 1 }
     );
   });
 }
@@ -318,6 +347,15 @@ function toGroupHousingEventDBO(
   };
 }
 
+function toDocumentEventInsert(
+  event: DocumentEventApi
+): Insertable<DB['documentEvents']> {
+  return {
+    eventId: event.id,
+    documentId: event.documentId
+  };
+}
+
 async function insertManyDocumentEvents(
   events: ReadonlyArray<DocumentEventApi>
 ): Promise<void> {
@@ -327,13 +365,30 @@ async function insertManyDocumentEvents(
   }
 
   logger.debug('Inserting document events...', { events: events.length });
-  await withinTransaction(async (transaction) => {
-    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
-    await transaction.batchInsert(
-      DOCUMENT_EVENTS_TABLE,
-      events.map(formatDocumentEventApi)
+  await withinKyselyTransaction(async (trx) => {
+    await pMap(
+      Array.chunksOf(events, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('documentEvents')
+          .values(batch.map(toDocumentEventInsert))
+          .execute();
+      },
+      { concurrency: 1 }
     );
   });
+}
+
+function toHousingDocumentEventInsert(
+  event: HousingDocumentEventApi
+): Insertable<DB['housingDocumentEvents']> {
+  return {
+    eventId: event.id,
+    housingGeoCode: event.housingGeoCode,
+    housingId: event.housingId,
+    documentId: event.documentId
+  };
 }
 
 async function insertManyHousingDocumentEvents(
@@ -346,11 +401,17 @@ async function insertManyHousingDocumentEvents(
   logger.debug('Inserting housing document events...', {
     events: events.length
   });
-  await withinTransaction(async (transaction) => {
-    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
-    await transaction.batchInsert(
-      HOUSING_DOCUMENT_EVENTS_TABLE,
-      events.map(formatHousingDocumentEventApi)
+  await withinKyselyTransaction(async (trx) => {
+    await pMap(
+      Array.chunksOf(events, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('housingDocumentEvents')
+          .values(batch.map(toHousingDocumentEventInsert))
+          .execute();
+      },
+      { concurrency: 1 }
     );
   });
 }
@@ -363,116 +424,90 @@ interface FindEventsOptions<Type extends EventType> {
   };
 }
 
+// `housings` is matched against a composite (housingGeoCode, housingId) key
+// across 6 join tables — mirrors the tuple-IN pattern already used in
+// groupRepository.ts's removeHousing.
+function matchesHousingTuple(
+  eb: ExpressionBuilder<DB, keyof DB>,
+  housings: ReadonlyArray<HousingId>
+) {
+  return eb(
+    eb.refTuple('housingGeoCode', 'housingId'),
+    'in',
+    housings.map((housing) => eb.tuple(housing.geoCode, housing.id))
+  );
+}
+
+function housingEventIdsQuery(
+  eb: ExpressionBuilder<DB, 'events'>,
+  housings: ReadonlyArray<HousingId>
+) {
+  return eb
+    .selectFrom('housingEvents')
+    .select('eventId')
+    .where((inner) => matchesHousingTuple(inner, housings))
+    .unionAll(
+      eb
+        .selectFrom('groupHousingEvents')
+        .select('eventId')
+        .where((inner) => matchesHousingTuple(inner, housings))
+    )
+    .unionAll(
+      eb
+        .selectFrom('precisionHousingEvents')
+        .select('eventId')
+        .where((inner) => matchesHousingTuple(inner, housings))
+    )
+    .unionAll(
+      eb
+        .selectFrom('housingOwnerEvents')
+        .select('eventId')
+        .where((inner) => matchesHousingTuple(inner, housings))
+    )
+    .unionAll(
+      eb
+        .selectFrom('campaignHousingEvents')
+        .select('eventId')
+        .where((inner) => matchesHousingTuple(inner, housings))
+    )
+    .unionAll(
+      eb
+        .selectFrom('housingDocumentEvents')
+        .select('eventId')
+        .where((inner) => matchesHousingTuple(inner, housings))
+    );
+}
+
 async function find<Type extends EventType>(
   options?: FindEventsOptions<Type>
 ): Promise<ReadonlyArray<EventUnion<Type>>> {
   logger.debug('Finding events...', { options });
-  const events = await Events()
-    .select(`${EVENTS_TABLE}.*`)
-    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${EVENTS_TABLE}.created_by`)
-    .select(db.raw(`to_json(${USERS_TABLE}.*) AS creator`))
-    .modify((query) => {
-      const types = options?.filters?.types ?? [];
-      const housings = options?.filters?.housings ?? [];
-      const owners = options?.filters?.owners ?? [];
+  const types = options?.filters?.types ?? [];
+  const housings = options?.filters?.housings ?? [];
+  const owners = options?.filters?.owners ?? [];
 
-      if (types.length) {
-        query.whereIn(`${EVENTS_TABLE}.type`, types);
-      }
+  const rows = await kysely
+    .selectFrom('events')
+    .innerJoin('users', 'users.id', 'events.createdBy')
+    .selectAll('events')
+    .select(sql<UserDBO>`to_json(users.*)`.as('creator'))
+    .$if(types.length > 0, (query) => query.where('events.type', 'in', types))
+    .$if(housings.length > 0, (query) =>
+      query.where('events.id', 'in', (eb) => housingEventIdsQuery(eb, housings))
+    )
+    .$if(owners.length > 0, (query) =>
+      query.where('events.id', 'in', (eb) =>
+        eb
+          .selectFrom('ownerEvents')
+          .select('eventId')
+          .where('ownerEvents.ownerId', 'in', owners)
+      )
+    )
+    .orderBy('events.createdAt', 'desc')
+    .execute();
 
-      if (housings.length > 0) {
-        query.whereIn(`${EVENTS_TABLE}.id`, (subquery) => {
-          subquery
-            .select(`${HOUSING_EVENTS_TABLE}.event_id`)
-            .from(HOUSING_EVENTS_TABLE)
-            .whereIn(
-              [
-                `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
-                `${HOUSING_EVENTS_TABLE}.housing_id`
-              ],
-              housings.map((housing) => [housing.geoCode, housing.id])
-            )
-            // Add housing events related to groups
-            .unionAll((union) => {
-              union
-                .select(`${GROUP_HOUSING_EVENTS_TABLE}.event_id`)
-                .from(GROUP_HOUSING_EVENTS_TABLE)
-                .whereIn(
-                  [
-                    `${GROUP_HOUSING_EVENTS_TABLE}.housing_geo_code`,
-                    `${GROUP_HOUSING_EVENTS_TABLE}.housing_id`
-                  ],
-                  housings.map((housing) => [housing.geoCode, housing.id])
-                );
-            })
-            // Add housing events related to precisions
-            .unionAll((union) => {
-              union
-                .select(`${PRECISION_HOUSING_EVENTS_TABLE}.event_id`)
-                .from(PRECISION_HOUSING_EVENTS_TABLE)
-                .whereIn(
-                  [
-                    `${PRECISION_HOUSING_EVENTS_TABLE}.housing_geo_code`,
-                    `${PRECISION_HOUSING_EVENTS_TABLE}.housing_id`
-                  ],
-                  housings.map((housing) => [housing.geoCode, housing.id])
-                );
-            })
-            // Add housing events related to owners
-            .unionAll((union) => {
-              union
-                .select(`${HOUSING_OWNER_EVENTS_TABLE}.event_id`)
-                .from(HOUSING_OWNER_EVENTS_TABLE)
-                .whereIn(
-                  [
-                    `${HOUSING_OWNER_EVENTS_TABLE}.housing_geo_code`,
-                    `${HOUSING_OWNER_EVENTS_TABLE}.housing_id`
-                  ],
-                  housings.map((housing) => [housing.geoCode, housing.id])
-                );
-            })
-            // Add housing events related to campaigns
-            .unionAll((union) => {
-              union
-                .select(`${CAMPAIGN_HOUSING_EVENTS_TABLE}.event_id`)
-                .from(CAMPAIGN_HOUSING_EVENTS_TABLE)
-                .whereIn(
-                  [
-                    `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_geo_code`,
-                    `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_id`
-                  ],
-                  housings.map((housing) => [housing.geoCode, housing.id])
-                );
-            })
-            // Add housing events related to documents
-            .unionAll((union) => {
-              union
-                .select(`${HOUSING_DOCUMENT_EVENTS_TABLE}.event_id`)
-                .from(HOUSING_DOCUMENT_EVENTS_TABLE)
-                .whereIn(
-                  [
-                    `${HOUSING_DOCUMENT_EVENTS_TABLE}.housing_geo_code`,
-                    `${HOUSING_DOCUMENT_EVENTS_TABLE}.housing_id`
-                  ],
-                  housings.map((housing) => [housing.geoCode, housing.id])
-                );
-            });
-        });
-      }
-
-      if (owners.length) {
-        query.whereIn(`${EVENTS_TABLE}.id`, (subquery) => {
-          subquery
-            .select(`${OWNER_EVENTS_TABLE}.event_id`)
-            .from(OWNER_EVENTS_TABLE)
-            .whereIn(`${OWNER_EVENTS_TABLE}.owner_id`, owners);
-        });
-      }
-    })
-    .orderBy(`${EVENTS_TABLE}.created_at`, 'desc');
-
-  logger.debug(`Found ${events.length} events`, { options });
-  return events.map(parseEventApi);
+  logger.debug(`Found ${rows.length} events`, { options });
+  return rows.map(parseEventRow) as unknown as ReadonlyArray<EventUnion<Type>>;
 }
 
 async function removeCampaignEvents(campaignId: string): Promise<void> {
@@ -532,6 +567,28 @@ export function parseEventApi<Type extends EventType>(
     createdAt: event.created_at.toJSON(),
     createdBy: event.created_by,
     creator: event.creator ? fromUserDBO(event.creator) : undefined
+  };
+}
+
+// ---------------------------------------------------------------------------
+// find()'s Kysely read path — camelCase-native mirror of parseEventApi.
+// The `creator` blob comes from to_json(users.*), which stays snake_case
+// regardless of engine (CamelCasePlugin's maintainNestedObjectKeys leaves
+// raw-SQL JSON aggregates untouched), so it's read via fromUserDBO exactly
+// as before.
+// ---------------------------------------------------------------------------
+
+type EventRow = Selectable<DB['events']> & { creator: UserDBO };
+
+function parseEventRow<Type extends EventType>(row: EventRow): EventApi<Type> {
+  return {
+    id: row.id,
+    type: row.type as Type,
+    nextOld: row.nextOld as EventPayloads[Type]['old'],
+    nextNew: row.nextNew as EventPayloads[Type]['new'],
+    createdAt: (row.createdAt as Date).toJSON(),
+    createdBy: row.createdBy,
+    creator: row.creator ? fromUserDBO(row.creator) : undefined
   };
 }
 

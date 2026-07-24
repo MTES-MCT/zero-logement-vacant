@@ -135,17 +135,6 @@ function applyCampaignSort(
   return result;
 }
 
-const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
-  logger.info(
-    'Insert campaignApi for establishment',
-    campaignApi.establishmentId
-  );
-  return db(campaignsTable)
-    .insert(formatCampaignApi(campaignApi))
-    .returning('*')
-    .then((_) => parseCampaignApi(_[0]));
-};
-
 async function save(campaign: CampaignApi): Promise<void> {
   logger.debug('Saving campaign', campaign);
   await withinKyselyTransaction(async (trx) => {
@@ -192,14 +181,6 @@ function toCampaignInsert(campaign: CampaignApi): Insertable<DB['campaigns']> {
     returnCount: campaign.returnCount ?? 0
   };
 }
-
-const update = async (campaignApi: CampaignApi): Promise<string> => {
-  return db(campaignsTable)
-    .where('id', campaignApi.id)
-    .update(formatCampaignApi(campaignApi))
-    .returning('*')
-    .then((_) => _[0]);
-};
 
 async function remove(id: string): Promise<void> {
   logger.debug('Removing campaign...', { id });
@@ -285,29 +266,6 @@ function parseCampaignRow(row: CampaignRow): CampaignApi {
   };
 }
 
-export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
-  id: campaign.id,
-  establishmentId: campaign.establishment_id,
-  status: campaign.status,
-  filters: campaign.filters,
-  file: campaign.file,
-  userId: campaign.user_id,
-  createdBy: fromUserDBO(campaign.creator!),
-  createdAt: campaign.created_at.toJSON(),
-  validatedAt: campaign.validated_at?.toJSON(),
-  exportedAt: campaign.exported_at?.toJSON(),
-  sentAt: campaign.sent_at?.toJSON()?.slice(0, 'yyyy-mm-dd'.length) ?? null,
-  archivedAt: campaign.archived_at?.toJSON(),
-  confirmedAt: campaign.confirmed_at?.toJSON(),
-  title: campaign.title,
-  description: campaign.description,
-  groupId: campaign.group_id,
-  returnCount: campaign.sent_at ? campaign.return_count : null,
-  housingCount: campaign.housing_count,
-  ownerCount: campaign.owner_count,
-  returnRate: campaign.sent_at ? campaign.return_rate : null
-});
-
 export const formatCampaignApi = (
   campaign: CampaignApi
 ): Omit<
@@ -341,9 +299,7 @@ export const formatCampaignApi = (
 export default {
   findOne,
   find,
-  insert,
   save,
-  update,
   remove,
   formatCampaignApi
 };

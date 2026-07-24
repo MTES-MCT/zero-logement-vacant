@@ -67,6 +67,8 @@ function EstablishmentTable(props: EstablishmentTableProps) {
         sorting
       }}
       onSortingChange={setSorting}
+      caption="Autres structures sur votre territoire"
+      tableProps={{ noCaption: true }}
     />
   );
 }

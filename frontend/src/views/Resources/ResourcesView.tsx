@@ -58,7 +58,7 @@ function ResourcesView() {
   useDocumentTitle('Ressources');
 
   return (
-    <Container component="main" maxWidth="xl" sx={{ py: '2rem' }}>
+    <Container maxWidth="xl" sx={{ py: '2rem' }}>
       <Typography component="h1" variant="h3" sx={{ mb: '1.5rem' }}>
         Ressources
       </Typography>

@@ -354,14 +354,14 @@ router.post('/owners', ownerController.search);
 router.get('/owners/:id', ownerController.get);
 router.post(
   '/owners/creation',
-  validator.validate({ body: schemas.ownerPayload }),
+  validator.validate({ body: schemas.ownerCreationPayload }),
   ownerController.create
 );
 router.put(
   '/owners/:id',
   validator.validate({
     params: object({ id: schemas.id }),
-    body: schemas.ownerPayload
+    body: schemas.ownerUpdatePayload
   }),
   ownerController.update
 );

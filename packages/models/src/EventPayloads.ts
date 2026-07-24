@@ -151,6 +151,7 @@ export type EventPayloads = {
     phone?: string | null;
     address?: string | null;
     additionalAddress?: string | null;
+    doNotContact?: boolean;
   }>;
 
   'campaign:updated': UpdateEventChange<{

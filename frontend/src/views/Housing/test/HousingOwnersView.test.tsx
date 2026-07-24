@@ -182,6 +182,44 @@ describe('HousingOwnersView', () => {
     expect(cell).toBeVisible();
   });
 
+  it('should mark an owner as "do not contact"', async () => {
+    const housing = genHousingDTO();
+    const owners: ReadonlyArray<OwnerDTO> = [
+      { ...genOwnerDTO(), doNotContact: false },
+      { ...genOwnerDTO(), doNotContact: false }
+    ];
+    const housingOwners: ReadonlyArray<HousingOwnerDTO> = [
+      { ...genHousingOwnerDTO(owners[0]), rank: 1 },
+      { ...genHousingOwnerDTO(owners[1]), rank: 2 }
+    ];
+
+    renderView({
+      housing,
+      owners,
+      housingOwners
+    });
+
+    const button = await screen.findByRole('button', {
+      name: `Éditer ${getOwnerDisplayName(owners[1])}`
+    });
+    await user.click(button);
+    const rank = await screen.findByRole('radio', {
+      name: 'À ne pas contacter'
+    });
+    await user.click(rank);
+    const save = await screen.findByRole('button', {
+      name: 'Enregistrer'
+    });
+    await user.click(save);
+    const row = await screen.findByRole('row', {
+      name: new RegExp(`^${getOwnerDisplayName(owners[1])}`)
+    });
+    const cell = await within(row).findByRole('cell', {
+      name: 'Ne pas contacter'
+    });
+    expect(cell).toBeVisible();
+  });
+
   it('should change an inactive owner to primary', async () => {
     const housing = genHousingDTO();
     const owners: ReadonlyArray<OwnerDTO> = [genOwnerDTO(), genOwnerDTO()];

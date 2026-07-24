@@ -131,7 +131,12 @@ function HousingOwnersView() {
       }
     );
 
-    if (!ownerEquals) {
+    // "Do not contact" is an owner-level flag (global), distinct from the
+    // per-housing rank. It is set whenever that option is chosen.
+    const doNotContact = payload.isActive && payload.rank === 'do-not-contact';
+    const doNotContactChanged = selectedOwner.doNotContact !== doNotContact;
+
+    if (!ownerEquals || doNotContactChanged) {
       await updateOwner({
         id: selectedOwner.id,
         fullName: selectedOwner.fullName,
@@ -149,25 +154,29 @@ function HousingOwnersView() {
               city: payload.banAddress.city ?? ''
             }
           : null,
-        additionalAddress: payload.additionalAddress
+        additionalAddress: payload.additionalAddress,
+        doNotContact
       }).unwrap();
     }
 
+    // Rank only changes for the primary/secondary or inactive options: picking
+    // "do not contact" keeps the owner at their current rank.
     const rankBefore = rankToLabel(selectedOwner.rank);
-    const rankAfter: OwnerRankLabel = payload.isActive
-      ? payload.rank!
+    const rankAfter: OwnerRankLabel | null = payload.isActive
+      ? payload.rank === 'do-not-contact'
+        ? null
+        : (payload.rank as OwnerRankLabel)
       : rankToLabel(
           payload.inactiveRank as Exclude<InactiveOwnerRank, AwaitingOwnerRank>
         );
 
-    const allOwners = [...activeOwners, ...inactiveOwners];
-    const housingOwners = computeOwnersAfterRankTransition(allOwners, {
-      id: selectedOwner.id,
-      from: rankBefore,
-      to: rankAfter
-    });
-
-    if (rankBefore !== rankAfter) {
+    if (rankAfter !== null && rankBefore !== rankAfter) {
+      const allOwners = [...activeOwners, ...inactiveOwners];
+      const housingOwners = computeOwnersAfterRankTransition(allOwners, {
+        id: selectedOwner.id,
+        from: rankBefore,
+        to: rankAfter
+      });
       await updateHousingOwners({
         housingId: id,
         housingOwners: housingOwners as Array<HousingOwner>

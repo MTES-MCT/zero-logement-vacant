@@ -16,7 +16,7 @@ import { Predicate } from 'effect';
 import { type Column, type Workbook } from 'exceljs';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
-import { map } from 'web-streams-utils';
+import { filter, map } from 'web-streams-utils';
 
 import CampaignMissingError from '~/errors/campaignMissingError';
 import GroupMissingError from '~/errors/groupMissingError';
@@ -269,6 +269,15 @@ async function createHousingWorksheetBase(
     config;
 
   return stream
+    .pipeThrough(
+      // Exclude housings without a primary owner or whose primary owner
+      // refused to be contacted: they must not receive a campaign letter,
+      // so they have no place in a recipient export either.
+      // @ts-expect-error - Type inference issue in @types/node (https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1676)
+      filter(
+        (housing: HousingApi) => !!housing.owner && !housing.owner.doNotContact
+      )
+    )
     .pipeThrough(
       new TransformStream<
         HousingApi,

@@ -160,7 +160,8 @@ const LoginView = () => {
                 hintText="Format attendu : prenom.nom@domaine.fr"
                 nativeInputProps={{
                   type: 'email',
-                  autoComplete: 'email'
+                  autoComplete: 'email',
+                  'aria-required': 'true'
                 }}
               />
               <AppTextInputNext
@@ -169,18 +170,22 @@ const LoginView = () => {
                 className={isAdminView ? '' : 'fr-mb-1w'}
                 nativeInputProps={{
                   type: 'password',
-                  autoComplete: 'current-password'
+                  autoComplete: 'current-password',
+                  'aria-required': 'true'
                 }}
               />
               {isAdminView && (
                 <EstablishmentSearchableSelect
                   className={fr.cx('fr-mb-2w')}
-                  label="Collectivité"
+                  label="Collectivité (obligatoire)"
                   value={establishment}
+                  error={form.formState.errors.establishmentId?.message}
                   onChange={(establishment) => {
                     if (establishment) {
                       setEstablishment(establishment);
-                      form.setValue('establishmentId', establishment.id);
+                      form.setValue('establishmentId', establishment.id, {
+                        shouldValidate: true
+                      });
                     }
                   }}
                 />

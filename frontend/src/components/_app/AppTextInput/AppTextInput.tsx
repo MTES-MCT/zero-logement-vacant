@@ -39,6 +39,9 @@ function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
     ...textInputProps
   } = props;
 
+  const resolvedState = state ?? inputForm.messageType(String(inputKey));
+  const isInvalid = resolvedState === 'error';
+
   return (
     <>
       {textArea ? (
@@ -50,9 +53,10 @@ function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
           nativeTextAreaProps={{
             ...textInputProps,
             placeholder,
-            onBlur: () => inputForm.validateAt(String(inputKey))
+            onBlur: () => inputForm.validateAt(String(inputKey)),
+            'aria-invalid': isInvalid ? 'true' : undefined
           }}
-          state={state ?? inputForm.messageType(String(inputKey))}
+          state={resolvedState}
           stateRelatedMessage={
             stateRelatedMessage ??
             inputForm.message(String(inputKey), whenValid)
@@ -65,9 +69,10 @@ function AppTextInput<T extends ObjectShape>(props: AppTextInputProps<T>) {
           nativeInputProps={{
             ...textInputProps,
             placeholder,
-            onBlur: () => inputForm.validateAt(String(inputKey))
+            onBlur: () => inputForm.validateAt(String(inputKey)),
+            'aria-invalid': isInvalid ? 'true' : undefined
           }}
-          state={state ?? inputForm.messageType(String(inputKey))}
+          state={resolvedState}
           stateRelatedMessage={
             stateRelatedMessage ??
             inputForm.message(String(inputKey), whenValid)

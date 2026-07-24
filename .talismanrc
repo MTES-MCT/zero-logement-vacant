@@ -235,6 +235,10 @@ fileignoreconfig:
   checksum: 45db32afbf267b94ffb071c725691dad57b28c8bb12554e0b8397a5bf0a9d141
 - filename: docs/superpowers/plans/2026-07-20-campaign-documents.md
   checksum: 1e3050356fc1503522f81a38384a26cf11310d81881707ccc34df0279ca6b90f
+- filename: frontend/src/views/Account/test/ResetPasswordView.test.tsx
+  checksum: b12f479967fe4f69f83a4312427bb1a39a18d04d8a556dccadb5bae1f7d1570b
+- filename: frontend/src/views/Login/LoginView.test.tsx
+  checksum: 34a869dcb5164bf14fce4abb0352711ed164c5309cb19bdb161a4e3dda63d786
 scopeconfig:
 - scope: node
 allowed_patterns:

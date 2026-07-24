@@ -12,18 +12,16 @@ import OccupancyBadge from '~/components/Housing/OccupancyBadge';
 import HousingStatusBadge from '~/components/HousingStatusBadge/HousingStatusBadge';
 import Label from '~/components/Label/LabelNext';
 import type { Building } from '~/models/Building';
-import type { Housing } from '~/models/Housing';
 import { useFindCampaignsQuery } from '~/services/campaign.service';
 
 const ASIDE_WIDTH = 500;
 
 export type BuildingAsideProps = Pick<AsideProps, 'open' | 'onClose'> & {
   building: Building | null;
-  onView(housing: Housing): void;
 };
 
 function BuildingAside(props: BuildingAsideProps) {
-  const { building, onView, ...rest } = props;
+  const { building, ...rest } = props;
 
   const housings = building?.housingList ?? [];
 
@@ -175,15 +173,17 @@ function BuildingAside(props: BuildingAsideProps) {
               children: 'Annuler',
               onClick: close
             },
-            {
-              priority: 'primary',
-              children: 'Voir le logement',
-              onClick: () => {
-                if (housing) {
-                  onView(housing);
+            housing
+              ? {
+                  priority: 'primary',
+                  children: 'Voir le logement',
+                  linkProps: { to: `/logements/${housing.id}` }
                 }
-              }
-            }
+              : {
+                  priority: 'primary',
+                  children: 'Voir le logement',
+                  disabled: true
+                }
           ]}
           inlineLayoutWhen="always"
         />

@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
+import db from '~/infra/database';
 import campaignHousingRepository, {
   CampaignsHousing,
   formatCampaignHousingApi
@@ -10,7 +11,8 @@ import {
 } from '~/repositories/establishmentRepository';
 import {
   formatHousingRecordApi,
-  Housing
+  Housing,
+  housingTable
 } from '~/repositories/housingRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
@@ -149,6 +151,31 @@ describe('Campaign housing repository', () => {
       const rows = await CampaignsHousing().where({ campaign_id: campaign.id });
       expect(rows).toBeArrayOfSize(housings.length);
     });
+
+    // Exercises the chunked insert across a batch boundary. The real-world bug
+    // this guards against (a single unchunked INSERT exceeding Postgres's
+    // 65535 bind-parameter limit around ~21,845 housings) only reproduces at a
+    // scale unfit for a test suite; this proves the chunking itself is
+    // correct — no row dropped or duplicated at the INSERT_BATCH_SIZE seam.
+    it('should insert every row when the list spans multiple batches', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const housings = faker.helpers.multiple(
+        () => genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+        { count: 1200 }
+      );
+      await db.batchInsert(
+        housingTable,
+        housings.map(formatHousingRecordApi),
+        500
+      );
+
+      await campaignHousingRepository.insertHousingList(campaign.id, housings);
+
+      const rows = await CampaignsHousing().where({ campaign_id: campaign.id });
+      expect(rows).toBeArrayOfSize(housings.length);
+    }, 30_000);
   });
 
   describe('formatCampaignHousingApi', () => {

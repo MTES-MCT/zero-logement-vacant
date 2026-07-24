@@ -23,19 +23,27 @@ const insertHousingList = async (
   }
 
   await withinKyselyTransaction(async (trx) => {
-    await trx
-      .insertInto('campaignsHousing')
-      .values(
-        housingList.map((housing) => ({
-          campaignId,
-          housingId: housing.id,
-          housingGeoCode: housing.geoCode
-        }))
-      )
-      .onConflict((oc) =>
-        oc.columns(['campaignId', 'housingId', 'housingGeoCode']).doNothing()
-      )
-      .execute();
+    await pMap(
+      Array.chunksOf(housingList, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx
+          .insertInto('campaignsHousing')
+          .values(
+            batch.map((housing) => ({
+              campaignId,
+              housingId: housing.id,
+              housingGeoCode: housing.geoCode
+            }))
+          )
+          .onConflict((oc) =>
+            oc
+              .columns(['campaignId', 'housingId', 'housingGeoCode'])
+              .doNothing()
+          )
+          .execute();
+      },
+      { concurrency: 1 }
+    );
   });
 };
 

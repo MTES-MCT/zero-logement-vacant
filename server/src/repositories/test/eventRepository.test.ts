@@ -1091,7 +1091,7 @@ describe('Event repository', () => {
     // type to `EventPayloads` without a matching sample fails `tsc`, and the
     // round-trip check below fails if that sample isn't JSON-safe. Together
     // they stand in for the compile-time check TypeScript can't do directly,
-    // since `toEventDBO` is generic over `Type` and can't statically prove
+    // since `toEventInsert` is generic over `Type` and can't statically prove
     // `EventPayloads[Type]['old' | 'new']` satisfies the `Json` column type.
     const EVENT_PAYLOAD_SAMPLES: {
       [Type in EventType]: EventPayloadSample<Type>;

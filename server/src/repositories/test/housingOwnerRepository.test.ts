@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { PROPERTY_RIGHT_VALUES } from '@zerologementvacant/models';
 
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import housingOwnerRepository, {
@@ -172,6 +173,32 @@ describe('housingOwnerRepository', () => {
       expect(actual).toMatchObject({
         rank: -2
       });
+    });
+
+    it('should join an ambient transaction and roll back with it', async () => {
+      const owner = genOwnerApi();
+      const housing = genHousingApi();
+      await Promise.all([
+        Owners().insert(formatOwnerApi(owner)),
+        Housing().insert(formatHousingRecordApi(housing))
+      ]);
+      const housingOwner = genHousingOwnerApi(housing, owner);
+
+      await expect(
+        withinKyselyTransaction(async () => {
+          await housingOwnerRepository.insert(housingOwner);
+          throw new Error('rollback');
+        })
+      ).rejects.toThrow('rollback');
+
+      const actual = await HousingOwners()
+        .where({
+          owner_id: owner.id,
+          housing_geo_code: housing.geoCode,
+          housing_id: housing.id
+        })
+        .first();
+      expect(actual).toBeUndefined();
     });
   });
 

@@ -34,5 +34,7 @@ export async function withinKyselyTransaction<R>(
 ): Promise<R> {
   const trx = getKyselyTransaction();
   if (trx) return cb(trx);
-  return kysely.transaction().execute(cb);
+  return kysely
+    .transaction()
+    .execute((newTrx) => runWithinKyselyTransaction(newTrx, () => cb(newTrx)));
 }

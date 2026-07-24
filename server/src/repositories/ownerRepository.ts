@@ -261,7 +261,8 @@ const searchOwners = async (
     kysely.selectFrom('owners').selectAll('owners') as any
   )
     .where(sql`full_name_fts @@ to_tsquery('simple', ${tsQuery})`)
-    .orderBy('full_name');
+    .orderBy('full_name')
+    .orderBy('id');
   if (page && perPage) {
     filterQuery = filterQuery.offset((page - 1) * perPage).limit(perPage);
   }
@@ -323,11 +324,13 @@ async function betterSave(
   opts: BetterSaveOptions
 ): Promise<void> {
   logger.debug(`Saving owner...`, { owner });
-  await kysely
-    .insertInto('owners')
-    .values(toOwnerInsert(owner))
-    .onConflict(kyselyOwnerConflict(opts))
-    .execute();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('owners')
+      .values(toOwnerInsert(owner))
+      .onConflict(kyselyOwnerConflict(opts))
+      .execute();
+  });
 }
 
 async function betterSaveMany(

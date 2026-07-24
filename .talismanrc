@@ -175,6 +175,10 @@ fileignoreconfig:
   checksum: 7c3d25a7502faeb9fd4e438e7e6bdf39cc18ebd32401f1463420289cda46a4d3
 - filename: docs/rgaa/methodologie-tests.md
   checksum: b396fb5a9d17e2a81cad49491c35cc459db9f2ff494c94dada9f3eeae0efeb53
+- filename: frontend/src/views/Account/test/ResetPasswordView.test.tsx
+  checksum: b12f479967fe4f69f83a4312427bb1a39a18d04d8a556dccadb5bae1f7d1570b
+- filename: frontend/src/views/Login/LoginView.test.tsx
+  checksum: 34a869dcb5164bf14fce4abb0352711ed164c5309cb19bdb161a4e3dda63d786
 scopeconfig:
 - scope: node
 allowed_patterns:

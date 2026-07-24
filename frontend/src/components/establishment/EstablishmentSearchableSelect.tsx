@@ -15,6 +15,8 @@ type Props<Multiple extends boolean, DisableClearable extends boolean> = Pick<
 > & {
   className?: string;
   label?: ReactNode;
+  /** An error message. */
+  error?: string;
   /** Pre-defined options to use instead of API search. When provided, no API call is made. */
   options?: ReadonlyArray<Establishment>;
   value: AutocompleteValue<Establishment, Multiple, DisableClearable, false>;
@@ -60,6 +62,7 @@ function EstablishmentSearchableSelect<
       options={options}
       loading={hasPreDefinedOptions ? false : isFetching}
       label={props.label ?? null}
+      error={props.error}
       getOptionKey={(option) => option.id}
       getOptionLabel={(option) => option.name}
       isOptionEqualToValue={(option, value) => option.id === value.id}

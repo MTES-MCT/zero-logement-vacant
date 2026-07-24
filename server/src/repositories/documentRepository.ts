@@ -1,7 +1,11 @@
 import type { Knex } from 'knex';
+import type { Insertable, Selectable } from 'kysely';
+import { sql } from 'kysely';
 
 import db, { fromDateDBO, toDateDBO } from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import { DocumentApi } from '~/models/DocumentApi';
 
@@ -52,50 +56,54 @@ async function findOne(
 ): Promise<DocumentApi | null> {
   logger.debug('Finding document...', { id });
 
-  const document = await queryWithCreator()
-    .where(`${DOCUMENTS_TABLE}.id`, id)
-    .modify((query) => {
-      if (options?.filters?.establishmentIds?.length) {
-        query.whereIn(
-          `${DOCUMENTS_TABLE}.establishment_id`,
-          options.filters.establishmentIds
-        );
-      }
-      if (options?.filters?.deleted === true) {
-        query.whereNotNull(`${DOCUMENTS_TABLE}.deleted_at`);
-      } else if (options?.filters?.deleted === false) {
-        query.whereNull(`${DOCUMENTS_TABLE}.deleted_at`);
-      }
-    })
-    .first();
+  let query = queryWithCreator().where('documents.id', '=', id);
+  if (options?.filters?.establishmentIds?.length) {
+    query = query.where(
+      'documents.establishmentId',
+      'in',
+      options.filters.establishmentIds
+    );
+  }
+  if (options?.filters?.deleted === true) {
+    query = query.where('documents.deletedAt', 'is not', null);
+  } else if (options?.filters?.deleted === false) {
+    query = query.where('documents.deletedAt', 'is', null);
+  }
 
-  return document ? fromDocumentDBO(document) : null;
+  const row = await query.executeTakeFirst();
+  return row ? parseDocumentRow(row) : null;
 }
 
 async function find(options?: FindOptions): Promise<DocumentApi[]> {
   logger.debug('Finding documents...', options);
 
-  const documents = await queryWithCreator().modify((query) => {
-    if (options?.filters?.ids?.length) {
-      query.whereIn(`${DOCUMENTS_TABLE}.id`, options.filters.ids);
-    }
-    if (options?.filters?.establishmentIds?.length) {
-      query.whereIn(
-        `${DOCUMENTS_TABLE}.establishment_id`,
-        options.filters.establishmentIds
-      );
-    }
-    if (options?.filters?.deleted === false) {
-      query.whereNull(`${DOCUMENTS_TABLE}.deleted_at`);
-    }
-  });
+  let query = queryWithCreator();
+  if (options?.filters?.ids?.length) {
+    query = query.where('documents.id', 'in', options.filters.ids);
+  }
+  if (options?.filters?.establishmentIds?.length) {
+    query = query.where(
+      'documents.establishmentId',
+      'in',
+      options.filters.establishmentIds
+    );
+  }
+  if (options?.filters?.deleted === false) {
+    query = query.where('documents.deletedAt', 'is', null);
+  }
 
-  return documents.map(fromDocumentDBO);
+  const rows = await query.execute();
+  return rows.map(parseDocumentRow);
 }
 
 async function insert(document: DocumentApi): Promise<void> {
   logger.debug('Inserting document...', { id: document.id });
-  await Documents().insert(toDocumentDBO(document));
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('documents')
+      .values(toDocumentInsert(document))
+      .execute();
+  });
 }
 
 async function insertMany(
@@ -106,96 +114,99 @@ async function insertMany(
   }
 
   logger.debug('Inserting documents...', { count: documents.length });
-  await Documents().insert(documents.map(toDocumentDBO));
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('documents')
+      .values(documents.map(toDocumentInsert))
+      .execute();
+  });
 }
 
 async function update(document: DocumentApi): Promise<void> {
   logger.debug('Updating document...', { id: document.id });
 
-  await withinTransaction(async (transaction) => {
-    await Documents(transaction)
-      .where('id', document.id)
-      .update({
-        ...toDocumentDBO(document),
-        updated_at: new Date()
-      });
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .updateTable('documents')
+      .set({ ...toDocumentInsert(document), updatedAt: new Date() })
+      .where('id', '=', document.id)
+      .execute();
   });
 }
 
 async function remove(id: string): Promise<void> {
   logger.debug('Soft-deleting document...', { id });
-  await Documents().where('id', id).update({ deleted_at: new Date() });
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .updateTable('documents')
+      .set({ deletedAt: new Date() })
+      .where('id', '=', id)
+      .execute();
+  });
 }
 
 /**
- * Adds a left-join to `documents` (aliased as `docAlias`) and its creator
- * (aliased as `${docAlias}_creator`), selecting the document+creator as a
- * single JSON column named `docAlias`. Returns NULL when no document exists.
+ * Returns a correlated scalar subquery that builds the document + nested
+ * creator JSON blob for the document referenced by `fkColumn` (a raw,
+ * table-qualified snake_case column such as `senders.signatory_one_document_id`).
+ * The blob keys stay snake_case — the CamelCasePlugin's `maintainNestedObjectKeys`
+ * leaves them untouched, so {@link fromDocumentDBO} reads them. Resolves to
+ * NULL when the FK is null or no matching document exists.
  */
-export function joinDocumentWithCreator(
-  query: Knex.QueryBuilder,
-  parentFkColumn: string,
-  docAlias: string
-): void {
-  const creatorAlias = `${docAlias}_creator`;
-  query
-    .leftJoin({ [docAlias]: DOCUMENTS_TABLE }, parentFkColumn, `${docAlias}.id`)
-    .leftJoin(
-      { [creatorAlias]: USERS_TABLE },
-      `${creatorAlias}.id`,
-      `${docAlias}.created_by`
+export function selectDocumentWithCreator(fkColumn: string, alias: string) {
+  return sql`(
+    SELECT jsonb_build_object(
+      'id', d.id,
+      'filename', d.filename,
+      's3_key', d.s3_key,
+      'content_type', d.content_type,
+      'size_bytes', d.size_bytes,
+      'establishment_id', d.establishment_id,
+      'created_by', d.created_by,
+      'created_at', d.created_at,
+      'updated_at', d.updated_at,
+      'deleted_at', d.deleted_at,
+      'creator', json_build_object(
+        'id', u.id,
+        'email', u.email,
+        'first_name', u.first_name,
+        'last_name', u.last_name,
+        'role', u.role,
+        'establishment_id', u.establishment_id,
+        'time_per_week', u.time_per_week,
+        'phone', u.phone,
+        'position', u.position,
+        'updated_at', u.updated_at
+      )
     )
-    .select(
-      db.raw(`
-        CASE WHEN ${docAlias}.id IS NOT NULL THEN
-          jsonb_build_object(
-            'id', ${docAlias}.id,
-            'filename', ${docAlias}.filename,
-            's3_key', ${docAlias}.s3_key,
-            'content_type', ${docAlias}.content_type,
-            'size_bytes', ${docAlias}.size_bytes,
-            'establishment_id', ${docAlias}.establishment_id,
-            'created_by', ${docAlias}.created_by,
-            'created_at', ${docAlias}.created_at,
-            'updated_at', ${docAlias}.updated_at,
-            'deleted_at', ${docAlias}.deleted_at,
-            'creator', json_build_object(
-              'id', ${creatorAlias}.id,
-              'email', ${creatorAlias}.email,
-              'first_name', ${creatorAlias}.first_name,
-              'last_name', ${creatorAlias}.last_name,
-              'role', ${creatorAlias}.role,
-              'establishment_id', ${creatorAlias}.establishment_id,
-              'time_per_week', ${creatorAlias}.time_per_week,
-              'phone', ${creatorAlias}.phone,
-              'position', ${creatorAlias}.position,
-              'updated_at', ${creatorAlias}.updated_at
-            )
-          )
-        ELSE NULL END AS ${docAlias}
-      `)
-    );
+    FROM ${sql.raw(DOCUMENTS_TABLE)} d
+    LEFT JOIN ${sql.raw(USERS_TABLE)} u ON u.id = d.created_by
+    WHERE d.id = ${sql.raw(fkColumn)}
+  )`.as(alias);
 }
 
-// Query builder with creator join
+// Kysely query builder with the creator embedded as a JSON column.
+// The creator fields mirror the Knex `queryWithCreator` projection (no
+// sensitive columns) so the parsed `UserDBO` shape is unchanged.
 function queryWithCreator() {
-  return Documents()
+  return kysely
+    .selectFrom('documents')
+    .innerJoin('users', 'users.id', 'documents.createdBy')
+    .selectAll('documents')
     .select(
-      `${DOCUMENTS_TABLE}.*`,
-      db.raw(`json_build_object(
-        'id', ${USERS_TABLE}.id,
-        'email', ${USERS_TABLE}.email,
-        'first_name', ${USERS_TABLE}.first_name,
-        'last_name', ${USERS_TABLE}.last_name,
-        'role', ${USERS_TABLE}.role,
-        'establishment_id', ${USERS_TABLE}.establishment_id,
-        'time_per_week', ${USERS_TABLE}.time_per_week,
-        'phone', ${USERS_TABLE}.phone,
-        'position', ${USERS_TABLE}.position,
-        'updated_at', ${USERS_TABLE}.updated_at
-      ) as creator`)
-    )
-    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${DOCUMENTS_TABLE}.created_by`);
+      sql<UserDBO>`json_build_object(
+        'id', users.id,
+        'email', users.email,
+        'first_name', users.first_name,
+        'last_name', users.last_name,
+        'role', users.role,
+        'establishment_id', users.establishment_id,
+        'time_per_week', users.time_per_week,
+        'phone', users.phone,
+        'position', users.position,
+        'updated_at', users.updated_at
+      )`.as('creator')
+    );
 }
 
 export function toDocumentDBO(document: DocumentApi): DocumentDBO {
@@ -210,6 +221,21 @@ export function toDocumentDBO(document: DocumentApi): DocumentDBO {
     created_at: toDateDBO(document.createdAt),
     updated_at: document.updatedAt ? toDateDBO(document.updatedAt) : null,
     deleted_at: document.deletedAt ? toDateDBO(document.deletedAt) : null
+  };
+}
+
+function toDocumentInsert(document: DocumentApi): Insertable<DB['documents']> {
+  return {
+    id: document.id,
+    filename: document.filename,
+    s3Key: document.s3Key,
+    contentType: document.contentType,
+    sizeBytes: document.sizeBytes,
+    establishmentId: document.establishmentId,
+    createdBy: document.createdBy,
+    createdAt: toDateDBO(document.createdAt),
+    updatedAt: document.updatedAt ? toDateDBO(document.updatedAt) : null,
+    deletedAt: document.deletedAt ? toDateDBO(document.deletedAt) : null
   };
 }
 
@@ -230,6 +256,28 @@ export function fromDocumentDBO(dbo: DocumentWithCreatorDBO): DocumentApi {
     updatedAt: dbo.updated_at ? fromDateDBO(dbo.updated_at) : null,
     deletedAt: dbo.deleted_at ? fromDateDBO(dbo.deleted_at) : null,
     creator: fromUserDBO(dbo.creator)
+  };
+}
+
+type DocumentRow = Selectable<DB['documents']> & { creator: UserDBO | null };
+
+function parseDocumentRow(row: DocumentRow): DocumentApi {
+  if (!row.creator) {
+    throw new Error('Creator not fetched');
+  }
+
+  return {
+    id: row.id,
+    filename: row.filename,
+    s3Key: row.s3Key,
+    contentType: row.contentType,
+    sizeBytes: row.sizeBytes,
+    establishmentId: row.establishmentId,
+    createdBy: row.createdBy,
+    createdAt: fromDateDBO(row.createdAt),
+    updatedAt: row.updatedAt ? fromDateDBO(row.updatedAt) : null,
+    deletedAt: row.deletedAt ? fromDateDBO(row.deletedAt) : null,
+    creator: fromUserDBO(row.creator)
   };
 }
 

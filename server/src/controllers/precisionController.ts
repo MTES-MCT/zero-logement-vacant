@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import HousingMissingError from '~/errors/housingMissingError';
 import PrecisionMissingError from '~/errors/precisionMissingError';
-import { startTransaction } from '~/infra/database/transaction';
+import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { PrecisionHousingEventApi } from '~/models/EventApi';
 import { toPrecisionDTO } from '~/models/PrecisionApi';
 import eventRepository from '~/repositories/eventRepository';
@@ -133,7 +133,7 @@ const updatePrecisionsByHousing: RequestHandler<
     }))
   ];
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       precisionRepository.link(housing, precisions),
       eventRepository.insertManyPrecisionHousingEvents(events)

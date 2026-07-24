@@ -2,18 +2,21 @@ import { faker } from '@faker-js/faker/locale/fr';
 import {
   ActiveOwnerRank,
   CampaignDTO,
-  Occupancy
+  Occupancy,
+  type EventType
 } from '@zerologementvacant/models';
 
 import {
   CampaignEventApi,
   CampaignHousingEventApi,
   DocumentEventApi,
+  EventApi,
   GroupHousingEventApi,
   HousingDocumentEventApi,
   HousingEventApi,
   HousingOwnerEventApi,
   OwnerEventApi,
+  PerimeterHousingEventApi,
   PrecisionHousingEventApi
 } from '~/models/EventApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -26,6 +29,7 @@ import {
 } from '~/repositories/establishmentRepository';
 import eventRepository, {
   CampaignEvents,
+  CampaignHousingEventDBO,
   CampaignHousingEvents,
   DocumentEvents,
   Events,
@@ -36,14 +40,18 @@ import eventRepository, {
   formatHousingEventApi,
   formatHousingOwnerEventApi,
   formatOwnerEventApi,
+  formatPerimeterHousingEventApi,
   formatPrecisionHousingEventApi,
+  GroupHousingEventDBO,
   GroupHousingEvents,
   HousingDocumentEvents,
   HousingEventDBO,
   HousingEvents,
+  HousingOwnerEventDBO,
   HousingOwnerEvents,
   OwnerEventDBO,
   OwnerEvents,
+  parseEventApi,
   PrecisionHousingEvents
 } from '~/repositories/eventRepository';
 import { formatGroupApi, Groups } from '~/repositories/groupRepository';
@@ -135,6 +143,13 @@ describe('Event repository', () => {
         (event) => event.housing_id === housing.id
       );
     });
+
+    it('does not write when given an empty array', async () => {
+      const before = (await HousingEvents()).length;
+      await eventRepository.insertManyHousingEvents([]);
+      const after = (await HousingEvents()).length;
+      expect(after).toBe(before);
+    });
   });
 
   describe('insertManyOwnerEvents', () => {
@@ -175,6 +190,277 @@ describe('Event repository', () => {
       expect(actual).toSatisfyAll<OwnerEventDBO>(
         (event) => event.owner_id === owner.id
       );
+    });
+
+    it('does not write when given an empty array', async () => {
+      const before = (await OwnerEvents()).length;
+      await eventRepository.insertManyOwnerEvents([]);
+      const after = (await OwnerEvents()).length;
+      expect(after).toBe(before);
+    });
+  });
+
+  describe('insertManyHousingOwnerEvents', () => {
+    const housing = genHousingApi();
+    const owner = genOwnerApi();
+    const events: ReadonlyArray<HousingOwnerEventApi> = [
+      genEventApi({
+        creator,
+        type: 'housing:owner-attached',
+        nextOld: null,
+        nextNew: { name: owner.fullName, rank: 1 }
+      })
+    ].map((event) => ({
+      ...event,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id,
+      ownerId: owner.id
+    }));
+    const ids = events.map((event) => event.id);
+
+    beforeAll(async () => {
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(formatOwnerApi(owner));
+
+      await eventRepository.insertManyHousingOwnerEvents(events);
+    });
+
+    it('should insert events', async () => {
+      const actual = await Events().whereIn('id', ids);
+      expect(actual.length).toBe(events.length);
+    });
+
+    it('should link events to the housing and owner', async () => {
+      const actual = await HousingOwnerEvents().whereIn('event_id', ids);
+      expect(actual.length).toBe(events.length);
+      expect(actual).toSatisfyAll<HousingOwnerEventDBO>(
+        (event) => event.housing_geo_code === housing.geoCode
+      );
+      expect(actual).toSatisfyAll<HousingOwnerEventDBO>(
+        (event) => event.housing_id === housing.id
+      );
+      expect(actual).toSatisfyAll<HousingOwnerEventDBO>(
+        (event) => event.owner_id === owner.id
+      );
+    });
+
+    it('does not write when given an empty array', async () => {
+      const before = (await HousingOwnerEvents()).length;
+      await eventRepository.insertManyHousingOwnerEvents([]);
+      const after = (await HousingOwnerEvents()).length;
+      expect(after).toBe(before);
+    });
+  });
+
+  describe('insertManyPrecisionHousingEvents', () => {
+    const housing = genHousingApi();
+    let precision: PrecisionApi;
+    let events: ReadonlyArray<PrecisionHousingEventApi>;
+
+    beforeAll(async () => {
+      precision = await Precisions()
+        .first()
+        .then((p) => formatPrecisionApi(p!));
+      events = [
+        {
+          ...genEventApi({
+            creator,
+            type: 'housing:precision-attached',
+            nextOld: null,
+            nextNew: { category: precision.category, label: precision.label }
+          }),
+          precisionId: precision.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        }
+      ];
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await eventRepository.insertManyPrecisionHousingEvents(events);
+    });
+
+    it('should insert events', async () => {
+      const ids = events.map((e) => e.id);
+      const actual = await Events().whereIn('id', ids);
+      expect(actual.length).toBe(events.length);
+    });
+
+    it('should link events to the housing and precision', async () => {
+      const ids = events.map((e) => e.id);
+      const actual = await PrecisionHousingEvents().whereIn('event_id', ids);
+      expect(actual.length).toBe(events.length);
+      expect(actual).toSatisfyAll(
+        (event) => event.housing_geo_code === housing.geoCode
+      );
+      expect(actual).toSatisfyAll((event) => event.housing_id === housing.id);
+      expect(actual).toSatisfyAll(
+        (event) => event.precision_id === precision.id
+      );
+    });
+
+    it('does not write when given an empty array', async () => {
+      const before = (await PrecisionHousingEvents()).length;
+      await eventRepository.insertManyPrecisionHousingEvents([]);
+      const after = (await PrecisionHousingEvents()).length;
+      expect(after).toBe(before);
+    });
+  });
+
+  describe('insertManyCampaignHousingEvents', () => {
+    const housing = genHousingApi();
+    let campaign: CampaignDTO;
+    let events: ReadonlyArray<CampaignHousingEventApi>;
+
+    beforeAll(async () => {
+      campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: creator } });
+      events = [
+        {
+          ...genEventApi({
+            creator,
+            type: 'housing:campaign-attached',
+            nextOld: null,
+            nextNew: { name: campaign.title }
+          }),
+          campaignId: campaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        }
+      ];
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await eventRepository.insertManyCampaignHousingEvents(events);
+    });
+
+    it('should insert events', async () => {
+      const ids = events.map((e) => e.id);
+      const actual = await Events().whereIn('id', ids);
+      expect(actual.length).toBe(events.length);
+    });
+
+    it('should link events to the housing and campaign', async () => {
+      const ids = events.map((e) => e.id);
+      const actual = await CampaignHousingEvents().whereIn('event_id', ids);
+      expect(actual.length).toBe(events.length);
+      expect(actual).toSatisfyAll<CampaignHousingEventDBO>(
+        (event) => event.housing_geo_code === housing.geoCode
+      );
+      expect(actual).toSatisfyAll<CampaignHousingEventDBO>(
+        (event) => event.housing_id === housing.id
+      );
+      expect(actual).toSatisfyAll<CampaignHousingEventDBO>(
+        (event) => event.campaign_id === campaign.id
+      );
+    });
+
+    it('does not write when given an empty array', async () => {
+      const before = (await CampaignHousingEvents()).length;
+      await eventRepository.insertManyCampaignHousingEvents([]);
+      const after = (await CampaignHousingEvents()).length;
+      expect(after).toBe(before);
+    });
+  });
+
+  describe('insertManyCampaignEvents', () => {
+    let campaign: CampaignDTO;
+    let events: ReadonlyArray<CampaignEventApi>;
+
+    beforeAll(async () => {
+      campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: creator } });
+      events = [
+        {
+          ...genEventApi({
+            creator,
+            type: 'campaign:updated',
+            nextOld: { title: 'Old Title' },
+            nextNew: { title: 'New Title' }
+          }),
+          campaignId: campaign.id
+        }
+      ];
+
+      await eventRepository.insertManyCampaignEvents(events);
+    });
+
+    it('should insert events', async () => {
+      const ids = events.map((e) => e.id);
+      const actual = await Events().whereIn('id', ids);
+      expect(actual.length).toBe(events.length);
+    });
+
+    it('should link events to the campaign', async () => {
+      const ids = events.map((e) => e.id);
+      const actual = await CampaignEvents().whereIn('event_id', ids);
+      expect(actual.length).toBe(events.length);
+      expect(actual).toSatisfyAll((event) => event.campaign_id === campaign.id);
+    });
+
+    it('does not write when given an empty array', async () => {
+      const before = (await CampaignEvents()).length;
+      await eventRepository.insertManyCampaignEvents([]);
+      const after = (await CampaignEvents()).length;
+      expect(after).toBe(before);
+    });
+  });
+
+  describe('insertManyGroupHousingEvents', () => {
+    const housing = genHousingApi();
+    const group = genGroupApi(creator, establishment);
+    const events: GroupHousingEventApi[] = [
+      genEventApi({
+        creator,
+        type: 'housing:group-attached',
+        nextOld: null,
+        nextNew: { name: group.title }
+      })
+    ].map((event) => ({
+      ...event,
+      housingGeoCode: housing.geoCode,
+      housingId: housing.id,
+      groupId: group.id
+    }));
+    const ids = events.map((event) => event.id);
+
+    beforeAll(async () => {
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Groups().insert(formatGroupApi(group));
+
+      await eventRepository.insertManyGroupHousingEvents(events);
+    });
+
+    it('should insert events', async () => {
+      const actual = await Events().whereIn('id', ids);
+      expect(actual.length).toBe(events.length);
+    });
+
+    it('should store nextOld/nextNew as JSON and read them back unchanged', async () => {
+      const [actual] = await Events().whereIn('id', ids);
+      expect(actual.next_old).toBeNull();
+      expect(actual.next_new).toStrictEqual({ name: group.title });
+    });
+
+    it('should link events to the housing and group', async () => {
+      const actual = await GroupHousingEvents().whereIn('event_id', ids);
+      expect(actual.length).toBe(events.length);
+      expect(actual).toSatisfyAll<GroupHousingEventDBO>(
+        (event) => event.housing_geo_code === housing.geoCode
+      );
+      expect(actual).toSatisfyAll<GroupHousingEventDBO>(
+        (event) => event.housing_id === housing.id
+      );
+      expect(actual).toSatisfyAll<GroupHousingEventDBO>(
+        (event) => event.group_id === group.id
+      );
+    });
+
+    it('does not write when given an empty array', async () => {
+      const before = (await GroupHousingEvents()).length;
+      await eventRepository.insertManyGroupHousingEvents([]);
+      const after = (await GroupHousingEvents()).length;
+      expect(after).toBe(before);
     });
   });
 
@@ -679,6 +965,267 @@ describe('Event repository', () => {
     });
   });
 
+  describe('format/parse edge cases', () => {
+    it('parseEventApi: creator absent → creator is undefined', () => {
+      const event = genEventApi({
+        creator,
+        type: 'housing:created',
+        nextOld: null,
+        nextNew: { source: 'datafoncier-manual', occupancy: Occupancy.VACANT }
+      });
+      const dbo = formatEventApi(event);
+      const result = parseEventApi(dbo);
+      expect(result.creator).toBeUndefined();
+    });
+
+    it('formatPrecisionHousingEventApi: precisionId null → precision_id is null', () => {
+      const housing = genHousingApi();
+      const event: PrecisionHousingEventApi = {
+        ...genEventApi({
+          creator,
+          type: 'housing:precision-attached',
+          nextOld: null,
+          nextNew: { category: 'travaux', label: 'some-label' }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        precisionId: null
+      };
+      const result = formatPrecisionHousingEventApi(event);
+      expect(result.precision_id).toBeNull();
+    });
+
+    it('formatHousingOwnerEventApi: ownerId null → owner_id is null', () => {
+      const housing = genHousingApi();
+      const event: HousingOwnerEventApi = {
+        ...genEventApi({
+          creator,
+          type: 'housing:owner-attached',
+          nextOld: null,
+          nextNew: { name: faker.person.fullName(), rank: 1 }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        ownerId: null
+      };
+      const result = formatHousingOwnerEventApi(event);
+      expect(result.owner_id).toBeNull();
+    });
+
+    it('formatPerimeterHousingEventApi: defined perimeterId → propagates to perimeter_id', () => {
+      const housing = genHousingApi();
+      const perimeterId = faker.string.uuid();
+      const event: PerimeterHousingEventApi = {
+        ...genEventApi({
+          creator,
+          type: 'housing:perimeter-attached',
+          nextOld: null,
+          nextNew: { name: faker.commerce.productName() }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        perimeterId
+      };
+      const result = formatPerimeterHousingEventApi(event);
+      expect(result.perimeter_id).toBe(perimeterId);
+    });
+
+    it('formatPerimeterHousingEventApi: perimeterId null → perimeter_id is null', () => {
+      const housing = genHousingApi();
+      const event: PerimeterHousingEventApi = {
+        ...genEventApi({
+          creator,
+          type: 'housing:perimeter-attached',
+          nextOld: null,
+          nextNew: { name: faker.commerce.productName() }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        perimeterId: null
+      };
+      const result = formatPerimeterHousingEventApi(event);
+      expect(result.perimeter_id).toBeNull();
+    });
+
+    it('formatGroupHousingEventApi: groupId null → group_id is null', () => {
+      const housing = genHousingApi();
+      const event: GroupHousingEventApi = {
+        ...genEventApi({
+          creator,
+          type: 'housing:group-attached',
+          nextOld: null,
+          nextNew: { name: faker.commerce.productName() }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        groupId: null
+      };
+      const result = formatGroupHousingEventApi(event);
+      expect(result.group_id).toBeNull();
+    });
+  });
+
+  describe('EventPayloads JSON compatibility', () => {
+    // Demonstrates the exact failure mode the round-trip check below guards
+    // against: JSON silently turns a `Date` into a string instead of
+    // preserving it, so a future payload field typed as `Date` would slip
+    // past a naive `toEqual` — `toStrictEqual` (used below) catches it because
+    // it distinguishes a `Date` instance from a plain string.
+    it('demonstrates that Date instances do not survive a JSON round-trip', () => {
+      const withDate = { occurredAt: new Date('2024-01-01T00:00:00.000Z') };
+
+      const restored = JSON.parse(JSON.stringify(withDate));
+
+      expect(restored.occurredAt).not.toBeInstanceOf(Date);
+      expect(typeof restored.occurredAt).toBe('string');
+      expect(restored).not.toStrictEqual(withDate);
+    });
+
+    type EventPayloadSample<Type extends EventType> = Pick<
+      EventApi<Type>,
+      'nextOld' | 'nextNew'
+    >;
+
+    // One representative sample per `EventType`. The type annotation forces
+    // every current event type to have an entry here — adding a new event
+    // type to `EventPayloads` without a matching sample fails `tsc`, and the
+    // round-trip check below fails if that sample isn't JSON-safe. Together
+    // they stand in for the compile-time check TypeScript can't do directly,
+    // since `toEventInsert` is generic over `Type` and can't statically prove
+    // `EventPayloads[Type]['old' | 'new']` satisfies the `Json` column type.
+    const EVENT_PAYLOAD_SAMPLES: {
+      [Type in EventType]: EventPayloadSample<Type>;
+    } = {
+      'housing:created': {
+        nextOld: null,
+        nextNew: { source: 'datafoncier-manual', occupancy: Occupancy.VACANT }
+      },
+      'housing:updated': {
+        nextOld: { actualEnergyConsumption: null },
+        nextNew: { actualEnergyConsumption: 'B' }
+      },
+      'housing:occupancy-updated': {
+        nextOld: { occupancy: Occupancy.VACANT },
+        nextNew: { occupancy: Occupancy.RENT, occupancyIntended: null }
+      },
+      'housing:status-updated': {
+        nextOld: { status: 'waiting' },
+        nextNew: { status: 'in-progress', subStatus: null }
+      },
+      'housing:precision-attached': {
+        nextOld: null,
+        nextNew: { category: 'travaux', label: 'Travaux' }
+      },
+      'housing:precision-detached': {
+        nextOld: { category: 'travaux', label: 'Travaux' },
+        nextNew: null
+      },
+      'housing:owner-attached': {
+        nextOld: null,
+        nextNew: { name: 'Jean Dupont', rank: 1 }
+      },
+      'housing:owner-updated': {
+        nextOld: { name: 'Jean Dupont', rank: 1 },
+        nextNew: { name: 'Jean Dupont', rank: 2 }
+      },
+      'housing:owner-detached': {
+        nextOld: { name: 'Jean Dupont', rank: 1 },
+        nextNew: null
+      },
+      'housing:perimeter-attached': {
+        nextOld: null,
+        nextNew: { name: 'Perimeter' }
+      },
+      'housing:perimeter-detached': {
+        nextOld: { name: 'Perimeter' },
+        nextNew: null
+      },
+      'housing:group-attached': {
+        nextOld: null,
+        nextNew: { name: 'Group' }
+      },
+      'housing:group-detached': {
+        nextOld: { name: 'Group' },
+        nextNew: null
+      },
+      'housing:group-archived': {
+        nextOld: { name: 'Group' },
+        nextNew: null
+      },
+      'housing:group-removed': {
+        nextOld: { name: 'Group' },
+        nextNew: null
+      },
+      'housing:campaign-attached': {
+        nextOld: null,
+        nextNew: { name: 'Campaign' }
+      },
+      'housing:campaign-detached': {
+        nextOld: { name: 'Campaign' },
+        nextNew: null
+      },
+      'housing:campaign-removed': {
+        nextOld: { name: 'Campaign' },
+        nextNew: null
+      },
+      'document:created': {
+        nextOld: null,
+        nextNew: { filename: 'document.pdf' }
+      },
+      'document:updated': {
+        nextOld: { filename: 'document.pdf' },
+        nextNew: { filename: 'document-v2.pdf' }
+      },
+      'document:removed': {
+        nextOld: { filename: 'document.pdf' },
+        nextNew: null
+      },
+      'housing:document-attached': {
+        nextOld: null,
+        nextNew: { filename: 'document.pdf' }
+      },
+      'housing:document-detached': {
+        nextOld: { filename: 'document.pdf' },
+        nextNew: null
+      },
+      'housing:document-removed': {
+        nextOld: { filename: 'document.pdf' },
+        nextNew: null
+      },
+      'owner:created': {
+        nextOld: null,
+        nextNew: {
+          name: 'Jean Dupont',
+          birthdate: null,
+          email: null,
+          phone: null,
+          address: null,
+          additionalAddress: null
+        }
+      },
+      'owner:updated': {
+        nextOld: { name: 'Jean Dupont' },
+        nextNew: { name: 'Jean Martin' }
+      },
+      'campaign:updated': {
+        nextOld: { status: 'draft' },
+        nextNew: { status: 'sending' }
+      }
+    };
+
+    it.each(Object.entries(EVENT_PAYLOAD_SAMPLES))(
+      '%s payload survives a JSON round-trip unchanged',
+      (_type, sample) => {
+        expect(JSON.parse(JSON.stringify(sample.nextOld))).toStrictEqual(
+          sample.nextOld
+        );
+        expect(JSON.parse(JSON.stringify(sample.nextNew))).toStrictEqual(
+          sample.nextNew
+        );
+      }
+    );
+  });
+
   describe('removeCampaignEvents', () => {
     const establishment = genEstablishmentApi();
     const user = genUserApi(establishment.id);
@@ -806,6 +1353,13 @@ describe('Event repository', () => {
         });
         expect(eventRecord.next_new).toBeNull();
       });
+
+      it('does not write when given an empty array', async () => {
+        const before = (await DocumentEvents()).length;
+        await eventRepository.insertManyDocumentEvents([]);
+        const after = (await DocumentEvents()).length;
+        expect(after).toBe(before);
+      });
     });
 
     describe('insertManyHousingDocumentEvents', () => {
@@ -902,6 +1456,13 @@ describe('Event repository', () => {
           next_old: { filename: document.filename }
         });
         expect(eventRecord.next_new).toBeNull();
+      });
+
+      it('does not write when given an empty array', async () => {
+        const before = (await HousingDocumentEvents()).length;
+        await eventRepository.insertManyHousingDocumentEvents([]);
+        const after = (await HousingDocumentEvents()).length;
+        expect(after).toBe(before);
       });
     });
   });

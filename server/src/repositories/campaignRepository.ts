@@ -1,19 +1,16 @@
 import { CampaignStatus, HousingFiltersDTO } from '@zerologementvacant/models';
-import { Knex } from 'knex';
+import type { Insertable, Selectable } from 'kysely';
+import { sql } from 'kysely';
 
 import db from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import { CampaignApi, CampaignSortApi } from '~/models/CampaignApi';
 import { CampaignFiltersApi } from '~/models/CampaignFiltersApi';
-import { sortQuery } from '~/models/SortApi';
-import { campaignsHousingTable } from '~/repositories/campaignHousingRepository';
 import eventRepository from '~/repositories/eventRepository';
-import {
-  fromUserDBO,
-  UserDBO,
-  USERS_TABLE
-} from '~/repositories/userRepository';
+import { fromUserDBO, UserDBO } from '~/repositories/userRepository';
 
 export const campaignsTable = 'campaigns';
 export const Campaigns = (transaction = db) =>
@@ -27,15 +24,15 @@ interface FindOneOptions {
 
 const findOne = async (opts: FindOneOptions): Promise<CampaignApi | null> => {
   logger.debug('Finding campaign...', opts);
-  const campaign: CampaignDBO | undefined = await listQuery(opts)
-    .where(`${campaignsTable}.id`, opts.id)
-    .first();
-  if (!campaign) {
+  const row = await campaignListQuery(opts)
+    .where('campaigns.id', '=', opts.id)
+    .executeTakeFirst();
+  if (!row) {
     return null;
   }
 
-  logger.debug('Found campaign', campaign);
-  return parseCampaignApi(campaign);
+  logger.debug('Found campaign', row);
+  return parseCampaignRow(row);
 };
 
 interface FindOptions {
@@ -44,118 +41,152 @@ interface FindOptions {
 }
 
 const find = async (opts: FindOptions): Promise<CampaignApi[]> => {
-  const campaigns: CampaignDBO[] = await listQuery(opts.filters)
-    .modify(campaignSortQuery(opts.sort))
-    .orderBy('created_at');
+  const rows = await applyCampaignSort(
+    campaignListQuery(opts.filters),
+    opts.sort
+  )
+    .orderBy('campaigns.createdAt')
+    .execute();
 
-  return campaigns.map(parseCampaignApi);
+  return rows.map(parseCampaignRow);
 };
 
-function listQuery(filters: CampaignFiltersApi) {
-  return Campaigns()
-    .select(`${campaignsTable}.*`)
-    .select(db.raw(`to_json(${USERS_TABLE}.*) as creator`))
-    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${campaignsTable}.user_id`)
-    .modify(filterQuery(filters));
-}
+function campaignListQuery(filters: CampaignFiltersApi) {
+  let query = kysely
+    .selectFrom('campaigns')
+    .innerJoin('users', 'users.id', 'campaigns.userId')
+    .selectAll('campaigns')
+    .select(sql<UserDBO>`to_json(users.*)`.as('creator'));
 
-const filterQuery = (filters: CampaignFiltersApi) => {
-  return function (query: Knex.QueryBuilder<CampaignDBO>) {
-    if (filters?.establishmentId) {
-      query.where(
-        `${campaignsTable}.establishment_id`,
-        filters.establishmentId
+  if (filters?.establishmentId) {
+    query = query.where(
+      'campaigns.establishmentId',
+      '=',
+      filters.establishmentId
+    );
+  }
+  if (filters.groupIds?.length) {
+    query = query.where('campaigns.groupId', 'in', filters.groupIds);
+  }
+  // Filter campaigns to only those where ALL housings are within the user's
+  // perimeter. Empty geoCodes means no access → return no campaigns.
+  if (filters?.geoCodes !== undefined) {
+    if (filters.geoCodes.length === 0) {
+      query = query.where(sql<boolean>`1 = 0`);
+    } else {
+      const geoCodes = filters.geoCodes;
+      query = query.where((eb) =>
+        eb.not(
+          eb.exists(
+            eb
+              .selectFrom('campaignsHousing')
+              .select(sql`1`.as('one'))
+              .whereRef('campaignsHousing.campaignId', '=', 'campaigns.id')
+              .where('campaignsHousing.housingGeoCode', 'not in', geoCodes)
+          )
+        )
       );
     }
-    if (filters.groupIds?.length) {
-      query.whereIn(`${campaignsTable}.group_id`, filters.groupIds);
-    }
-    // Filter campaigns to only those where ALL housings are within the user's perimeter
-    // Note: geoCodes is an array when a restriction applies
-    //   - non-empty array: filter to campaigns with housings in these geoCodes
-    //   - empty array: user should see NO campaigns (intersection with perimeter is empty)
-    if (filters?.geoCodes !== undefined) {
-      if (filters.geoCodes.length === 0) {
-        // Empty geoCodes means no access - return no campaigns
-        query.whereRaw('1 = 0');
-      } else {
-        const geoCodes = filters.geoCodes;
-        query.whereNotExists((subquery) => {
-          subquery
-            .select(db.raw('1'))
-            .from(campaignsHousingTable)
-            .where(
-              `${campaignsHousingTable}.campaign_id`,
-              db.ref(`${campaignsTable}.id`)
-            )
-            .whereNotIn(`${campaignsHousingTable}.housing_geo_code`, geoCodes);
-        });
-      }
-    }
-  };
-};
+  }
+  return query;
+}
 
-const campaignSortQuery = (sort?: CampaignSortApi) =>
-  sortQuery(sort, {
-    keys: {
-      title: (query) => query.orderBy(`${campaignsTable}.title`, sort?.title),
-      createdAt: (query) =>
-        query.orderBy(`${campaignsTable}.created_at`, sort?.createdAt),
-      sentAt: (query) =>
-        query.orderBy(`${campaignsTable}.sent_at`, sort?.sentAt),
-      status: (query) =>
-        query.orderByRaw(
-          `(case ${campaignsTable}.status when 'archived' then 3 when 'in-progress' then 2 when 'sending' then 1 else 0 end) ${sort?.status}`
-        ),
-      housingCount: (query) =>
-        query.orderBy(`${campaignsTable}.housing_count`, sort?.housingCount),
-      ownerCount: (query) =>
-        query.orderBy(`${campaignsTable}.owner_count`, sort?.ownerCount),
-      returnCount: (query) =>
-        query.orderBy(`${campaignsTable}.return_count`, sort?.returnCount),
-      returnRate: (query) =>
-        query.orderByRaw(
-          `${campaignsTable}.return_rate ${sort?.returnRate} NULLS LAST`
-        )
-    },
-    default: (query) => query.orderBy('created_at', 'desc')
-  });
-
-const insert = async (campaignApi: CampaignApi): Promise<CampaignApi> => {
-  logger.info(
-    'Insert campaignApi for establishment',
-    campaignApi.establishmentId
-  );
-  return db(campaignsTable)
-    .insert(formatCampaignApi(campaignApi))
-    .returning('*')
-    .then((_) => parseCampaignApi(_[0]));
-};
+function applyCampaignSort(
+  query: ReturnType<typeof campaignListQuery>,
+  sort?: CampaignSortApi
+): ReturnType<typeof campaignListQuery> {
+  if (!sort) {
+    return query.orderBy('campaigns.createdAt', 'desc');
+  }
+  let result = query;
+  for (const key of Object.keys(sort) as Array<keyof CampaignSortApi>) {
+    switch (key) {
+      case 'title':
+        result = result.orderBy('campaigns.title', sort.title);
+        break;
+      case 'createdAt':
+        result = result.orderBy('campaigns.createdAt', sort.createdAt);
+        break;
+      case 'sentAt':
+        result = result.orderBy('campaigns.sentAt', sort.sentAt);
+        break;
+      case 'status':
+        result = result.orderBy(
+          sql`(case campaigns.status when 'archived' then 3 when 'in-progress' then 2 when 'sending' then 1 else 0 end)`,
+          sort.status
+        );
+        break;
+      case 'housingCount':
+        result = result.orderBy('campaigns.housingCount', sort.housingCount);
+        break;
+      case 'ownerCount':
+        result = result.orderBy('campaigns.ownerCount', sort.ownerCount);
+        break;
+      case 'returnCount':
+        result = result.orderBy('campaigns.returnCount', sort.returnCount);
+        break;
+      case 'returnRate':
+        result = result.orderBy(
+          sql`campaigns.return_rate ${sql.raw(sort.returnRate ?? 'asc')} nulls last`
+        );
+        break;
+    }
+  }
+  return result;
+}
 
 async function save(campaign: CampaignApi): Promise<void> {
   logger.debug('Saving campaign', campaign);
-  await withinTransaction(async (transaction) => {
-    await Campaigns(transaction)
-      .insert(formatCampaignApi(campaign))
-      .onConflict(['id'])
-      .merge(['status', 'title', 'description', 'file', 'sent_at']);
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('campaigns')
+      .values(toCampaignInsert(campaign))
+      .onConflict((oc) =>
+        oc.column('id').doUpdateSet((eb) => ({
+          status: eb.ref('excluded.status'),
+          title: eb.ref('excluded.title'),
+          description: eb.ref('excluded.description'),
+          file: eb.ref('excluded.file'),
+          sentAt: eb.ref('excluded.sentAt')
+        }))
+      )
+      .execute();
   });
   logger.debug('Campaign saved', campaign);
 }
 
-const update = async (campaignApi: CampaignApi): Promise<string> => {
-  return db(campaignsTable)
-    .where('id', campaignApi.id)
-    .update(formatCampaignApi(campaignApi))
-    .returning('*')
-    .then((_) => _[0]);
-};
+function toCampaignInsert(campaign: CampaignApi): Insertable<DB['campaigns']> {
+  return {
+    id: campaign.id,
+    establishmentId: campaign.establishmentId,
+    status: campaign.status,
+    filters: campaign.filters as Insertable<DB['campaigns']>['filters'],
+    file: campaign.file,
+    title: campaign.title,
+    description: campaign.description,
+    userId: campaign.userId,
+    createdAt: new Date(campaign.createdAt),
+    validatedAt: campaign.validatedAt
+      ? new Date(campaign.validatedAt)
+      : undefined,
+    exportedAt: campaign.exportedAt ? new Date(campaign.exportedAt) : undefined,
+    sentAt: campaign.sentAt
+      ? new Date(campaign.sentAt.slice(0, 'yyyy-mm-dd'.length))
+      : undefined,
+    archivedAt: campaign.archivedAt ? new Date(campaign.archivedAt) : undefined,
+    confirmedAt: campaign.confirmedAt
+      ? new Date(campaign.confirmedAt)
+      : undefined,
+    groupId: campaign.groupId,
+    returnCount: campaign.returnCount ?? 0
+  };
+}
 
 async function remove(id: string): Promise<void> {
   logger.debug('Removing campaign...', { id });
-  await withinTransaction(async (transaction) => {
+  await withinKyselyTransaction(async (trx) => {
     await eventRepository.removeCampaignEvents(id);
-    await Campaigns(transaction).where({ id }).delete();
+    await trx.deleteFrom('campaigns').where('id', '=', id).execute();
   });
   logger.debug('Campaign removed', { id });
 }
@@ -208,28 +239,32 @@ export interface CampaignDBO {
   return_rate: number | null;
 }
 
-export const parseCampaignApi = (campaign: CampaignDBO): CampaignApi => ({
-  id: campaign.id,
-  establishmentId: campaign.establishment_id,
-  status: campaign.status,
-  filters: campaign.filters,
-  file: campaign.file,
-  userId: campaign.user_id,
-  createdBy: fromUserDBO(campaign.creator!),
-  createdAt: campaign.created_at.toJSON(),
-  validatedAt: campaign.validated_at?.toJSON(),
-  exportedAt: campaign.exported_at?.toJSON(),
-  sentAt: campaign.sent_at?.toJSON()?.slice(0, 'yyyy-mm-dd'.length) ?? null,
-  archivedAt: campaign.archived_at?.toJSON(),
-  confirmedAt: campaign.confirmed_at?.toJSON(),
-  title: campaign.title,
-  description: campaign.description,
-  groupId: campaign.group_id,
-  returnCount: campaign.sent_at ? campaign.return_count : null,
-  housingCount: campaign.housing_count,
-  ownerCount: campaign.owner_count,
-  returnRate: campaign.sent_at ? campaign.return_rate : null
-});
+type CampaignRow = Selectable<DB['campaigns']> & { creator: UserDBO | null };
+
+function parseCampaignRow(row: CampaignRow): CampaignApi {
+  return {
+    id: row.id,
+    establishmentId: row.establishmentId,
+    status: row.status as CampaignStatus,
+    filters: row.filters as CampaignApi['filters'],
+    file: row.file as CampaignApi['file'],
+    userId: row.userId,
+    createdBy: fromUserDBO(row.creator!),
+    createdAt: (row.createdAt as Date).toJSON(),
+    validatedAt: row.validatedAt?.toJSON(),
+    exportedAt: row.exportedAt?.toJSON(),
+    sentAt: row.sentAt?.toJSON()?.slice(0, 'yyyy-mm-dd'.length) ?? null,
+    archivedAt: row.archivedAt?.toJSON(),
+    confirmedAt: row.confirmedAt?.toJSON(),
+    title: row.title,
+    description: row.description as CampaignApi['description'],
+    groupId: row.groupId as CampaignApi['groupId'],
+    returnCount: row.sentAt ? row.returnCount : null,
+    housingCount: row.housingCount,
+    ownerCount: row.ownerCount,
+    returnRate: row.sentAt ? row.returnRate : null
+  };
+}
 
 export const formatCampaignApi = (
   campaign: CampaignApi
@@ -264,9 +299,7 @@ export const formatCampaignApi = (
 export default {
   findOne,
   find,
-  insert,
   save,
-  update,
   remove,
   formatCampaignApi
 };

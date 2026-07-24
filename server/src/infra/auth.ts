@@ -7,14 +7,13 @@ import { betterAuth, type BetterAuthOptions } from 'better-auth';
 import { APIError } from 'better-auth/api';
 import { hashPassword } from 'better-auth/crypto';
 import { customSession } from 'better-auth/plugins';
-import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely';
-import { Pool } from 'pg';
 
 import UserMissingError from '~/errors/userMissingError';
 import { zlvAdminTwoFactor } from '~/infra/auth-admin-two-factor';
 import { getAuthCookieAttributes } from '~/infra/auth-cookie';
 import { createPasswordVerifier } from '~/infra/auth-password';
 import config from '~/infra/config';
+import { kysely } from '~/infra/database/kysely';
 import { logger } from '~/infra/logger';
 import {
   sessionLifetimeUpdateHook,
@@ -28,24 +27,19 @@ import userRepository from '~/repositories/userRepository';
 import { fetchUserKind } from '~/services/ceremaService/userKindService';
 import { refreshAuthorizedEstablishments } from '~/services/establishmentAuthService';
 
-const pool = new Pool({ connectionString: config.db.url });
-
-// Wrap the pool in a Kysely instance with CamelCasePlugin so that better-auth's
+// Reuses the shared `kysely` singleton (~/infra/database/kysely) instead of a
+// dedicated pool. It already applies CamelCasePlugin, so better-auth's
 // camelCase field names (emailVerified, createdAt, activeEstablishmentId, …)
 // are transparently mapped to the snake_case columns defined by ZLV's
-// migration (20260613120000_better_auth_tables.ts). Without this plugin,
-// queries fail with "column emailVerified does not exist". Verified by
-// integration test (Task 10).
-const kyselyDb = new Kysely<any>({
-  dialect: new PostgresDialect({ pool }),
-  plugins: [new CamelCasePlugin()]
-});
-
+// migration (20260613120000_better_auth_tables.ts). better-auth's kysely
+// adapter always resolves null equality to `is`/`is not` before building a
+// where clause, so the shared instance's SafeNullComparisonPlugin never
+// trips on it. Verified by integration test (Task 10).
 const authOptions = {
   basePath: '/auth',
   secret: config.auth.secret,
   database: {
-    db: kyselyDb,
+    db: kysely,
     type: 'postgres'
   },
   session: {
@@ -80,7 +74,7 @@ const authOptions = {
       verify: createPasswordVerifier({
         rehash: async ({ previousHash, password }) => {
           const newHash = await hashPassword(password);
-          await kyselyDb
+          await kysely
             .updateTable('account')
             .set({ password: newHash })
             .where('password', '=', previousHash)

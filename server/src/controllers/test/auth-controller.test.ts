@@ -32,16 +32,13 @@ vi.mock('../../infra/auth', () => ({
 import { auth } from '~/infra/auth';
 import { createPasswordVerifier } from '~/infra/auth-password';
 import db from '~/infra/database';
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 import { SALT_LENGTH, toUserAccountDTO, UserApi } from '~/models/UserApi';
 import {
   Establishments,
   formatEstablishmentApi
 } from '~/repositories/establishmentRepository';
-import {
-  formatResetLinkApi,
-  ResetLinks
-} from '~/repositories/resetLinkRepository';
 import { UsersEstablishments } from '~/repositories/user-establishment-repository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
@@ -73,7 +70,10 @@ describe('Account controller', () => {
     await db('account').where({ user_id: user.id }).delete();
     await db('auth_users').where({ id: user.id }).delete();
     await UsersEstablishments().where({ user_id: user.id }).delete();
-    await ResetLinks().where({ user_id: user.id }).delete();
+    await kysely
+      .deleteFrom('resetLinks')
+      .where('userId', '=', user.id)
+      .execute();
     await Users().where('id', user.id).delete();
     await Establishments().where('id', establishment.id).delete();
   });
@@ -98,7 +98,7 @@ describe('Account controller', () => {
   describe('POST /account/reset-password', () => {
     it('updates only the Better Auth credential password', async () => {
       const link = genResetLinkApi(user.id);
-      await ResetLinks().insert(formatResetLinkApi(link));
+      await kysely.insertInto('resetLinks').values(link).execute();
       const newPassword = '123QWEasd!@#';
 
       await db('auth_users')

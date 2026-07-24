@@ -1,11 +1,15 @@
+import type { Insertable } from 'kysely';
+
 import { download } from '~/controllers/fileRepository';
-import db, { where } from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import db from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import { SenderApi } from '~/models/SenderApi';
 import {
   fromDocumentDBO,
-  joinDocumentWithCreator,
+  selectDocumentWithCreator,
   type DocumentWithCreatorDBO
 } from '~/repositories/documentRepository';
 
@@ -21,62 +25,97 @@ type FindOneOptions = Partial<
 
 async function findOne(opts: FindOneOptions): Promise<SenderApi | null> {
   logger.debug('Finding sender...', opts);
-  const whereOptions = where<FindOneOptions>(
-    ['id', 'name', 'establishmentId'],
-    { table: sendersTable }
-  );
 
-  const query = Senders().where(whereOptions(opts));
-  joinDocumentWithCreator(
-    query,
-    `${sendersTable}.signatory_one_document_id`,
-    'signatory_one_document'
-  );
-  joinDocumentWithCreator(
-    query,
-    `${sendersTable}.signatory_two_document_id`,
-    'signatory_two_document'
-  );
+  let query: any = kysely.selectFrom('senders').selectAll('senders');
+  if (opts.id !== undefined) {
+    query = query.where('senders.id', '=', opts.id);
+  }
+  if (opts.name !== undefined) {
+    query = query.where('senders.name', '=', opts.name);
+  }
+  if (opts.establishmentId !== undefined) {
+    query = query.where('senders.establishmentId', '=', opts.establishmentId);
+  }
+  query = query
+    .select(
+      selectDocumentWithCreator(
+        'senders.signatory_one_document_id',
+        'signatory_one_document'
+      )
+    )
+    .select(
+      selectDocumentWithCreator(
+        'senders.signatory_two_document_id',
+        'signatory_two_document'
+      )
+    );
 
-  const sender = (await query.select(`${sendersTable}.*`).first()) as
-    | SenderDBOWithDocuments
-    | undefined;
-  if (!sender) {
+  const row = await query.executeTakeFirst();
+  if (!row) {
     return null;
   }
 
-  logger.debug('Found sender', sender);
-  return parseSenderApi(sender);
+  logger.debug('Found sender', row);
+  return parseSenderRow(row);
 }
 
 async function save(sender: SenderApi): Promise<void> {
   logger.debug('Saving sender...', sender);
-  await withinTransaction(async (transaction) => {
-    await Senders(transaction)
-      .insert(formatSenderApi(sender))
-      .onConflict('id')
-      .merge([
-        'name',
-        'service',
-        'first_name',
-        'last_name',
-        'address',
-        'email',
-        'phone',
-        'signatory_one_last_name',
-        'signatory_one_first_name',
-        'signatory_one_role',
-        'signatory_one_file',
-        'signatory_one_document_id',
-        'signatory_two_first_name',
-        'signatory_two_last_name',
-        'signatory_two_role',
-        'signatory_two_file',
-        'signatory_two_document_id',
-        'updated_at'
-      ]);
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('senders')
+      .values(toSenderInsert(sender))
+      .onConflict((oc) =>
+        oc.column('id').doUpdateSet((eb) => ({
+          name: eb.ref('excluded.name'),
+          service: eb.ref('excluded.service'),
+          firstName: eb.ref('excluded.firstName'),
+          lastName: eb.ref('excluded.lastName'),
+          address: eb.ref('excluded.address'),
+          email: eb.ref('excluded.email'),
+          phone: eb.ref('excluded.phone'),
+          signatoryOneLastName: eb.ref('excluded.signatoryOneLastName'),
+          signatoryOneFirstName: eb.ref('excluded.signatoryOneFirstName'),
+          signatoryOneRole: eb.ref('excluded.signatoryOneRole'),
+          signatoryOneFile: eb.ref('excluded.signatoryOneFile'),
+          signatoryOneDocumentId: eb.ref('excluded.signatoryOneDocumentId'),
+          signatoryTwoFirstName: eb.ref('excluded.signatoryTwoFirstName'),
+          signatoryTwoLastName: eb.ref('excluded.signatoryTwoLastName'),
+          signatoryTwoRole: eb.ref('excluded.signatoryTwoRole'),
+          signatoryTwoFile: eb.ref('excluded.signatoryTwoFile'),
+          signatoryTwoDocumentId: eb.ref('excluded.signatoryTwoDocumentId'),
+          updatedAt: eb.ref('excluded.updatedAt')
+        }))
+      )
+      .execute();
   });
   logger.debug('Saved sender', sender);
+}
+
+function toSenderInsert(sender: SenderApi): Insertable<DB['senders']> {
+  return {
+    id: sender.id,
+    name: sender.name,
+    service: sender.service,
+    firstName: sender.firstName,
+    lastName: sender.lastName,
+    address: sender.address,
+    email: sender.email,
+    phone: sender.phone,
+    signatoryOneFirstName: sender.signatories?.[0]?.firstName ?? null,
+    signatoryOneLastName: sender.signatories?.[0]?.lastName ?? null,
+    signatoryOneRole: sender.signatories?.[0]?.role ?? null,
+    signatoryOneFile: sender.signatories?.[0]?.file?.id ?? null,
+    signatoryOneDocumentId: sender.signatories?.[0]?.document?.id ?? null,
+    signatoryTwoFirstName: sender.signatories?.[1]?.firstName ?? null,
+    signatoryTwoLastName: sender.signatories?.[1]?.lastName ?? null,
+    signatoryTwoRole: sender.signatories?.[1]?.role ?? null,
+    signatoryTwoFile: sender.signatories?.[1]?.file?.id ?? null,
+    signatoryTwoDocumentId: sender.signatories?.[1]?.document?.id ?? null,
+    createdAt: new Date(sender.createdAt),
+    updatedAt: new Date(sender.updatedAt),
+    establishmentId: sender.establishmentId
+  };
 }
 
 export interface SenderDBO {
@@ -185,6 +224,66 @@ export const parseSenderApi = async (
     createdAt: new Date(sender.created_at).toJSON(),
     updatedAt: new Date(sender.updated_at).toJSON(),
     establishmentId: sender.establishment_id
+  };
+};
+
+/**
+ * Camel-case Kysely mirror of {@link parseSenderApi}. Reads the top-level
+ * senders columns as camelCase (CamelCasePlugin) while the signatory document
+ * blobs stay snake_case (jsonb_build_object + maintainNestedObjectKeys), so
+ * {@link fromDocumentDBO} still reads them.
+ */
+export const parseSenderRow = async (row: any): Promise<SenderApi> => {
+  let signatory_one_file;
+  try {
+    signatory_one_file = row.signatoryOneFile
+      ? await download(row.signatoryOneFile)
+      : null;
+  } catch {
+    signatory_one_file = null;
+  }
+
+  let signatory_two_file;
+  try {
+    signatory_two_file = row.signatoryTwoFile
+      ? await download(row.signatoryTwoFile)
+      : null;
+  } catch {
+    signatory_two_file = null;
+  }
+
+  return {
+    id: row.id,
+    name: row.name,
+    service: row.service,
+    firstName: row.firstName,
+    lastName: row.lastName,
+    address: row.address,
+    email: row.email,
+    phone: row.phone,
+    signatories: [
+      {
+        firstName: row.signatoryOneFirstName,
+        lastName: row.signatoryOneLastName,
+        role: row.signatoryOneRole,
+        file: signatory_one_file,
+        document: row.signatoryOneDocument
+          ? fromDocumentDBO(row.signatoryOneDocument)
+          : null
+      },
+      {
+        firstName: row.signatoryTwoFirstName,
+        lastName: row.signatoryTwoLastName,
+        role: row.signatoryTwoRole,
+        file: signatory_two_file,
+        document: row.signatoryTwoDocument
+          ? fromDocumentDBO(row.signatoryTwoDocument)
+          : null
+      }
+    ],
+    createdAt: new Date(row.createdAt).toJSON(),
+    updatedAt: new Date(row.updatedAt).toJSON(),
+    establishmentId: row.establishmentId
   };
 };
 

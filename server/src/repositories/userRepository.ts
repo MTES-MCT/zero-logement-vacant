@@ -1,12 +1,17 @@
 import type { TimePerWeek, UserFilters } from '@zerologementvacant/models';
-import { Knex } from 'knex';
+import type { Selectable } from 'kysely';
+import { sql } from 'kysely';
 
-import db, { notDeleted } from '~/infra/database';
+import db from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
-import { PaginationApi, paginationQuery } from '~/models/PaginationApi';
+import {
+  isPaginationEnabled,
+  type PaginationApi
+} from '~/models/PaginationApi';
 import { UserApi } from '~/models/UserApi';
-
-import { USERS_ESTABLISHMENTS_TABLE } from './user-establishment-repository';
 
 export const USERS_TABLE = 'users';
 
@@ -15,23 +20,27 @@ export const Users = (transaction = db) => transaction<UserDBO>(USERS_TABLE);
 async function get(id: string): Promise<UserApi | null> {
   logger.debug('Get user by id', id);
 
-  const result = await Users()
-    .where(`${USERS_TABLE}.id`, id)
-    .andWhere(notDeleted)
-    .first();
+  const row = await kysely
+    .selectFrom('users')
+    .selectAll()
+    .where('id', '=', id)
+    .where('deletedAt', 'is', null)
+    .executeTakeFirst();
 
-  return result ? fromUserDBO(result) : null;
+  return row ? parseUserRow(row) : null;
 }
 
 async function getByEmail(email: string): Promise<UserApi | null> {
   logger.debug('Get user by email', email);
 
-  const result = await Users()
-    .whereRaw('upper(email) = upper(?)', email)
-    .andWhere(notDeleted)
-    .first();
+  const row = await kysely
+    .selectFrom('users')
+    .selectAll()
+    .where(sql<boolean>`upper(email) = upper(${email})`)
+    .where('deletedAt', 'is', null)
+    .executeTakeFirst();
 
-  return result ? fromUserDBO(result) : null;
+  return row ? parseUserRow(row) : null;
 }
 
 async function getByEmailIncludingDeleted(
@@ -39,27 +48,33 @@ async function getByEmailIncludingDeleted(
 ): Promise<UserApi | null> {
   logger.debug('Get user by email (including deleted)', email);
 
-  const result = await Users()
-    .whereRaw('upper(email) = upper(?)', email)
-    .first();
+  const row = await kysely
+    .selectFrom('users')
+    .selectAll()
+    .where(sql<boolean>`upper(email) = upper(${email})`)
+    .executeTakeFirst();
 
-  return result ? fromUserDBO(result) : null;
+  return row ? parseUserRow(row) : null;
 }
 
 async function update(user: UserApi): Promise<void> {
   logger.debug('Updating user...', { id: user.id });
-  const { password: _legacyPassword, ...userRow } = toUserDBO(user);
-  await Users().where({ id: user.id }).update(userRow);
+  await kysely
+    .updateTable('users')
+    .set(toUserUpdate(user))
+    .where('id', '=', user.id)
+    .execute();
 }
 
 async function updateEstablishment(
   userId: string,
   establishmentId: string
 ): Promise<void> {
-  await Users().where({ id: userId }).update({
-    establishment_id: establishmentId,
-    updated_at: new Date()
-  });
+  await kysely
+    .updateTable('users')
+    .set({ establishmentId, updatedAt: new Date() })
+    .where('id', '=', userId)
+    .execute();
 }
 
 async function recordTwoFactorFailure(
@@ -67,28 +82,30 @@ async function recordTwoFactorFailure(
   maximumAttempts: number,
   lockedUntil: Date
 ): Promise<void> {
-  await Users()
-    .where({ id: userId })
-    .update({
-      two_factor_failed_attempts: db.raw('two_factor_failed_attempts + 1'),
-      two_factor_locked_until: db.raw(
-        `CASE
-          WHEN two_factor_failed_attempts + 1 >= ?
-          THEN COALESCE(two_factor_locked_until, ?)
+  await kysely
+    .updateTable('users')
+    .set({
+      twoFactorFailedAttempts: sql`two_factor_failed_attempts + 1`,
+      twoFactorLockedUntil: sql`
+        CASE
+          WHEN two_factor_failed_attempts + 1 >= ${maximumAttempts}
+          THEN COALESCE(two_factor_locked_until, ${lockedUntil})
           ELSE two_factor_locked_until
         END`,
-        [maximumAttempts, lockedUntil]
-      ),
-      updated_at: new Date()
-    });
+      updatedAt: new Date()
+    })
+    .where('id', '=', userId)
+    .execute();
 }
 
 async function insert(userApi: UserApi): Promise<UserApi> {
   logger.info('Insert user with email', userApi.email);
-  return db(USERS_TABLE)
-    .insert({ ...toUserDBO(userApi), password: null })
-    .returning('*')
-    .then((_) => fromUserDBO(_[0]));
+  const row = await kysely
+    .insertInto('users')
+    .values({ ...toUserInsert(userApi), password: null })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+  return parseUserRow(row);
 }
 
 interface FindOptions {
@@ -97,68 +114,97 @@ interface FindOptions {
 }
 
 async function find(opts?: FindOptions): Promise<UserApi[]> {
-  const users: UserDBO[] = await db<UserDBO>(USERS_TABLE)
-    .select(`${USERS_TABLE}.*`)
-    .where(notDeleted)
-    .modify((builder) => {
-      if (opts?.filters?.establishments?.length) {
-        builder.distinct(`${USERS_TABLE}.id`);
+  const establishmentIds = opts?.filters?.establishments;
+  // paginationQuery() defaulted to { page: 1, perPage: 50 } when no
+  // pagination was provided, so unpaginated find() calls were still capped
+  // at 50 rows.
+  const pagination: PaginationApi = opts?.pagination ?? {
+    paginate: true,
+    page: 1,
+    perPage: 50
+  };
+  const paginationParams = isPaginationEnabled(pagination)
+    ? {
+        limit: pagination.perPage,
+        offset: (pagination.page - 1) * pagination.perPage
       }
-    })
-    .modify(filter(opts?.filters))
-    // TODO: flexible sort
-    .orderBy(['last_name', 'first_name'])
-    .modify(paginationQuery(opts?.pagination));
+    : null;
 
-  return users.map(fromUserDBO);
+  const rows = await kysely
+    .selectFrom('users')
+    .selectAll('users')
+    .where('users.deletedAt', 'is', null)
+    .$if(!!establishmentIds?.length, (query) =>
+      query
+        // Plain DISTINCT over the whole (users.*-only) select list — not
+        // DISTINCT ON — mirrors the original Knex `.distinct('users.id')`,
+        // which Knex translates to a plain SELECT DISTINCT rather than
+        // Postgres's DISTINCT ON.
+        .distinct()
+        .innerJoin('usersEstablishments', (join) =>
+          join
+            .onRef('usersEstablishments.userId', '=', 'users.id')
+            .on(
+              'usersEstablishments.establishmentId',
+              'in',
+              establishmentIds ?? []
+            )
+            .on('usersEstablishments.hasCommitment', '=', true)
+        )
+    )
+    .orderBy('users.lastName')
+    .orderBy('users.firstName')
+    .$if(!!paginationParams, (query) =>
+      query
+        .limit(paginationParams?.limit ?? 0)
+        .offset(paginationParams?.offset ?? 0)
+    )
+    .execute();
+
+  return rows.map(parseUserRow);
 }
 
 interface CountOptions {
   filters?: UserFilters;
 }
 
-function filter(filters?: UserFilters) {
-  return (builder: Knex.QueryBuilder<UserDBO>) => {
-    const establishmentIds = filters?.establishments;
-    if (establishmentIds?.length) {
-      builder.join(USERS_ESTABLISHMENTS_TABLE, function () {
-        this.on(
-          `${USERS_ESTABLISHMENTS_TABLE}.user_id`,
-          '=',
-          `${USERS_TABLE}.id`
-        )
-          .onIn(
-            `${USERS_ESTABLISHMENTS_TABLE}.establishment_id`,
-            establishmentIds
-          )
-          .andOnVal(`${USERS_ESTABLISHMENTS_TABLE}.has_commitment`, true);
-      });
-    }
-  };
-}
-
 async function count(opts?: CountOptions): Promise<number> {
-  const result = await db<UserDBO>(USERS_TABLE)
-    .where(notDeleted)
-    .modify(filter(opts?.filters))
-    .countDistinct(`${USERS_TABLE}.id`)
-    .first();
+  const establishmentIds = opts?.filters?.establishments;
 
-  return Number(result?.count);
+  const result = await kysely
+    .selectFrom('users')
+    .where('users.deletedAt', 'is', null)
+    .$if(!!establishmentIds?.length, (query) =>
+      query.innerJoin('usersEstablishments', (join) =>
+        join
+          .onRef('usersEstablishments.userId', '=', 'users.id')
+          .on(
+            'usersEstablishments.establishmentId',
+            'in',
+            establishmentIds ?? []
+          )
+          .on('usersEstablishments.hasCommitment', '=', true)
+      )
+    )
+    .select((eb) => eb.fn.count<string>('users.id').distinct().as('count'))
+    .executeTakeFirst();
+
+  return Number(result?.count ?? 0);
 }
 
 async function remove(userId: string): Promise<void> {
   logger.info('Remove user', userId);
   const deletedAt = new Date();
 
-  await db.transaction(async (transaction) => {
-    await transaction('session').where({ user_id: userId }).delete();
-    await transaction('account').where({ user_id: userId }).delete();
-    await transaction('auth_users').where({ id: userId }).delete();
-    await transaction(USERS_TABLE).where('id', userId).update({
-      deleted_at: deletedAt,
-      updated_at: deletedAt
-    });
+  await withinKyselyTransaction(async (trx) => {
+    await trx.deleteFrom('session').where('userId', '=', userId).execute();
+    await trx.deleteFrom('account').where('userId', '=', userId).execute();
+    await trx.deleteFrom('authUsers').where('id', '=', userId).execute();
+    await trx
+      .updateTable('users')
+      .set({ deletedAt, updatedAt: deletedAt })
+      .where('id', '=', userId)
+      .execute();
   });
 }
 
@@ -260,6 +306,95 @@ export const toUserDBO = (userApi: UserApi): UserDBO => ({
     ? new Date(userApi.twoFactorLockedUntil).toJSON()
     : null
 });
+
+// ---------------------------------------------------------------------------
+// Row parsers / write mappers for the Kysely read/write path. Field-for-field
+// mirrors of fromUserDBO/toUserDBO (which stay snake_case, for the legacy
+// Knex accessor used by seeds/tests/other repos' backward compat), just
+// reading/writing the already-camelCase Kysely shape directly instead of
+// bridging through snake_case.
+// ---------------------------------------------------------------------------
+
+type UserRow = Selectable<DB['users']>;
+
+export function parseUserRow(row: UserRow): UserApi {
+  return {
+    id: row.id,
+    email: row.email,
+    password: row.password ?? '',
+    firstName: row.firstName,
+    lastName: row.lastName,
+    establishmentId: row.establishmentId,
+    role: row.role,
+    activatedAt: new Date(row.activatedAt).toJSON(),
+    lastAuthenticatedAt: row.lastAuthenticatedAt
+      ? new Date(row.lastAuthenticatedAt).toJSON()
+      : null,
+    suspendedAt: row.suspendedAt ? new Date(row.suspendedAt).toJSON() : null,
+    suspendedCause: row.suspendedCause,
+    deletedAt: row.deletedAt ? new Date(row.deletedAt).toJSON() : null,
+    updatedAt: new Date(row.updatedAt).toJSON(),
+    phone: row.phone,
+    position: row.position,
+    timePerWeek: row.timePerWeek as TimePerWeek | null,
+    kind: row.kind,
+    twoFactorSecret: row.twoFactorSecret,
+    twoFactorEnabledAt: row.twoFactorEnabledAt
+      ? new Date(row.twoFactorEnabledAt).toJSON()
+      : null,
+    twoFactorCode: row.twoFactorCode,
+    twoFactorCodeGeneratedAt: row.twoFactorCodeGeneratedAt
+      ? new Date(row.twoFactorCodeGeneratedAt).toJSON()
+      : null,
+    twoFactorFailedAttempts: row.twoFactorFailedAttempts,
+    twoFactorLockedUntil: row.twoFactorLockedUntil
+      ? new Date(row.twoFactorLockedUntil).toJSON()
+      : null
+  };
+}
+
+export function toUserInsert(userApi: UserApi) {
+  return {
+    id: userApi.id,
+    email: userApi.email,
+    password: userApi.password,
+    firstName: userApi.firstName,
+    lastName: userApi.lastName,
+    establishmentId: userApi.establishmentId,
+    role: userApi.role,
+    activatedAt: new Date(userApi.activatedAt),
+    lastAuthenticatedAt: userApi.lastAuthenticatedAt
+      ? new Date(userApi.lastAuthenticatedAt)
+      : null,
+    suspendedAt: userApi.suspendedAt ? new Date(userApi.suspendedAt) : null,
+    suspendedCause: userApi.suspendedCause,
+    deletedAt: userApi.deletedAt ? new Date(userApi.deletedAt) : null,
+    updatedAt: new Date(userApi.updatedAt),
+    phone: userApi.phone,
+    position: userApi.position,
+    timePerWeek: userApi.timePerWeek,
+    kind: userApi.kind,
+    twoFactorSecret: userApi.twoFactorSecret,
+    twoFactorEnabledAt: userApi.twoFactorEnabledAt
+      ? new Date(userApi.twoFactorEnabledAt)
+      : null,
+    twoFactorCode: userApi.twoFactorCode,
+    twoFactorCodeGeneratedAt: userApi.twoFactorCodeGeneratedAt
+      ? new Date(userApi.twoFactorCodeGeneratedAt)
+      : null,
+    twoFactorFailedAttempts: userApi.twoFactorFailedAttempts,
+    twoFactorLockedUntil: userApi.twoFactorLockedUntil
+      ? new Date(userApi.twoFactorLockedUntil)
+      : null
+  };
+}
+
+// update() never writes `password` — auth-v2 owns credentials via
+// account.password; this legacy field must never round-trip back in.
+export function toUserUpdate(userApi: UserApi) {
+  const { password: _legacyPassword, id: _id, ...rest } = toUserInsert(userApi);
+  return rest;
+}
 
 export default {
   get,

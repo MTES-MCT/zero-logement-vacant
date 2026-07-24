@@ -1,50 +1,33 @@
-import db from '~/infra/database';
+import { kysely } from '~/infra/database/kysely';
 import { logger } from '~/infra/logger';
 import { ResetLinkApi } from '~/models/ResetLinkApi';
 
+/** Real (snake_case) table name — used by raw-SQL callers such as seeds. */
 export const resetLinkTable = 'reset_links';
-export const ResetLinks = (transaction = db) =>
-  transaction<ResetLinkDBO>(resetLinkTable);
 
 async function insert(resetLinkApi: ResetLinkApi): Promise<void> {
   logger.info('Insert resetLinkApi');
-  await ResetLinks().insert(formatResetLinkApi(resetLinkApi));
+  await kysely.insertInto('resetLinks').values(resetLinkApi).execute();
 }
 
 async function get(id: string): Promise<ResetLinkApi | null> {
   logger.info('Get resetLinkApi with id', id);
-  const link = await ResetLinks().select().where('id', id).first();
-  return link ? parseResetLinkApi(link) : null;
+  const row = await kysely
+    .selectFrom('resetLinks')
+    .where('id', '=', id)
+    .selectAll()
+    .executeTakeFirst();
+  return row ?? null;
 }
 
 async function used(id: string): Promise<void> {
   logger.info(`Set resetLinkApi ${id} as used`);
-  await ResetLinks().where('id', id).update('used_at', new Date());
+  await kysely
+    .updateTable('resetLinks')
+    .set({ usedAt: new Date() })
+    .where('id', '=', id)
+    .execute();
 }
-
-export interface ResetLinkDBO {
-  id: string;
-  user_id: string;
-  created_at: Date;
-  expires_at: Date;
-  used_at: Date | null;
-}
-
-export const parseResetLinkApi = (link: ResetLinkDBO): ResetLinkApi => ({
-  id: link.id,
-  userId: link.user_id,
-  createdAt: link.created_at,
-  expiresAt: link.expires_at,
-  usedAt: link.used_at
-});
-
-export const formatResetLinkApi = (link: ResetLinkApi): ResetLinkDBO => ({
-  id: link.id,
-  user_id: link.userId,
-  created_at: link.createdAt,
-  expires_at: link.expiresAt,
-  used_at: link.usedAt ?? null
-});
 
 export default {
   insert,

@@ -2,6 +2,7 @@ import { ReadableStream } from 'node:stream/web';
 
 import { toArray } from '@zerologementvacant/utils/node';
 
+import { kysely } from '~/infra/database/kysely';
 import {
   Establishments,
   formatEstablishmentApi
@@ -16,12 +17,7 @@ import {
   formatHousingRecordApi,
   Housing
 } from '~/repositories/housingRepository';
-import {
-  formatHousingNoteApi,
-  formatNoteApi,
-  HousingNotes,
-  Notes
-} from '~/repositories/noteRepository';
+import { toHousingNoteDBO, toNoteDBO } from '~/repositories/noteRepository';
 import { Users, toUserDBO } from '~/repositories/userRepository';
 import { genSourceHousing } from '~/scripts/import-lovac/infra/fixtures';
 import {
@@ -149,8 +145,11 @@ describe('createSourceHousingEnricher', () => {
 
     beforeAll(async () => {
       await Housing().insert(formatHousingRecordApi(housingWithNotes));
-      await Notes().insert(formatNoteApi(note));
-      await HousingNotes().insert(formatHousingNoteApi(housingNote));
+      await kysely.insertInto('notes').values(toNoteDBO(note)).execute();
+      await kysely
+        .insertInto('housingNotes')
+        .values(toHousingNoteDBO(housingNote))
+        .execute();
     });
 
     it('should populate notes when found', async () => {

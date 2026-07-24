@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import async from 'async';
 
 import db from '~/infra/database/index';
-import { getTransaction, startTransaction } from '~/infra/database/transaction';
+import { withinTransaction } from '~/infra/database/transaction';
 
 describe('Transaction', () => {
   const tables = ['t1', 't2'];
@@ -28,12 +28,7 @@ describe('Transaction', () => {
   it('should correctly insert records', async () => {
     const record = { id: faker.string.uuid() };
 
-    await startTransaction(async () => {
-      const transaction = getTransaction();
-      if (!transaction) {
-        throw new Error('Transaction should be defined');
-      }
-
+    await withinTransaction(async (transaction) => {
       await async.forEach(tables, async (name) => {
         await transaction(name).insert(record);
       });
@@ -52,12 +47,7 @@ describe('Transaction', () => {
     });
 
     try {
-      await startTransaction(async () => {
-        const transaction = getTransaction();
-        if (!transaction) {
-          throw new Error('Transaction should be defined');
-        }
-
+      await withinTransaction(async (transaction) => {
         await transaction('t1').insert({ id: faker.string.uuid() });
         await transaction('t2').insert({ id: null });
       });
@@ -75,12 +65,7 @@ describe('Transaction', () => {
     }));
 
     await async.forEach(records, async (record) => {
-      await startTransaction(async () => {
-        const transaction = getTransaction();
-        if (!transaction) {
-          throw new Error('Transaction should be defined');
-        }
-
+      await withinTransaction(async (transaction) => {
         await transaction('t1').insert(record);
       });
     });

@@ -60,6 +60,16 @@ jobs:
         env:
           CYPRESS_INSTALL_BINARY: 0
 
+      # Fail if a migration changed the schema without db.d.ts being regenerated.
+      # --skip-nx-cache forces a real migrate + introspect so a cached artifact
+      # can't mask drift.
+      - name: Check Kysely types are in sync with the schema
+        run: |
+          yarn nx codegen server --skip-nx-cache
+          git diff --exit-code server/src/infra/database/db.d.ts
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/dev
+
       # Check source and **test** files
       - name: Check types
         run: yarn nx affected -t typecheck --base ${{ github.event.pull_request.base.sha }}

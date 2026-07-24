@@ -12,24 +12,9 @@ interface TransactionStore {
 const storage: AsyncLocalStorage<TransactionStore> =
   new AsyncLocalStorage<TransactionStore>();
 
-export async function startTransaction<R>(
-  cb: () => AsyncOrSync<R>,
-  options?: Knex.TransactionConfig
-): Promise<R> {
-  const transaction = await db.transaction(options);
-  try {
-    const result = await storage.run({ transaction }, cb);
-    await transaction.commit();
-    return result;
-  } catch (error) {
-    await transaction.rollback();
-    throw error;
-  }
-}
-
 /**
  * Get the active transaction, if any.
- * {@link startTransaction} must be called before calling this function.
+ * {@link withinTransaction} must be called before calling this function.
  */
 export const getTransaction = () => storage.getStore()?.transaction;
 

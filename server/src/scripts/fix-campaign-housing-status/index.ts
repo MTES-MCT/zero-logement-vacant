@@ -11,7 +11,7 @@ import jsonlines from 'jsonlines';
 import { v4 as uuidv4 } from 'uuid';
 
 import UserMissingError from '~/errors/userMissingError';
-import { startTransaction } from '~/infra/database/transaction';
+import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import type { HousingEventApi } from '~/models/EventApi';
 import type { UserApi } from '~/models/UserApi';
@@ -59,7 +59,7 @@ function writer(options: WriterOptions) {
         housingId: housing.housing_id
       }));
 
-      await startTransaction(async () => {
+      await startKyselyTransaction(async () => {
         logger.debug('Processing...', {
           campaign: housings[0].campaign_id,
           housings: housings.length,

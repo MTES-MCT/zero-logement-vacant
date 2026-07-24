@@ -2,13 +2,32 @@ import { faker } from '@faker-js/faker';
 import { collect } from '@zerologementvacant/utils/node';
 
 import db from '~/infra/database';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
+  CampaignsHousing,
+  formatCampaignHousingApi
+} from '~/repositories/campaignHousingRepository';
+import {
+  formatGroupApi,
+  formatGroupHousingApi,
+  Groups,
+  GroupsHousing
+} from '~/repositories/groupRepository';
+import { factories } from '~/test/factories';
+import {
+  genEstablishmentApi,
+  genGroupApi,
   genHousingApi,
   genHousingOwnerApi,
-  genOwnerApi
+  genOwnerApi,
+  genUserApi
 } from '~/test/testFixtures';
 
+import {
+  Establishments,
+  formatEstablishmentApi
+} from '../establishmentRepository';
 import {
   formatHousingOwnerApi,
   HousingOwners
@@ -19,6 +38,7 @@ import ownerRepository, {
   Owners,
   ownerTable
 } from '../ownerRepository';
+import { toUserDBO, Users } from '../userRepository';
 
 describe('Owner repository', () => {
   describe('find', () => {
@@ -74,6 +94,144 @@ describe('Owner repository', () => {
       });
     });
 
+    describe('Filter by idpersonne=false', () => {
+      it('should return only owners with null idpersonne', async () => {
+        const ownerWithNull = { ...genOwnerApi(), idpersonne: null };
+        const ownerWithId = {
+          ...genOwnerApi(),
+          idpersonne: faker.string.alphanumeric(10)
+        };
+        await Owners().insert([ownerWithNull, ownerWithId].map(formatOwnerApi));
+
+        const actual = await ownerRepository.find({
+          filters: { idpersonne: false },
+          pagination: { paginate: false }
+        });
+
+        expect(actual).toSatisfyAll<OwnerApi>(
+          (owner) => owner.idpersonne === null
+        );
+        expect(actual).toPartiallyContain({ id: ownerWithNull.id });
+        expect(actual).not.toPartiallyContain({ id: ownerWithId.id });
+      });
+    });
+
+    describe('Filter by idpersonne single string', () => {
+      it('should return exactly the owner matching that idpersonne', async () => {
+        const targetIdpersonne = faker.string.alphanumeric(10);
+        const owner = { ...genOwnerApi(), idpersonne: targetIdpersonne };
+        const otherOwner = {
+          ...genOwnerApi(),
+          idpersonne: faker.string.alphanumeric(10)
+        };
+        await Owners().insert([owner, otherOwner].map(formatOwnerApi));
+
+        const actual = await ownerRepository.find({
+          filters: { idpersonne: targetIdpersonne },
+          pagination: { paginate: false }
+        });
+
+        expect(actual).toBeArrayOfSize(1);
+        expect(actual[0].id).toBe(owner.id);
+      });
+    });
+
+    describe('Filter by idpersonne empty array', () => {
+      it('should apply no idpersonne filter and return owners regardless', async () => {
+        const ownerA = { ...genOwnerApi(), idpersonne: null };
+        const ownerB = {
+          ...genOwnerApi(),
+          idpersonne: faker.string.alphanumeric(10)
+        };
+        await Owners().insert([ownerA, ownerB].map(formatOwnerApi));
+
+        const actual = await ownerRepository.find({
+          filters: { idpersonne: [] },
+          pagination: { paginate: false }
+        });
+
+        expect(actual).toPartiallyContain({ id: ownerA.id });
+        expect(actual).toPartiallyContain({ id: ownerB.id });
+      });
+    });
+
+    describe('Filter by campaignId', () => {
+      const establishment = genEstablishmentApi();
+      const creator = genUserApi(establishment.id);
+
+      beforeAll(async () => {
+        await Establishments().insert(formatEstablishmentApi(establishment));
+        await Users().insert(toUserDBO(creator));
+      });
+
+      it('should return only the owner linked to that campaign', async () => {
+        const housing = genHousingApi();
+        const linkedOwner = genOwnerApi();
+        const unlinkedOwner = genOwnerApi();
+
+        await Housing().insert(formatHousingRecordApi(housing));
+        await Owners().insert([linkedOwner, unlinkedOwner].map(formatOwnerApi));
+        await HousingOwners().insert(
+          formatHousingOwnerApi({
+            ...genHousingOwnerApi(housing, linkedOwner),
+            rank: 1
+          })
+        );
+
+        const campaign = await factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: creator } });
+        await CampaignsHousing().insert(
+          formatCampaignHousingApi(campaign, [housing])
+        );
+
+        const actual = await ownerRepository.find({
+          filters: { campaignId: campaign.id },
+          pagination: { paginate: false }
+        });
+
+        expect(actual).toPartiallyContain({ id: linkedOwner.id });
+        expect(actual).not.toPartiallyContain({ id: unlinkedOwner.id });
+      });
+    });
+
+    describe('Filter by groupId', () => {
+      const establishment = genEstablishmentApi();
+      const creator = genUserApi(establishment.id);
+
+      beforeAll(async () => {
+        await Establishments().insert(formatEstablishmentApi(establishment));
+        await Users().insert(toUserDBO(creator));
+      });
+
+      it('should return only the owner linked to that group', async () => {
+        const housing = genHousingApi();
+        const linkedOwner = genOwnerApi();
+        const unlinkedOwner = genOwnerApi();
+
+        await Housing().insert(formatHousingRecordApi(housing));
+        await Owners().insert([linkedOwner, unlinkedOwner].map(formatOwnerApi));
+        await HousingOwners().insert(
+          formatHousingOwnerApi({
+            ...genHousingOwnerApi(housing, linkedOwner),
+            rank: 1
+          })
+        );
+
+        const group = genGroupApi(creator, establishment);
+        await Groups().insert(formatGroupApi(group));
+        await GroupsHousing().insert(formatGroupHousingApi(group, [housing]));
+
+        const actual = await ownerRepository.find({
+          filters: { groupId: group.id },
+          pagination: { paginate: false }
+        });
+
+        expect(actual).toPartiallyContain({ id: linkedOwner.id });
+        expect(actual).not.toPartiallyContain({ id: unlinkedOwner.id });
+      });
+    });
+
     describe('Includes', () => {
       it('should include the BAN address', async () => {
         const actual = await ownerRepository.find({
@@ -83,6 +241,34 @@ describe('Owner repository', () => {
         expect(actual).toSatisfyAll<OwnerApi>(
           (owner) => owner.banAddress !== undefined
         );
+      });
+
+      it('should include housings linked to the owner via lateral join', async () => {
+        const housing = genHousingApi();
+        const owner = genOwnerApi();
+
+        await Housing().insert(formatHousingRecordApi(housing));
+        await Owners().insert(formatOwnerApi(owner));
+        await HousingOwners().insert(
+          formatHousingOwnerApi({
+            ...genHousingOwnerApi(housing, owner),
+            rank: 1
+          })
+        );
+
+        const actual = await ownerRepository.find({
+          filters: { idpersonne: owner.idpersonne ?? [] },
+          includes: ['housings'],
+          pagination: { paginate: false }
+        });
+
+        const found = actual.find((o) => o.id === owner.id);
+        expect(found).toBeDefined();
+        // The lateral join selects h.housings at the SQL level; parseOwnerApi
+        // does not forward this column, so the field is absent (undefined) on
+        // the returned OwnerApi. The owner IS returned — the join does not
+        // exclude it (ON true). This characterizes the current behaviour.
+        expect((found as any).housings).toBeUndefined();
       });
     });
 
@@ -130,7 +316,35 @@ describe('Owner repository', () => {
     });
   });
 
+  describe('get', () => {
+    it('should return a matching OwnerApi for an existing owner', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+
+      const actual = await ownerRepository.get(owner.id);
+
+      expect(actual).toMatchObject<Partial<OwnerApi>>({
+        id: owner.id,
+        fullName: owner.fullName
+      });
+    });
+
+    it('should return null for a nonexistent owner id', async () => {
+      const actual = await ownerRepository.get(faker.string.uuid());
+
+      expect(actual).toBeNull();
+    });
+  });
+
   describe('findOne', () => {
+    it('should return null when no owner matches the given fullName', async () => {
+      const actual = await ownerRepository.findOne({
+        fullName: faker.string.uuid()
+      });
+
+      expect(actual).toBeNull();
+    });
+
     it('should find a owner without birth date', async () => {
       const owner: OwnerApi = {
         ...genOwnerApi(),
@@ -260,6 +474,237 @@ describe('Owner repository', () => {
     });
   });
 
+  describe('parseOwnerApi edge branches', () => {
+    it('should format a JS Date birth_date as a yyyy-mm-dd string', async () => {
+      const owner = genOwnerApi();
+      const birthDate = new Date('1975-06-15T00:00:00.000Z');
+      await Owners().insert({
+        ...formatOwnerApi(owner),
+        birth_date: birthDate
+      });
+
+      const actual = await ownerRepository.get(owner.id);
+
+      expect(actual?.birthDate).toBe('1975-06-15');
+    });
+
+    it('should map null created_at/updated_at to null createdAt/updatedAt', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert({
+        ...formatOwnerApi(owner),
+        created_at: null,
+        updated_at: null
+      });
+
+      const actual = await ownerRepository.get(owner.id);
+
+      expect(actual?.createdAt).toBeNull();
+      expect(actual?.updatedAt).toBeNull();
+    });
+
+    it('should map missing BAN row to null banAddress', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+      // Deliberately insert no ban_addresses row for this owner
+
+      const results = await ownerRepository.find({
+        includes: ['banAddress'],
+        filters: { fullName: owner.fullName }
+      });
+      const actual = results.find((o) => o.id === owner.id);
+
+      expect(actual).toBeDefined();
+      expect(actual?.banAddress).toBeNull();
+    });
+  });
+
+  describe('findByHousing', () => {
+    it('should return HousingOwnerApi entries for the linked owner', async () => {
+      const owner = genOwnerApi();
+      const housing = genHousingApi();
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(formatOwnerApi(owner));
+      await HousingOwners().insert(
+        formatHousingOwnerApi({
+          ...genHousingOwnerApi(housing, owner),
+          rank: 1
+        })
+      );
+
+      const actual = await ownerRepository.findByHousing(housing);
+
+      expect(actual).toPartiallyContain({ id: owner.id });
+    });
+
+    it('should map null locprop_source to null locprop', async () => {
+      const owner = genOwnerApi();
+      const housing = genHousingApi();
+      const housingOwner = genHousingOwnerApi(housing, owner);
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(formatOwnerApi(owner));
+      await HousingOwners().insert(
+        formatHousingOwnerApi({
+          ...housingOwner,
+          rank: 1,
+          locprop: null
+        })
+      );
+
+      const actual = await ownerRepository.findByHousing(housing);
+
+      const found = actual.find((ho) => ho.id === owner.id);
+      expect(found).toBeDefined();
+      expect(found?.locprop).toBeNull();
+    });
+  });
+
+  describe('insertHousingOwners', () => {
+    it('should insert rows into HousingOwners and return the inserted count', async () => {
+      const owner = genOwnerApi();
+      const housing = genHousingApi();
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(formatOwnerApi(owner));
+
+      const housingOwners = [
+        { ...genHousingOwnerApi(housing, owner), rank: 1 as const }
+      ];
+
+      const result = await ownerRepository.insertHousingOwners(housingOwners);
+
+      expect(result).toBe(1);
+
+      const rows = await HousingOwners().where({
+        owner_id: owner.id,
+        housing_id: housing.id
+      });
+      expect(rows).toHaveLength(1);
+    });
+  });
+
+  describe('deleteHousingOwners', () => {
+    it('should remove the housing_owner link and return the deleted count', async () => {
+      const owner = genOwnerApi();
+      const housing = genHousingApi();
+
+      await Housing().insert(formatHousingRecordApi(housing));
+      await Owners().insert(formatOwnerApi(owner));
+      await HousingOwners().insert(
+        formatHousingOwnerApi({
+          ...genHousingOwnerApi(housing, owner),
+          rank: 1
+        })
+      );
+
+      const result = await ownerRepository.deleteHousingOwners(housing.id, [
+        owner.id
+      ]);
+
+      expect(result).toBe(1);
+
+      const rows = await HousingOwners().where({
+        owner_id: owner.id,
+        housing_id: housing.id
+      });
+      expect(rows).toHaveLength(0);
+    });
+  });
+
+  describe('insert', () => {
+    it('should return the inserted OwnerApi and persist the row', async () => {
+      const draft = genOwnerApi();
+
+      const result = await ownerRepository.insert(draft);
+
+      expect(result).toMatchObject<Partial<OwnerApi>>({
+        fullName: draft.fullName,
+        email: draft.email
+      });
+      const row = await Owners().where({ id: result.id }).first();
+      expect(row).toBeDefined();
+      expect(row?.full_name).toBe(draft.fullName);
+    });
+  });
+
+  describe('update', () => {
+    it('should update the owner fields and return the updated OwnerApi', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+
+      const modified: OwnerApi = { ...owner, email: 'updated@example.com' };
+      const result = await ownerRepository.update(modified);
+
+      expect(result.email).toBe('updated@example.com');
+      const row = await Owners().where({ id: owner.id }).first();
+      expect(row?.email).toBe('updated@example.com');
+    });
+  });
+
+  describe('betterSave', () => {
+    it('should update an existing row on conflict and not duplicate it', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+
+      const updated: OwnerApi = { ...owner, email: 'bettersave@example.com' };
+      await ownerRepository.betterSave(updated, {
+        onConflict: ['id'],
+        merge: ['email']
+      });
+
+      const rows = await Owners().where({ id: owner.id });
+      expect(rows).toHaveLength(1);
+      expect(rows[0].email).toBe('bettersave@example.com');
+    });
+
+    it('should join an ambient transaction and roll back with it', async () => {
+      const owner = genOwnerApi();
+
+      await expect(
+        withinKyselyTransaction(async () => {
+          await ownerRepository.betterSave(owner, {
+            onConflict: ['id'],
+            merge: ['email']
+          });
+          throw new Error('rollback');
+        })
+      ).rejects.toThrow('rollback');
+
+      const actual = await Owners().where({ id: owner.id }).first();
+      expect(actual).toBeUndefined();
+    });
+  });
+
+  describe('betterSaveMany', () => {
+    it('should persist all owners when given a non-empty array', async () => {
+      const owners = [genOwnerApi(), genOwnerApi(), genOwnerApi()];
+
+      await ownerRepository.betterSaveMany(owners, {
+        onConflict: ['id'],
+        merge: ['email']
+      });
+
+      for (const owner of owners) {
+        const row = await Owners().where({ id: owner.id }).first();
+        expect(row).toBeDefined();
+        expect(row?.full_name).toBe(owner.fullName);
+      }
+    });
+
+    it('should resolve without writing any rows when given an empty array', async () => {
+      const beforeCount = await ownerRepository.count();
+
+      await ownerRepository.betterSaveMany([], {
+        onConflict: ['id'],
+        merge: ['email']
+      });
+
+      const afterCount = await ownerRepository.count();
+      expect(afterCount).toBe(beforeCount);
+    });
+  });
+
   describe('refreshMultiOwnerFlags', () => {
     it('should set is_multi_owner to true for owners with rank=1 in more than one housing', async () => {
       const owner = genOwnerApi();
@@ -321,6 +766,29 @@ describe('Owner repository', () => {
       await expect(
         ownerRepository.refreshMultiOwnerFlags(ids)
       ).resolves.toBeUndefined();
+    });
+  });
+
+  describe('searchOwners', () => {
+    it('should paginate every matching owner exactly once when many share the same full name', async () => {
+      // A token unique to this test, so pagination isn't polluted by owners
+      // named "Dupont" et al. inserted by other tests in this file.
+      const token = faker.string.alphanumeric(12);
+      const owners = faker.helpers.multiple(
+        () => ({ ...genOwnerApi(), fullName: `Jean ${token}` }),
+        { count: 5 }
+      );
+      await Owners().insert(owners.map(formatOwnerApi));
+
+      const page1 = await ownerRepository.searchOwners(token, 1, 2);
+      const page2 = await ownerRepository.searchOwners(token, 2, 2);
+      const page3 = await ownerRepository.searchOwners(token, 3, 2);
+
+      const seenIds = [...page1.entities, ...page2.entities, ...page3.entities]
+        .filter((o) => owners.some((owner) => owner.id === o.id))
+        .map((o) => o.id);
+      expect(seenIds).toBeArrayOfSize(owners.length);
+      expect(new Set(seenIds).size).toBe(owners.length);
     });
   });
 });

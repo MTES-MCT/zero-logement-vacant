@@ -1,18 +1,25 @@
+import { Array } from 'effect';
 import { Knex } from 'knex';
+import type { Insertable, Selectable } from 'kysely';
+import { sql } from 'kysely';
+import pMap from 'p-map';
 
 import db from '~/infra/database';
-import {
-  getTransaction,
-  withinTransaction
-} from '~/infra/database/transaction';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 
-import { fromUserDBO, UserDBO, USERS_TABLE } from './userRepository';
+import { fromUserDBO, UserDBO } from './userRepository';
 
 export const GROUPS_TABLE = 'groups';
 export const GROUPS_HOUSING_TABLE = 'groups_housing';
+
+// Matches Knex's batchInsert default chunk size, which the Kysely insert
+// below must replicate manually to stay under Postgres's 65535 bind-parameter limit.
+const INSERT_BATCH_SIZE = 1000;
 
 export const Groups = (transaction: Knex<GroupDBO> = db) =>
   transaction(GROUPS_TABLE);
@@ -32,13 +39,12 @@ interface FindOptions {
 
 const find = async (opts?: FindOptions): Promise<GroupApi[]> => {
   logger.debug('Finding groups...', opts);
-  const groups: GroupDBO[] = await Groups()
-    .modify(listQuery)
-    .modify(filterQuery(opts?.filters))
-    .orderBy('created_at', 'desc');
+  const rows = await applyGroupFilters(groupListQuery(), opts?.filters)
+    .orderBy('groups.createdAt', 'desc')
+    .execute();
 
-  logger.debug('Found groups', groups.length);
-  return groups.map(parseGroupApi);
+  logger.debug('Found groups', rows.length);
+  return rows.map(parseGroupRow);
 };
 
 interface FindOneOptions {
@@ -49,31 +55,14 @@ interface FindOneOptions {
 
 const findOne = async (opts: FindOneOptions): Promise<GroupApi | null> => {
   logger.debug('Finding group...', opts);
-  const group: GroupDBO | undefined = await Groups()
-    .modify(listQuery)
-    .modify(
-      filterQuery({
-        establishmentId: opts.establishmentId,
-        geoCodes: opts.geoCodes
-      })
-    )
-    .where(`${GROUPS_TABLE}.id`, opts.id)
-    .first();
-  if (!group) {
-    return null;
-  }
+  const row = await applyGroupFilters(groupListQuery(), {
+    establishmentId: opts.establishmentId,
+    geoCodes: opts.geoCodes
+  })
+    .where('groups.id', '=', opts.id)
+    .executeTakeFirst();
 
-  logger.debug('Found group', group);
-  return group ? parseGroupApi(group) : null;
-};
-
-// After — housing_count and owner_count are now plain columns on groups,
-// selected automatically via groups.*
-const listQuery = (query: Knex.QueryBuilder): void => {
-  query
-    .select(`${GROUPS_TABLE}.*`)
-    .join<UserDBO>(USERS_TABLE, `${USERS_TABLE}.id`, `${GROUPS_TABLE}.user_id`)
-    .select(db.raw(`to_json(${USERS_TABLE}.*) AS user`));
+  return row ? parseGroupRow(row) : null;
 };
 
 interface FilterOptions {
@@ -85,34 +74,51 @@ interface FilterOptions {
   geoCodes?: string[];
 }
 
-const filterQuery = (opts?: FilterOptions) => {
-  return function (query: Knex.QueryBuilder): void {
-    if (opts?.establishmentId) {
-      query.where(`${GROUPS_TABLE}.establishment_id`, opts.establishmentId);
+// housing_count and owner_count are plain columns on groups, selected via
+// selectAll('groups'). The creator is embedded as `to_json(users.*)` (snake_case
+// UserDBO), consumed by parseGroupRow.
+function groupListQuery() {
+  return kysely
+    .selectFrom('groups')
+    .innerJoin('users', 'users.id', 'groups.userId')
+    .selectAll('groups')
+    .select(sql<UserDBO>`to_json(users.*)`.as('user'));
+}
+
+function applyGroupFilters(
+  query: ReturnType<typeof groupListQuery>,
+  filters?: FilterOptions
+): ReturnType<typeof groupListQuery> {
+  let result = query;
+  if (filters?.establishmentId) {
+    result = result.where(
+      'groups.establishmentId',
+      '=',
+      filters.establishmentId
+    );
+  }
+  // Filter groups to only those where ALL housings are within the user's
+  // perimeter. Empty geoCodes means no access → return no groups.
+  if (filters?.geoCodes !== undefined) {
+    if (filters.geoCodes.length === 0) {
+      result = result.where(sql<boolean>`1 = 0`);
+    } else {
+      const geoCodes = filters.geoCodes;
+      result = result.where((eb) =>
+        eb.not(
+          eb.exists(
+            eb
+              .selectFrom('groupsHousing')
+              .select(sql`1`.as('one'))
+              .whereRef('groupsHousing.groupId', '=', 'groups.id')
+              .where('groupsHousing.housingGeoCode', 'not in', geoCodes)
+          )
+        )
+      );
     }
-    // Filter groups to only those where ALL housings are within the user's perimeter
-    // Note: geoCodes is an array when a restriction applies
-    //   - non-empty array: filter to groups with housings in these geoCodes
-    //   - empty array: user should see NO groups (intersection with perimeter is empty)
-    if (opts?.geoCodes !== undefined) {
-      if (opts.geoCodes.length === 0) {
-        // Empty geoCodes means no access - return no groups
-        query.whereRaw('1 = 0');
-      } else {
-        const geoCodes = opts.geoCodes;
-        query.whereNotExists(function () {
-          this.select(db.raw('1'))
-            .from(GROUPS_HOUSING_TABLE)
-            .whereRaw(`${GROUPS_HOUSING_TABLE}.group_id = ${GROUPS_TABLE}.id`)
-            .whereRaw(
-              `${GROUPS_HOUSING_TABLE}.housing_geo_code NOT IN (${geoCodes.map(() => '?').join(', ')})`,
-              geoCodes
-            );
-        });
-      }
-    }
-  };
-};
+  }
+  return result;
+}
 
 async function save(group: GroupApi, housings?: HousingApi[]): Promise<void> {
   logger.debug('Saving group...', {
@@ -120,23 +126,35 @@ async function save(group: GroupApi, housings?: HousingApi[]): Promise<void> {
     housing: housings?.length
   });
 
-  const doSave = async (
-    transaction: Knex.Transaction,
-    group: GroupApi,
-    housings?: HousingApi[]
-  ): Promise<void> => {
-    await Groups(transaction)
-      .insert(formatGroupApi(group))
-      .onConflict(['id'])
-      .merge(['title', 'description', 'exported_at']);
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('groups')
+      .values(toGroupDBO(group))
+      .onConflict((oc) =>
+        oc.column('id').doUpdateSet((eb) => ({
+          title: eb.ref('excluded.title'),
+          description: eb.ref('excluded.description'),
+          exportedAt: eb.ref('excluded.exportedAt')
+        }))
+      )
+      .execute();
 
     if (housings) {
       // Replace existing housings from the group
-      await GroupsHousing(transaction).where({ group_id: group.id }).delete();
+      await trx
+        .deleteFrom('groupsHousing')
+        .where('groupId', '=', group.id)
+        .execute();
       if (housings.length > 0) {
-        await transaction.batchInsert(
-          GROUPS_HOUSING_TABLE,
-          formatGroupHousingApi(group, housings)
+        await pMap(
+          Array.chunksOf(housings, INSERT_BATCH_SIZE),
+          async (batch) => {
+            await trx
+              .insertInto('groupsHousing')
+              .values(toGroupHousingDBOs(group, batch))
+              .execute();
+          },
+          { concurrency: 1 }
         );
       }
     }
@@ -144,16 +162,7 @@ async function save(group: GroupApi, housings?: HousingApi[]): Promise<void> {
       group: group.id,
       housings: housings?.length ?? 0
     });
-  };
-
-  const transaction = getTransaction();
-  if (!transaction) {
-    await db.transaction(async (transaction) => {
-      await doSave(transaction, group, housings);
-    });
-  } else {
-    await doSave(transaction, group, housings);
-  }
+  });
 }
 
 const addHousing = async (
@@ -172,7 +181,12 @@ const addHousing = async (
     housing: housingList.length
   });
 
-  await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('groupsHousing')
+      .values(toGroupHousingDBOs(group, housingList))
+      .execute();
+  });
   logger.info(`Added housing to a group.`, {
     group,
     housing: housingList.length
@@ -188,14 +202,22 @@ const removeHousing = async (
     housing: housingList.length
   });
 
-  await withinTransaction(async (transaction) => {
-    await GroupsHousing(transaction)
-      .where('group_id', group.id)
-      .whereIn(
-        ['housing_geo_code', 'housing_id'],
-        housingList.map((housing) => [housing.geoCode, housing.id])
+  if (housingList.length === 0) {
+    return;
+  }
+
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .deleteFrom('groupsHousing')
+      .where('groupId', '=', group.id)
+      .where((eb) =>
+        eb(
+          eb.refTuple('housingGeoCode', 'housingId'),
+          'in',
+          housingList.map((housing) => eb.tuple(housing.geoCode, housing.id))
+        )
       )
-      .delete();
+      .execute();
   });
 };
 
@@ -206,21 +228,47 @@ const archive = async (group: GroupApi): Promise<GroupApi> => {
     ...group,
     archivedAt: new Date()
   };
-  await withinTransaction(async (transaction) => {
-    await Groups(transaction).where({ id: group.id }).update({
-      archived_at: archived.archivedAt
-    });
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .updateTable('groups')
+      .set({ archivedAt: archived.archivedAt })
+      .where('id', '=', group.id)
+      .execute();
   });
   return archived;
 };
 
 const remove = async (group: GroupApi): Promise<void> => {
   logger.debug('Removing group...', group);
-  await withinTransaction(async (transaction) => {
-    await Groups(transaction).where({ id: group.id }).delete();
+  await withinKyselyTransaction(async (trx) => {
+    await trx.deleteFrom('groups').where('id', '=', group.id).execute();
   });
   logger.debug('Removed group', group.id);
 };
+
+function toGroupDBO(group: GroupApi): Insertable<DB['groups']> {
+  return {
+    id: group.id,
+    title: group.title,
+    description: group.description,
+    createdAt: group.createdAt,
+    exportedAt: group.exportedAt,
+    userId: group.userId,
+    establishmentId: group.establishmentId,
+    archivedAt: group.archivedAt
+  };
+}
+
+function toGroupHousingDBOs(
+  group: GroupApi,
+  housingList: HousingApi[]
+): Insertable<DB['groupsHousing']>[] {
+  return housingList.map((housing) => ({
+    groupId: group.id,
+    housingId: housing.id,
+    housingGeoCode: housing.geoCode
+  }));
+}
 
 export interface GroupRecordDBO {
   id: string;
@@ -251,6 +299,24 @@ export const formatGroupApi = (
   establishment_id: group.establishmentId,
   archived_at: group.archivedAt
 });
+
+type GroupRow = Selectable<DB['groups']> & { user: UserDBO | null };
+
+function parseGroupRow(row: GroupRow): GroupApi {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    housingCount: row.housingCount,
+    ownerCount: row.ownerCount,
+    createdAt: row.createdAt,
+    exportedAt: row.exportedAt,
+    userId: row.userId,
+    createdBy: row.user ? fromUserDBO(row.user) : undefined,
+    establishmentId: row.establishmentId,
+    archivedAt: row.archivedAt
+  };
+}
 
 export const parseGroupApi = (group: GroupDBO): GroupApi => {
   return {

@@ -23,7 +23,7 @@ import FilesMissingError from '~/errors/filesMissingError';
 import { FileValidationError } from '~/errors/fileValidationError';
 import HousingMissingError from '~/errors/housingMissingError';
 import config from '~/infra/config';
-import { startTransaction } from '~/infra/database/transaction';
+import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import {
   DocumentFilenameEquivalence,
@@ -235,7 +235,7 @@ const update: RequestHandler<
       }
     : null;
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       documentRepository.update(updated),
       updateEvent
@@ -309,7 +309,7 @@ const remove: RequestHandler<
     Key: document.s3Key
   });
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       eventRepository.insertManyHousingDocumentEvents(removeEvents),
       eventRepository.insertManyDocumentEvents([documentRemoveEvent]),
@@ -386,7 +386,7 @@ const linkToHousing: RequestHandler<
     housingId: housing.id
   }));
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       housingDocumentRepository.linkMany(links),
       eventRepository.insertManyHousingDocumentEvents(attachEvents)
@@ -503,7 +503,7 @@ const removeByHousing: RequestHandler<
     housingId: housing.id
   };
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       eventRepository.insertManyHousingDocumentEvents([detachEvent]),
       // Remove association only (keep document)

@@ -5,6 +5,7 @@ import { fc, test } from '@fast-check/vitest';
 import { NoteDTO, NotePayloadDTO, UserRole } from '@zerologementvacant/models';
 import request from 'supertest';
 
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { UserApi } from '~/models/UserApi';
@@ -17,11 +18,11 @@ import {
   Housing
 } from '~/repositories/housingRepository';
 import {
-  formatHousingNoteApi,
-  formatNoteApi,
   HousingNotes,
   NoteRecordDBO,
-  Notes
+  Notes,
+  toHousingNoteDBO,
+  toNoteDBO
 } from '~/repositories/noteRepository';
 import { toUserDBO, Users } from '~/repositories/userRepository';
 import {
@@ -79,8 +80,11 @@ describe('Note API', () => {
       const notes = Array.from({ length: 3 }, () =>
         genHousingNoteApi(user, housing)
       );
-      await Notes().insert(notes.map(formatNoteApi));
-      await HousingNotes().insert(notes.map(formatHousingNoteApi));
+      await kysely.insertInto('notes').values(notes.map(toNoteDBO)).execute();
+      await kysely
+        .insertInto('housingNotes')
+        .values(notes.map(toHousingNoteDBO))
+        .execute();
 
       const { body, status } = await request(url)
         .get(testRoute(housing.id))
@@ -175,7 +179,7 @@ describe('Note API', () => {
     const note = genHousingNoteApi(user, housing);
 
     beforeAll(async () => {
-      await Notes().insert(formatNoteApi(note));
+      await kysely.insertInto('notes').values(toNoteDBO(note)).execute();
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -270,8 +274,11 @@ describe('Note API', () => {
 
     beforeEach(async () => {
       note = genHousingNoteApi(user, housing);
-      await Notes().insert(formatNoteApi(note));
-      await HousingNotes().insert(formatHousingNoteApi(note));
+      await kysely.insertInto('notes').values(toNoteDBO(note)).execute();
+      await kysely
+        .insertInto('housingNotes')
+        .values(toHousingNoteDBO(note))
+        .execute();
     });
 
     it('should be forbidden for a non-authenticated user', async () => {

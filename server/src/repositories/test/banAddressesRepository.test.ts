@@ -97,4 +97,73 @@ describe('BAN addresses repository', () => {
       expect(actual.length).toBeGreaterThanOrEqual(addresses.length);
     }, 10_000);
   });
+
+  describe('getByRefId', () => {
+    it('should return the address matching refId and addressKind', async () => {
+      const refId = faker.string.uuid();
+      const address = genAddressApi(refId, AddressKinds.Housing);
+      await Addresses().insert(formatAddressApi(address));
+
+      const actual = await banAddressesRepository.getByRefId(
+        refId,
+        AddressKinds.Housing
+      );
+
+      expect(actual).toMatchObject<Partial<AddressApi>>({
+        refId,
+        addressKind: AddressKinds.Housing,
+        label: address.label
+      });
+    });
+
+    it('should return null if no address matches', async () => {
+      const actual = await banAddressesRepository.getByRefId(
+        faker.string.uuid(),
+        AddressKinds.Housing
+      );
+
+      expect(actual).toBeNull();
+    });
+
+    it('should not return an address of a different addressKind', async () => {
+      const refId = faker.string.uuid();
+      const address = genAddressApi(refId, AddressKinds.Housing);
+      await Addresses().insert(formatAddressApi(address));
+
+      const actual = await banAddressesRepository.getByRefId(
+        refId,
+        AddressKinds.Owner
+      );
+
+      expect(actual).toBeNull();
+    });
+  });
+
+  describe('remove', () => {
+    it('should remove the address matching refId and addressKind', async () => {
+      const refId = faker.string.uuid();
+      const address = genAddressApi(refId, AddressKinds.Housing);
+      await Addresses().insert(formatAddressApi(address));
+
+      await banAddressesRepository.remove(refId, AddressKinds.Housing);
+
+      const row = await Addresses()
+        .where({ ref_id: refId, address_kind: AddressKinds.Housing })
+        .first();
+      expect(row).toBeUndefined();
+    });
+
+    it('should not remove an address of a different addressKind', async () => {
+      const refId = faker.string.uuid();
+      const address = genAddressApi(refId, AddressKinds.Housing);
+      await Addresses().insert(formatAddressApi(address));
+
+      await banAddressesRepository.remove(refId, AddressKinds.Owner);
+
+      const row = await Addresses()
+        .where({ ref_id: refId, address_kind: AddressKinds.Housing })
+        .first();
+      expect(row).toBeDefined();
+    });
+  });
 });

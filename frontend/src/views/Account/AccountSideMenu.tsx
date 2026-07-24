@@ -70,7 +70,13 @@ function AccountSideMenu() {
   ];
 
   return (
-    <SideMenu burgerMenuButtonText="Menu" items={menuItems} fullHeight sticky />
+    <SideMenu
+      title="Menu du profil"
+      burgerMenuButtonText="Menu"
+      items={menuItems}
+      fullHeight
+      sticky
+    />
   );
 }
 

@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { collect } from '@zerologementvacant/utils/node';
 
 import db from '~/infra/database';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { OwnerApi } from '~/models/OwnerApi';
 import {
   CampaignsHousing,
@@ -656,6 +657,23 @@ describe('Owner repository', () => {
       expect(rows).toHaveLength(1);
       expect(rows[0].email).toBe('bettersave@example.com');
     });
+
+    it('should join an ambient transaction and roll back with it', async () => {
+      const owner = genOwnerApi();
+
+      await expect(
+        withinKyselyTransaction(async () => {
+          await ownerRepository.betterSave(owner, {
+            onConflict: ['id'],
+            merge: ['email']
+          });
+          throw new Error('rollback');
+        })
+      ).rejects.toThrow('rollback');
+
+      const actual = await Owners().where({ id: owner.id }).first();
+      expect(actual).toBeUndefined();
+    });
   });
 
   describe('betterSaveMany', () => {
@@ -748,6 +766,29 @@ describe('Owner repository', () => {
       await expect(
         ownerRepository.refreshMultiOwnerFlags(ids)
       ).resolves.toBeUndefined();
+    });
+  });
+
+  describe('searchOwners', () => {
+    it('should paginate every matching owner exactly once when many share the same full name', async () => {
+      // A token unique to this test, so pagination isn't polluted by owners
+      // named "Dupont" et al. inserted by other tests in this file.
+      const token = faker.string.alphanumeric(12);
+      const owners = faker.helpers.multiple(
+        () => ({ ...genOwnerApi(), fullName: `Jean ${token}` }),
+        { count: 5 }
+      );
+      await Owners().insert(owners.map(formatOwnerApi));
+
+      const page1 = await ownerRepository.searchOwners(token, 1, 2);
+      const page2 = await ownerRepository.searchOwners(token, 2, 2);
+      const page3 = await ownerRepository.searchOwners(token, 3, 2);
+
+      const seenIds = [...page1.entities, ...page2.entities, ...page3.entities]
+        .filter((o) => owners.some((owner) => owner.id === o.id))
+        .map((o) => o.id);
+      expect(seenIds).toBeArrayOfSize(owners.length);
+      expect(new Set(seenIds).size).toBe(owners.length);
     });
   });
 });

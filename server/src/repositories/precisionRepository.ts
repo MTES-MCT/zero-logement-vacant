@@ -105,13 +105,16 @@ async function linkMany(
   });
 
   await withinKyselyTransaction(async (trx) => {
-    for (const { housing } of links) {
-      await trx
-        .deleteFrom('housingPrecisions')
-        .where('housingGeoCode', '=', housing.geoCode)
-        .where('housingId', '=', housing.id)
-        .execute();
-    }
+    await trx
+      .deleteFrom('housingPrecisions')
+      .where((eb) =>
+        eb(
+          eb.refTuple('housingGeoCode', 'housingId'),
+          'in',
+          links.map(({ housing }) => eb.tuple(housing.geoCode, housing.id))
+        )
+      )
+      .execute();
 
     const rows: Insertable<DB['housingPrecisions']>[] = links.flatMap(
       ({ housing, precisions }) =>

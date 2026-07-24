@@ -1553,6 +1553,17 @@ describe('Housing repository', () => {
             .then((buildings) => buildings.map(parseBuildingApi));
           expect(buildings).toSatisfyAll<BuildingApi>(predicate);
         });
+
+        it('should not crash when combined with the buildings include (both join buildings)', async () => {
+          const actual = await housingRepository.find({
+            filters: {
+              housingCounts: ['5to19']
+            },
+            includes: ['buildings']
+          });
+
+          expect(actual.length).toBeGreaterThan(0);
+        });
       });
 
       describe('by vacancy rate by building', () => {

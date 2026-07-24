@@ -199,7 +199,10 @@ async function insertManyPrecisionHousingEvents(
     await pMap(
       Array.chunksOf(events, INSERT_BATCH_SIZE),
       async (batch) => {
-        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('events')
+          .values(batch.map(toEventInsert))
+          .execute();
         await trx
           .insertInto('precisionHousingEvents')
           .values(batch.map(toPrecisionHousingEventInsert))
@@ -223,7 +226,10 @@ async function insertManyOwnerEvents(
     await pMap(
       Array.chunksOf(events, INSERT_BATCH_SIZE),
       async (batch) => {
-        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('events')
+          .values(batch.map(toEventInsert))
+          .execute();
         await trx
           .insertInto('ownerEvents')
           .values(batch.map(toOwnerEventInsert))
@@ -248,7 +254,10 @@ async function insertManyCampaignHousingEvents(
     await pMap(
       Array.chunksOf(events, INSERT_BATCH_SIZE),
       async (batch) => {
-        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('events')
+          .values(batch.map(toEventInsert))
+          .execute();
         await trx
           .insertInto('campaignHousingEvents')
           .values(batch.map(toCampaignHousingEventInsert))
@@ -293,7 +302,10 @@ async function insertManyCampaignEvents(
     await pMap(
       Array.chunksOf(events, INSERT_BATCH_SIZE),
       async (batch) => {
-        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('events')
+          .values(batch.map(toEventInsert))
+          .execute();
         await trx
           .insertInto('campaignEvents')
           .values(batch.map(toCampaignEventInsert))
@@ -318,7 +330,10 @@ async function insertManyGroupHousingEvents(
     await pMap(
       Array.chunksOf(events, INSERT_BATCH_SIZE),
       async (batch) => {
-        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('events')
+          .values(batch.map(toEventInsert))
+          .execute();
         await trx
           .insertInto('groupHousingEvents')
           .values(batch.map(toGroupHousingEventDBO))
@@ -327,19 +342,6 @@ async function insertManyGroupHousingEvents(
       { concurrency: 1 }
     );
   });
-}
-
-function toEventDBO<Type extends EventType>(
-  event: EventApi<Type>
-): Insertable<DB['events']> {
-  return {
-    id: event.id,
-    type: event.type,
-    nextOld: event.nextOld as Insertable<DB['events']>['nextOld'],
-    nextNew: event.nextNew as Insertable<DB['events']>['nextNew'],
-    createdAt: new Date(event.createdAt),
-    createdBy: event.createdBy
-  };
 }
 
 function toGroupHousingEventDBO(
@@ -375,7 +377,10 @@ async function insertManyDocumentEvents(
     await pMap(
       Array.chunksOf(events, INSERT_BATCH_SIZE),
       async (batch) => {
-        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('events')
+          .values(batch.map(toEventInsert))
+          .execute();
         await trx
           .insertInto('documentEvents')
           .values(batch.map(toDocumentEventInsert))
@@ -411,7 +416,10 @@ async function insertManyHousingDocumentEvents(
     await pMap(
       Array.chunksOf(events, INSERT_BATCH_SIZE),
       async (batch) => {
-        await trx.insertInto('events').values(batch.map(toEventDBO)).execute();
+        await trx
+          .insertInto('events')
+          .values(batch.map(toEventInsert))
+          .execute();
         await trx
           .insertInto('housingDocumentEvents')
           .values(batch.map(toHousingDocumentEventInsert))

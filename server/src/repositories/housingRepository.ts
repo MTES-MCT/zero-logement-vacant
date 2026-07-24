@@ -710,7 +710,8 @@ function kyselyHousingListQuery(opts: ListQueryOptions): any {
   query = applyHousingIncludes(query, opts.includes ?? [], opts.filters);
   query = applyHousingFilters(
     query,
-    Struct.omit(opts.filters, 'establishmentIds')
+    Struct.omit(opts.filters, 'establishmentIds'),
+    opts.includes ?? []
   );
   return query;
 }
@@ -849,7 +850,8 @@ type HousingRow = Selectable<DB['fastHousing']> & {
 
 function applyHousingFilters(
   query: any,
-  filters: Omit<HousingFiltersApi, 'establishmentIds'>
+  filters: Omit<HousingFiltersApi, 'establishmentIds'>,
+  includes: HousingInclude[] = []
 ): any {
   let q = query;
 
@@ -1312,8 +1314,16 @@ function applyHousingFilters(
     });
   }
 
-  // housingCounts / vacancyRates — require join on buildings
-  if (filters.housingCounts?.length || filters.vacancyRates?.length) {
+  // housingCounts / vacancyRates — require join on buildings. Skip if the
+  // 'buildings' include already left-joined it (an inner join here would
+  // collide with it — Postgres rejects joining the same table twice under
+  // the same alias). A left join filters identically here: every arm below
+  // either coalesces NULL to 0 or leaves it to fail the comparison, which
+  // NULL naturally does — the same rows an inner join would exclude.
+  if (
+    (filters.housingCounts?.length || filters.vacancyRates?.length) &&
+    !includes.includes('buildings')
+  ) {
     q = q.innerJoin('buildings', 'fast_housing.building_id', 'buildings.id');
   }
 

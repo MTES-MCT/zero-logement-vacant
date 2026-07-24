@@ -73,11 +73,13 @@ async function insert(housingOwner: HousingOwnerApi): Promise<void> {
     housingOwner
   });
 
-  await kysely
-    .insertInto('ownersHousing')
-    .values(toHousingOwnerInsert(housingOwner))
-    .onConflict((oc) => oc.doNothing())
-    .execute();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('ownersHousing')
+      .values(toHousingOwnerInsert(housingOwner))
+      .onConflict((oc) => oc.doNothing())
+      .execute();
+  });
   logger.debug('Saved housing owner.');
 }
 

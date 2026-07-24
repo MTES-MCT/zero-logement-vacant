@@ -196,5 +196,32 @@ describe('Precision repository', () => {
       );
       expect(actual).toHaveLength(0);
     });
+
+    it('should not touch precision links of a housing absent from the batch', async () => {
+      const untouched = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(untouched));
+      const referential = await Precisions();
+      const [precisionA, precisionB] = faker.helpers.arrayElements(
+        referential,
+        2
+      );
+      await HousingPrecisions().insert({
+        housing_geo_code: untouched.geoCode,
+        housing_id: untouched.id,
+        precision_id: precisionA.id,
+        created_at: new Date()
+      });
+
+      await precisionRepository.linkMany([
+        { housing: housings[0], precisions: [precisionB] }
+      ]);
+
+      const actual = await HousingPrecisions().where({
+        housing_geo_code: untouched.geoCode,
+        housing_id: untouched.id
+      });
+      expect(actual).toHaveLength(1);
+      expect(actual[0].precision_id).toBe(precisionA.id);
+    });
   });
 });

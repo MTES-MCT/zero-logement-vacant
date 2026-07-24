@@ -65,7 +65,8 @@ function Dropdown(props: DropdownProps) {
         {...buttonProps}
         // Fixed props
         id={buttonId}
-        aria-describedby={popoverId}
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? popoverId : undefined}
         onClick={onClick}
       >
         {label}

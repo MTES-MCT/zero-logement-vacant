@@ -3,7 +3,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Drawer, { type DrawerProps } from '@mui/material/Drawer';
 import Grid from '@mui/material/Grid';
-import { type ReactNode } from 'react';
+import { type ReactNode, useId } from 'react';
 
 interface CommonProps {
   drawerProps?: Omit<DrawerProps, 'open' | 'onClose'>;
@@ -31,6 +31,8 @@ const DEFAULT_WIDTH = '40rem';
 export type AsideProps = CommonProps & (FooterProps | SaveProps);
 
 function Aside(props: AsideProps) {
+  const headerId = useId();
+
   return (
     <Drawer
       component="aside"
@@ -42,6 +44,7 @@ function Aside(props: AsideProps) {
           invisible: true
         },
         paper: {
+          'aria-labelledby': props.header ? headerId : undefined,
           sx: {
             width: props.width ?? DEFAULT_WIDTH
           }
@@ -51,7 +54,11 @@ function Aside(props: AsideProps) {
     >
       <Grid container sx={{ flexDirection: 'column' }} size="grow">
         <Grid container sx={{ justifyContent: 'space-between', mb: 3 }}>
-          {props.header && <Grid size="grow">{props.header}</Grid>}
+          {props.header && (
+            <Grid id={headerId} size="grow">
+              {props.header}
+            </Grid>
+          )}
 
           <Grid size="auto">
             <Button

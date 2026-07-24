@@ -146,63 +146,12 @@ async function remove(id: string): Promise<void> {
 }
 
 /**
- * Adds a left-join to `documents` (aliased as `docAlias`) and its creator
- * (aliased as `${docAlias}_creator`), selecting the document+creator as a
- * single JSON column named `docAlias`. Returns NULL when no document exists.
- */
-export function joinDocumentWithCreator(
-  query: Knex.QueryBuilder,
-  parentFkColumn: string,
-  docAlias: string
-): void {
-  const creatorAlias = `${docAlias}_creator`;
-  query
-    .leftJoin({ [docAlias]: DOCUMENTS_TABLE }, parentFkColumn, `${docAlias}.id`)
-    .leftJoin(
-      { [creatorAlias]: USERS_TABLE },
-      `${creatorAlias}.id`,
-      `${docAlias}.created_by`
-    )
-    .select(
-      db.raw(`
-        CASE WHEN ${docAlias}.id IS NOT NULL THEN
-          jsonb_build_object(
-            'id', ${docAlias}.id,
-            'filename', ${docAlias}.filename,
-            's3_key', ${docAlias}.s3_key,
-            'content_type', ${docAlias}.content_type,
-            'size_bytes', ${docAlias}.size_bytes,
-            'establishment_id', ${docAlias}.establishment_id,
-            'created_by', ${docAlias}.created_by,
-            'created_at', ${docAlias}.created_at,
-            'updated_at', ${docAlias}.updated_at,
-            'deleted_at', ${docAlias}.deleted_at,
-            'creator', json_build_object(
-              'id', ${creatorAlias}.id,
-              'email', ${creatorAlias}.email,
-              'first_name', ${creatorAlias}.first_name,
-              'last_name', ${creatorAlias}.last_name,
-              'role', ${creatorAlias}.role,
-              'establishment_id', ${creatorAlias}.establishment_id,
-              'time_per_week', ${creatorAlias}.time_per_week,
-              'phone', ${creatorAlias}.phone,
-              'position', ${creatorAlias}.position,
-              'updated_at', ${creatorAlias}.updated_at
-            )
-          )
-        ELSE NULL END AS ${docAlias}
-      `)
-    );
-}
-
-/**
- * Kysely mirror of {@link joinDocumentWithCreator}. Returns a correlated scalar
- * subquery that builds the document + nested creator JSON blob for the document
- * referenced by `fkColumn` (a raw, table-qualified snake_case column such as
- * `senders.signatory_one_document_id`). The blob keys stay snake_case — the
- * CamelCasePlugin's `maintainNestedObjectKeys` leaves them untouched, so
- * {@link fromDocumentDBO} reads them. Resolves to NULL when the FK is null or
- * no matching document exists, matching the Knex `CASE WHEN ... ELSE NULL END`.
+ * Returns a correlated scalar subquery that builds the document + nested
+ * creator JSON blob for the document referenced by `fkColumn` (a raw,
+ * table-qualified snake_case column such as `senders.signatory_one_document_id`).
+ * The blob keys stay snake_case — the CamelCasePlugin's `maintainNestedObjectKeys`
+ * leaves them untouched, so {@link fromDocumentDBO} reads them. Resolves to
+ * NULL when the FK is null or no matching document exists.
  */
 export function selectDocumentWithCreator(fkColumn: string, alias: string) {
   return sql`(

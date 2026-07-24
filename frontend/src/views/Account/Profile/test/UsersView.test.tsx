@@ -94,10 +94,33 @@ describe('Users view', () => {
       users
     });
 
-    await screen.findByText('Utilisateurs rattachés à votre structure');
+    await screen.findByRole('table');
     const remove = screen.queryByRole('button', {
       name: /Supprimer .*/
     });
     expect(remove).not.toBeInTheDocument();
+  });
+
+  it('associates the users table with a <caption> title (RGAA 5.4)', async () => {
+    const auth = genUserDTO(UserRole.ADMIN);
+    const establishment = genEstablishmentDTO();
+    const users: ReadonlyArray<UserDTO> = faker.helpers.multiple(() =>
+      genUserDTO(UserRole.USUAL, establishment)
+    );
+
+    renderView({
+      auth,
+      establishment,
+      users
+    });
+
+    const table = await screen.findByRole('table', {
+      name: 'Utilisateurs rattachés à votre structure'
+    });
+    const caption = table.querySelector('caption');
+    expect(caption).not.toBeNull();
+    expect(caption).toHaveTextContent(
+      'Utilisateurs rattachés à votre structure'
+    );
   });
 });

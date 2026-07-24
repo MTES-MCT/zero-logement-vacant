@@ -131,6 +131,8 @@ function UserTable(props: UserTableProps) {
         enableSortingRemoval
         state={{ sorting, columnVisibility }}
         onSortingChange={setSorting}
+        caption="Utilisateurs rattachés à votre structure"
+        tableProps={{ noCaption: true }}
       />
 
       <deleteUserModal.Component

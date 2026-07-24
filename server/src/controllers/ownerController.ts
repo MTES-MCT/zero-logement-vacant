@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import HousingMissingError from '~/errors/housingMissingError';
 import OwnerMissingError from '~/errors/ownerMissingError';
-import { startTransaction } from '~/infra/database/transaction';
+import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingOwnerEventApi, OwnerEventApi } from '~/models/EventApi';
@@ -483,7 +483,7 @@ const updateHousingOwners: RequestHandler<
     })
   ];
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     const affectedOwnerIds =
       await housingOwnerRepository.saveMany(housingOwners);
     await Promise.all([

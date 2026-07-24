@@ -20,7 +20,7 @@ import CampaignMissingError from '~/errors/campaignMissingError';
 import DocumentMissingError from '~/errors/documentMissingError';
 import DraftMissingError from '~/errors/draftMissingError';
 import config from '~/infra/config';
-import { startTransaction } from '~/infra/database/transaction';
+import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import { type DocumentApi } from '~/models/DocumentApi';
 import { DraftApi, toDraftDTO } from '~/models/DraftApi';
@@ -201,7 +201,7 @@ const createNext: RequestHandler<
     establishmentId: auth.establishmentId
   };
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await senderRepository.save(sender);
     await draftRepository.save(draft);
     await campaignDraftRepository.save(campaign, draft);
@@ -281,7 +281,7 @@ const updateNext: RequestHandler<
     updatedAt: new Date().toJSON()
   };
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await senderRepository.save(sender);
     await draftRepository.save(updated);
   });

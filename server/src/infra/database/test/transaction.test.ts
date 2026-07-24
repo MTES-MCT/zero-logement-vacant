@@ -1,10 +1,8 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import async from 'async';
-import { sql } from 'kysely';
 
 import db from '~/infra/database/index';
-import { getKyselyTransaction } from '~/infra/database/kysely-transaction';
-import { getTransaction, startTransaction } from '~/infra/database/transaction';
+import { withinTransaction } from '~/infra/database/transaction';
 
 describe('Transaction', () => {
   const tables = ['t1', 't2'];
@@ -30,12 +28,7 @@ describe('Transaction', () => {
   it('should correctly insert records', async () => {
     const record = { id: faker.string.uuid() };
 
-    await startTransaction(async () => {
-      const transaction = getTransaction();
-      if (!transaction) {
-        throw new Error('Transaction should be defined');
-      }
-
+    await withinTransaction(async (transaction) => {
       await async.forEach(tables, async (name) => {
         await transaction(name).insert(record);
       });
@@ -54,12 +47,7 @@ describe('Transaction', () => {
     });
 
     try {
-      await startTransaction(async () => {
-        const transaction = getTransaction();
-        if (!transaction) {
-          throw new Error('Transaction should be defined');
-        }
-
+      await withinTransaction(async (transaction) => {
         await transaction('t1').insert({ id: faker.string.uuid() });
         await transaction('t2').insert({ id: null });
       });
@@ -77,80 +65,12 @@ describe('Transaction', () => {
     }));
 
     await async.forEach(records, async (record) => {
-      await startTransaction(async () => {
-        const transaction = getTransaction();
-        if (!transaction) {
-          throw new Error('Transaction should be defined');
-        }
-
+      await withinTransaction(async (transaction) => {
         await transaction('t1').insert(record);
       });
     });
 
     const actual = await db('t1');
     expect(actual).toIncludeAllMembers(actual);
-  });
-
-  describe('cross-engine (Knex + Kysely)', () => {
-    it('commits Knex and Kysely writes together', async () => {
-      const knexId = faker.string.uuid();
-      const kyselyId = faker.string.uuid();
-
-      await startTransaction(async () => {
-        const knexTrx = getTransaction();
-        const kyselyTrx = getKyselyTransaction();
-        if (!knexTrx || !kyselyTrx) {
-          throw new Error('Both transactions should be defined');
-        }
-        await knexTrx('t1').insert({ id: knexId });
-        await sql`insert into t2 (id) values (${kyselyId})`.execute(kyselyTrx);
-      });
-
-      const knexRow = await db('t1').where({ id: knexId }).first();
-      const kyselyRow = await db('t2').where({ id: kyselyId }).first();
-      expect(knexRow).toBeDefined();
-      expect(kyselyRow).toBeDefined();
-    });
-
-    it('rolls back the Kysely write when the Knex write fails', async () => {
-      const kyselyId = faker.string.uuid();
-
-      await expect(
-        startTransaction(async () => {
-          const knexTrx = getTransaction();
-          const kyselyTrx = getKyselyTransaction();
-          if (!knexTrx || !kyselyTrx) {
-            throw new Error('Both transactions should be defined');
-          }
-          await sql`insert into t2 (id) values (${kyselyId})`.execute(
-            kyselyTrx
-          );
-          // Violates NOT NULL on the primary key → aborts the unit.
-          await knexTrx('t1').insert({ id: null });
-        })
-      ).rejects.toThrow();
-
-      const kyselyRow = await db('t2').where({ id: kyselyId }).first();
-      expect(kyselyRow).toBeUndefined();
-    });
-
-    it('rolls back the Knex write when the Kysely write fails', async () => {
-      const knexId = faker.string.uuid();
-
-      await expect(
-        startTransaction(async () => {
-          const knexTrx = getTransaction();
-          const kyselyTrx = getKyselyTransaction();
-          if (!knexTrx || !kyselyTrx) {
-            throw new Error('Both transactions should be defined');
-          }
-          await knexTrx('t1').insert({ id: knexId });
-          await sql`insert into t2 (id) values (${null})`.execute(kyselyTrx);
-        })
-      ).rejects.toThrow();
-
-      const knexRow = await db('t1').where({ id: knexId }).first();
-      expect(knexRow).toBeUndefined();
-    });
   });
 });

@@ -1,7 +1,10 @@
 import type { UserEstablishment } from '@zerologementvacant/models';
+import type { Selectable } from 'kysely';
 
 import db from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 
 export const USERS_ESTABLISHMENTS_TABLE = 'users_establishments';
@@ -23,11 +26,14 @@ async function getAuthorizedEstablishments(
 ): Promise<UserEstablishment[]> {
   logger.debug('Get authorized establishments for user', userId);
 
-  const results = await UsersEstablishments()
-    .where('user_id', userId)
-    .orderBy('created_at', 'asc');
+  const rows = await kysely
+    .selectFrom('usersEstablishments')
+    .selectAll()
+    .where('userId', '=', userId)
+    .orderBy('createdAt', 'asc')
+    .execute();
 
-  return results.map(fromUserEstablishmentDBO);
+  return rows.map(parseUserEstablishmentRow);
 }
 
 async function setAuthorizedEstablishments(
@@ -43,21 +49,27 @@ async function setAuthorizedEstablishments(
     count: establishments.length
   });
 
-  await withinTransaction(async (trx) => {
-    await UsersEstablishments(trx).where('user_id', userId).delete();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .deleteFrom('usersEstablishments')
+      .where('userId', '=', userId)
+      .execute();
 
     if (establishments.length > 0) {
       const now = new Date();
-      await UsersEstablishments(trx).insert(
-        establishments.map((e) => ({
-          user_id: userId,
-          establishment_id: e.establishmentId,
-          establishment_siren: e.establishmentSiren,
-          has_commitment: e.hasCommitment,
-          created_at: now,
-          updated_at: now
-        }))
-      );
+      await trx
+        .insertInto('usersEstablishments')
+        .values(
+          establishments.map((e) => ({
+            userId,
+            establishmentId: e.establishmentId,
+            establishmentSiren: e.establishmentSiren,
+            hasCommitment: e.hasCommitment,
+            createdAt: now,
+            updatedAt: now
+          }))
+        )
+        .execute();
     }
   });
 }
@@ -76,47 +88,61 @@ async function addAuthorizedEstablishment(
   });
 
   const now = new Date();
-  await UsersEstablishments()
-    .insert({
-      user_id: userId,
-      establishment_id: establishment.establishmentId,
-      establishment_siren: establishment.establishmentSiren,
-      has_commitment: establishment.hasCommitment,
-      created_at: now,
-      updated_at: now
+  await kysely
+    .insertInto('usersEstablishments')
+    .values({
+      userId,
+      establishmentId: establishment.establishmentId,
+      establishmentSiren: establishment.establishmentSiren,
+      hasCommitment: establishment.hasCommitment,
+      createdAt: now,
+      updatedAt: now
     })
-    .onConflict(['user_id', 'establishment_id'])
-    .merge(['has_commitment', 'updated_at']);
+    .onConflict((oc) =>
+      oc.columns(['userId', 'establishmentId']).doUpdateSet((eb) => ({
+        hasCommitment: eb.ref('excluded.hasCommitment'),
+        updatedAt: eb.ref('excluded.updatedAt')
+      }))
+    )
+    .execute();
 }
 
 async function hasAccessToEstablishment(
   userId: string,
   establishmentId: string
 ): Promise<boolean> {
-  const result = await UsersEstablishments()
-    .where({ user_id: userId, establishment_id: establishmentId })
-    .first();
+  const row = await kysely
+    .selectFrom('usersEstablishments')
+    .select('userId')
+    .where('userId', '=', userId)
+    .where('establishmentId', '=', establishmentId)
+    .executeTakeFirst();
 
-  return !!result;
+  return !!row;
 }
 
 async function isMultiStructure(userId: string): Promise<boolean> {
-  const result = await UsersEstablishments()
-    .where({ user_id: userId, has_commitment: true })
-    .count('establishment_id as count')
-    .first();
+  const row = await kysely
+    .selectFrom('usersEstablishments')
+    .select((eb) => eb.fn.countAll().as('count'))
+    .where('userId', '=', userId)
+    .where('hasCommitment', '=', true)
+    .executeTakeFirst();
 
-  const count = result as { count: string } | undefined;
-  return Number(count?.count) > 1;
+  return Number(row?.count) > 1;
 }
 
-export const fromUserEstablishmentDBO = (
-  dbo: UserEstablishmentDBO
-): UserEstablishment => ({
-  establishmentId: dbo.establishment_id,
-  establishmentSiren: dbo.establishment_siren,
-  hasCommitment: dbo.has_commitment
-});
+type UserEstablishmentRow = Selectable<DB['usersEstablishments']>;
+
+function parseUserEstablishmentRow(
+  row: UserEstablishmentRow
+): UserEstablishment {
+  return {
+    establishmentId: row.establishmentId,
+    establishmentSiren: row.establishmentSiren,
+    hasCommitment: row.hasCommitment
+  };
+}
 
 export default {
   getAuthorizedEstablishments,

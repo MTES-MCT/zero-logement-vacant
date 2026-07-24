@@ -32,30 +32,32 @@ function OnboardingModal() {
 
   return (
     <modal.Component size="large" title="Bienvenue sur Zéro Logement Vacant !">
-      <Grid container rowSpacing={3}>
-        <Grid component="section" sx={{ display: 'inline-flex' }} size={12}>
-          <img src={image} alt="Communauté" aria-hidden="true" />
-          <Typography sx={{ ml: 1 }} variant="subtitle2">
-            Pour prendre en main rapidement ZLV, inscrivez-vous à une session de
-            prise en main (1h) afin de découvrir les principales fonctionnalités
-            de la plateforme. Cette inscription est optionnelle, mais
-            recommandée.
-          </Typography>
-        </Grid>
+      {onboarding ? (
+        <Grid container rowSpacing={3}>
+          <Grid component="section" sx={{ display: 'inline-flex' }} size={12}>
+            <img src={image} alt="Communauté" aria-hidden="true" />
+            <Typography sx={{ ml: 1 }} variant="subtitle2">
+              Pour prendre en main rapidement ZLV, inscrivez-vous à une session
+              de prise en main (1h) afin de découvrir les principales
+              fonctionnalités de la plateforme. Cette inscription est
+              optionnelle, mais recommandée.
+            </Typography>
+          </Grid>
 
-        <Grid
-          component="section"
-          sx={{ display: 'flex', justifyContent: 'center' }}
-          size={12}
-        >
-          <iframe
-            width="75%"
-            height="600"
-            title="Inscription session de prise en main Zéro Logement Vacant"
-            src="https://app.livestorm.co/p/1b26afab-3332-4b6d-a9e4-3f38b4cc6c43/form"
-          />
+          <Grid
+            component="section"
+            sx={{ display: 'flex', justifyContent: 'center' }}
+            size={12}
+          >
+            <iframe
+              width="75%"
+              height="600"
+              title="Inscription session de prise en main Zéro Logement Vacant"
+              src="https://app.livestorm.co/p/1b26afab-3332-4b6d-a9e4-3f38b4cc6c43/form"
+            />
+          </Grid>
         </Grid>
-      </Grid>
+      ) : null}
     </modal.Component>
   );
 }

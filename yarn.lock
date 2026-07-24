@@ -10760,7 +10760,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/compression@npm:^1.8.1":
+"@types/compression@npm:1.8.1":
   version: 1.8.1
   resolution: "@types/compression@npm:1.8.1"
   dependencies:
@@ -11999,7 +11999,7 @@ __metadata:
     "@types/bcryptjs": "npm:2.4.6"
     "@types/clamscan": "npm:2.4.1"
     "@types/cli-progress": "npm:3.11.6"
-    "@types/compression": "npm:^1.8.1"
+    "@types/compression": "npm:1.8.1"
     "@types/cors": "npm:2.8.19"
     "@types/express": "npm:4.17.25"
     "@types/geojson": "npm:7946.0.16"

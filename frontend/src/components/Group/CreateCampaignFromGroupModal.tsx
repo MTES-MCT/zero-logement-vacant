@@ -1,3 +1,4 @@
+import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -25,7 +26,8 @@ export type CreateCampaignFromGroupModalProps = Omit<
   ConfirmationModalProps,
   'title' | 'children' | 'onSubmit'
 > & {
-  group: Group;
+  group: Group | null;
+  stepper?: { currentStep: number; stepCount: number };
   onSubmit(campaign: Pick<Campaign, 'title' | 'description' | 'sentAt'>): void;
 };
 
@@ -48,10 +50,10 @@ export function createCampaignFromGroupModal(
   return {
     ...modal,
     Component(props: Readonly<CreateCampaignFromGroupModalProps>) {
-      const { group, onSubmit, ...rest } = props;
+      const { group, stepper, onSubmit, ...rest } = props;
 
-      const housing = pluralize(group.housingCount)('logement');
-      const owners = pluralize(group.ownerCount)('propriétaire');
+      const housing = group ? pluralize(group.housingCount)('logement') : '';
+      const owners = group ? pluralize(group.ownerCount)('propriétaire') : '';
 
       const form = useForm<FormSchema>({
         resolver: yupResolver(schema),
@@ -79,35 +81,45 @@ export function createCampaignFromGroupModal(
             onClose={form.reset}
             title="Créer une campagne"
           >
-            <Stack
-              direction="row"
-              spacing="1rem"
-              useFlexGap
-              sx={{ mt: '-1rem', mb: '0.5rem' }}
-            >
+            {stepper && (
+              <Stepper
+                currentStep={stepper.currentStep}
+                stepCount={stepper.stepCount}
+                title="Créer une campagne"
+              />
+            )}
+
+            {group && (
               <Stack
                 direction="row"
-                spacing="0.25rem"
+                spacing="1rem"
                 useFlexGap
-                sx={{ alignItems: 'center' }}
+                sx={{ mt: '-1rem', mb: '0.5rem' }}
               >
-                <Icon name="ri-home-2-line" size="sm" color="inherit" />
-                <Typography component="span" variant="body2">
-                  {group.housingCount} {housing}
-                </Typography>
+                <Stack
+                  direction="row"
+                  spacing="0.25rem"
+                  useFlexGap
+                  sx={{ alignItems: 'center' }}
+                >
+                  <Icon name="ri-home-2-line" size="sm" color="inherit" />
+                  <Typography component="span" variant="body2">
+                    {group.housingCount} {housing}
+                  </Typography>
+                </Stack>
+                <Stack
+                  direction="row"
+                  spacing="0.25rem"
+                  useFlexGap
+                  sx={{ alignItems: 'center' }}
+                >
+                  <Icon name="ri-user-line" size="sm" color="inherit" />
+                  <Typography component="span" variant="body2">
+                    {group.ownerCount} {owners}
+                  </Typography>
+                </Stack>
               </Stack>
-              <Stack
-                direction="row"
-                spacing="0.25rem"
-                useFlexGap
-                sx={{ alignItems: 'center' }}
-              >
-                <Icon name="ri-user-line" size="sm" color="inherit" />
-                <Typography component="span" variant="body2">
-                  {group.ownerCount} {owners}
-                </Typography>
-              </Stack>
-            </Stack>
+            )}
 
             <Typography variant="body2" sx={{ mb: '0.25rem' }}>
               Une fois la campagne créée, les logements « Non suivi » passeront

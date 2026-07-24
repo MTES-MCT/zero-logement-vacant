@@ -1,10 +1,7 @@
-import { fr } from '@codegouvfr/react-dsfr';
 import DSFRTooltip, {
   type TooltipProps as DSFRTooltipProps
 } from '@codegouvfr/react-dsfr/Tooltip';
 import { memo, useEffect, useId, useRef } from 'react';
-
-import Icon from '~/components/ui/Icon';
 
 /**
  * If defined, the tooltip will be positioned manually according to the `align` and `place` props.
@@ -20,9 +17,7 @@ type ManualPlacement = {
   place?: 'top' | 'right' | 'bottom' | 'left';
 };
 
-export type TooltipProps = DSFRTooltipProps.Common &
-  DSFRTooltipProps.WithHoverAction &
-  ManualPlacement;
+export type TooltipProps = DSFRTooltipProps.Common & ManualPlacement;
 
 function Tooltip(props: TooltipProps) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -56,16 +51,10 @@ function Tooltip(props: TooltipProps) {
     };
   }, [props.align, props.place]);
 
-  return (
-    <DSFRTooltip {...props} ref={ref} id={id}>
-      <Icon
-        className="fr-px-1w fr-py-1v"
-        name="fr-icon-question-line"
-        size="sm"
-        color={fr.colors.decisions.artwork.major.blueFrance.default}
-      />
-    </DSFRTooltip>
-  );
+  // "click" renders a native, focusable <button> trigger — the DSFR-recommended
+  // pattern for an icon-only trigger with no natural interactive host. A
+  // hover-only trigger here would never be reachable by keyboard (RGAA 7.3).
+  return <DSFRTooltip {...props} kind="click" ref={ref} id={id} />;
 }
 
 export default memo(Tooltip);

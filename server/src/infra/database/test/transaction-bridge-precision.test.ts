@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
-import { startTransaction } from '~/infra/database/transaction';
+import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { HousingApi } from '~/models/HousingApi';
 import {
   formatHousingRecordApi,
@@ -25,7 +25,7 @@ describe('Transaction bridge — precision link atomicity', () => {
     const precisions = faker.helpers.arrayElements(referential, 2);
 
     await expect(
-      startTransaction(async () => {
+      startKyselyTransaction(async () => {
         await precisionRepository.link(housing, precisions);
         throw new Error('boom');
       })
@@ -42,7 +42,7 @@ describe('Transaction bridge — precision link atomicity', () => {
     const referential = await Precisions();
     const precisions = faker.helpers.arrayElements(referential, 2);
 
-    await startTransaction(async () => {
+    await startKyselyTransaction(async () => {
       await precisionRepository.link(housing, precisions);
     });
 

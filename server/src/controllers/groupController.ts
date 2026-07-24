@@ -13,7 +13,7 @@ import { differenceBy, uniqBy } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
 
 import GroupMissingError from '~/errors/groupMissingError';
-import { startTransaction } from '~/infra/database/transaction';
+import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import { GroupHousingEventApi } from '~/models/EventApi';
 import { GroupApi, toGroupDTO } from '~/models/GroupApi';
@@ -115,7 +115,7 @@ const create: RequestHandler<never, GroupDTO, GroupPayloadDTO, never> = async (
     groupId: group.id
   }));
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await groupRepository.save(group, housings);
     await eventRepository.insertManyGroupHousingEvents(events);
   });
@@ -345,7 +345,7 @@ const removeHousing: RequestHandler<
     housingId: housing.id,
     housingGeoCode: housing.geoCode
   }));
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       groupRepository.removeHousing(group, removingHousingList),
       eventRepository.insertManyGroupHousingEvents(events)
@@ -413,7 +413,7 @@ const remove: RequestHandler<
       groupId: group.id
     }));
 
-    const archived = await startTransaction(async () => {
+    const archived = await startKyselyTransaction(async () => {
       const [archived] = await Promise.all([
         groupRepository.archive(group),
         eventRepository.insertManyGroupHousingEvents(events)
@@ -437,7 +437,7 @@ const remove: RequestHandler<
     housingGeoCode: housing.geoCode,
     groupId: null
   }));
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       groupRepository.remove(group),
       eventRepository.insertManyGroupHousingEvents(events)

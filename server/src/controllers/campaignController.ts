@@ -17,7 +17,7 @@ import { v4 as uuidv4 } from 'uuid';
 import BadRequestError from '~/errors/badRequestError';
 import CampaignMissingError from '~/errors/campaignMissingError';
 import GroupMissingError from '~/errors/groupMissingError';
-import { startTransaction } from '~/infra/database/transaction';
+import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import {
   CampaignApi,
@@ -214,7 +214,7 @@ const createFromGroup: RequestHandler<
     })
   );
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await senderRepository.save(sender);
     await draftRepository.save(draft);
     await campaignRepository.save(campaign);
@@ -355,7 +355,7 @@ const removeCampaign: RequestHandler<
       housingId: housing.id
     }));
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       campaignRepository.remove(params.id),
       housingRepository.saveMany(updated, {
@@ -433,7 +433,7 @@ const removeHousings: RequestHandler<
     housingId: housing.id
   }));
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       housingRepository.updateMany(
         resettable.map(Struct.pick('geoCode', 'id')),

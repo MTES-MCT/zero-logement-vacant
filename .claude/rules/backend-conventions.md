@@ -22,8 +22,8 @@ Router → Controller test → Controller → Repository test → Repository
 ## Repositories
 - Use Kysely query builder (`~/infra/database/kysely`). Never raw SQL in repositories — use `sql` template tags only when a Kysely builder genuinely cannot express the query.
 - Soft deletes: filter inline, e.g. `.where('table.deletedAt', 'is', null)`. There is no Kysely equivalent of the old Knex `notDeleted()` helper — don't reintroduce one.
-- Transactions: `startTransaction()` in controllers, `withinKyselyTransaction()` in repos. Never start transactions in repositories.
-- Knex (`~/infra/database` default export) is legacy and being phased out repository-by-repository. Do not add new Knex usage. See `docs/superpowers/plans/*kysely*` for the migration sequencing and the per-repository characterization-test-then-migrate process.
+- Transactions: `startKyselyTransaction()` in controllers, `withinKyselyTransaction()` in repos. Never start transactions in repositories.
+- Knex (`~/infra/database` default export) is legacy. Every repository and service is now on Kysely — do not add new Knex usage. The only remaining Knex query calls are: primitive test/seed table accessors (see Testing below), migrations/seeds, and the import-lovac ETL scripts (`src/scripts/import-lovac/`), which stay on Knex by design and are out of scope. See `docs/superpowers/plans/*kysely*` for the migration history.
 
 ## Testing
 - API tests: `controllers/test/*-api.test.ts` with supertest.
@@ -36,7 +36,8 @@ Router → Controller test → Controller → Repository test → Repository
 | express-validator | validator (Yup) |
 | try-catch in controllers | Throw `HttpError` subclass |
 | Direct Knex in controllers | Repositories |
-| Transactions in repositories | `startTransaction()` in controllers |
+| Transactions in repositories | `startKyselyTransaction()` in controllers |
+| `startTransaction()` (Knex+Kysely bridge) | `startKyselyTransaction()` |
 | Raw HTTP status numbers | `constants.HTTP_STATUS_*` from `node:http2` |
 | Knex query builder in repositories | Kysely query builder |
 | `notDeleted()` helper | Inline `.where('table.deletedAt', 'is', null)` |

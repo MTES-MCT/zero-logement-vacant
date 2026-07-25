@@ -32,7 +32,7 @@ dependencies = [
     "pyarrow>=21.0.0",
     "plotly>=6.5.0",
     "scikit-learn>=1.7.2",
-    "streamlit>=1.40.0",
+    "streamlit>=1.54.0",
     "python-calamine>=0.6.1",
 ]
 

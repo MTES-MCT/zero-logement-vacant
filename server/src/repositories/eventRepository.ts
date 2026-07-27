@@ -384,13 +384,22 @@ async function removeCampaignEvents(campaignId: string): Promise<void> {
     campaign: campaignId
   });
   await withinTransaction(async (transaction) => {
+    // Delete the parent `events` rows referenced both by campaign events and by
+    // campaign document events; the join-table rows cascade from `events`.
+    // Otherwise document events would be left orphaned when a campaign is removed.
     await Events(transaction)
-      .join(
-        CAMPAIGN_EVENTS_TABLE,
-        `${CAMPAIGN_EVENTS_TABLE}.event_id`,
-        `${EVENTS_TABLE}.id`
-      )
-      .where(`${CAMPAIGN_EVENTS_TABLE}.campaign_id`, campaignId)
+      .whereIn(`${EVENTS_TABLE}.id`, (subquery) => {
+        subquery
+          .select('event_id')
+          .from(CAMPAIGN_EVENTS_TABLE)
+          .where('campaign_id', campaignId)
+          .unionAll((union) => {
+            union
+              .select('event_id')
+              .from(CAMPAIGN_DOCUMENT_EVENTS_TABLE)
+              .where('campaign_id', campaignId);
+          });
+      })
       .delete();
   });
   logger.debug('Campaign events removed', {

@@ -424,24 +424,28 @@ const linkToHousing: RequestHandler<
     housing_id: housing.id,
     housing_geo_code: housing.geoCode
   }));
-  // Create housing:document-attached events for each link
-  const attachEvents = documents.map<HousingDocumentEventApi>((document) => ({
-    id: uuidv4(),
-    type: 'housing:document-attached',
-    nextOld: null,
-    nextNew: { filename: document.filename },
-    createdAt: new Date().toJSON(),
-    createdBy: request.user!.id,
-    documentId: document.id,
-    housingGeoCode: housing.geoCode,
-    housingId: housing.id
-  }));
+  const documentsById = new Map(
+    documents.map((document) => [document.id, document])
+  );
 
   await startTransaction(async () => {
-    await Promise.all([
-      housingDocumentRepository.linkMany(links),
-      eventRepository.insertManyHousingDocumentEvents(attachEvents)
-    ]);
+    // Only the links that were actually inserted are returned (existing links
+    // are ignored on conflict), so events are created for new attachments only.
+    const inserted = await housingDocumentRepository.linkMany(links);
+    const attachEvents = inserted.map<HousingDocumentEventApi>(
+      ({ document_id }) => ({
+        id: uuidv4(),
+        type: 'housing:document-attached',
+        nextOld: null,
+        nextNew: { filename: documentsById.get(document_id)!.filename },
+        createdAt: new Date().toJSON(),
+        createdBy: request.user!.id,
+        documentId: document_id,
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
+      })
+    );
+    await eventRepository.insertManyHousingDocumentEvents(attachEvents);
   });
 
   // Generate pre-signed URLs for linked documents
@@ -555,15 +559,16 @@ const removeByHousing: RequestHandler<
   };
 
   await startTransaction(async () => {
-    await Promise.all([
-      eventRepository.insertManyHousingDocumentEvents([detachEvent]),
-      // Remove association only (keep document)
-      housingDocumentRepository.unlink({
-        documentId: params.documentId,
-        housingId: housing.id,
-        housingGeoCode: housing.geoCode
-      })
-    ]);
+    // Delete the link within the transaction and only record the detach event
+    // if a row was actually removed, so a concurrent detach cannot duplicate it.
+    const deletedCount = await housingDocumentRepository.unlink({
+      documentId: params.documentId,
+      housingId: housing.id,
+      housingGeoCode: housing.geoCode
+    });
+    if (deletedCount > 0) {
+      await eventRepository.insertManyHousingDocumentEvents([detachEvent]);
+    }
   });
 
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();
@@ -606,22 +611,27 @@ const linkToCampaign: RequestHandler<
     document_id: document.id,
     campaign_id: campaign.id
   }));
-  const attachEvents = documents.map<CampaignDocumentEventApi>((document) => ({
-    id: uuidv4(),
-    type: 'campaign:document-attached',
-    nextOld: null,
-    nextNew: { filename: document.filename },
-    createdAt: new Date().toJSON(),
-    createdBy: user.id,
-    documentId: document.id,
-    campaignId: campaign.id
-  }));
+  const documentsById = new Map(
+    documents.map((document) => [document.id, document])
+  );
 
   await startTransaction(async () => {
-    await Promise.all([
-      campaignDocumentRepository.linkMany(links),
-      eventRepository.insertManyCampaignDocumentEvents(attachEvents)
-    ]);
+    // Only the links that were actually inserted are returned (existing links
+    // are ignored on conflict), so events are created for new attachments only.
+    const inserted = await campaignDocumentRepository.linkMany(links);
+    const attachEvents = inserted.map<CampaignDocumentEventApi>(
+      ({ document_id }) => ({
+        id: uuidv4(),
+        type: 'campaign:document-attached',
+        nextOld: null,
+        nextNew: { filename: documentsById.get(document_id)!.filename },
+        createdAt: new Date().toJSON(),
+        createdBy: user.id,
+        documentId: document_id,
+        campaignId: campaign.id
+      })
+    );
+    await eventRepository.insertManyCampaignDocumentEvents(attachEvents);
   });
 
   const documentsWithURLs = await async.map(
@@ -717,13 +727,15 @@ const removeByCampaign: RequestHandler<
   };
 
   await startTransaction(async () => {
-    await Promise.all([
-      eventRepository.insertManyCampaignDocumentEvents([detachEvent]),
-      campaignDocumentRepository.unlink({
-        documentId: params.documentId,
-        campaignId: campaign.id
-      })
-    ]);
+    // Delete the link within the transaction and only record the detach event
+    // if a row was actually removed, so a concurrent detach cannot duplicate it.
+    const deletedCount = await campaignDocumentRepository.unlink({
+      documentId: params.documentId,
+      campaignId: campaign.id
+    });
+    if (deletedCount > 0) {
+      await eventRepository.insertManyCampaignDocumentEvents([detachEvent]);
+    }
   });
 
   response.status(constants.HTTP_STATUS_NO_CONTENT).send();

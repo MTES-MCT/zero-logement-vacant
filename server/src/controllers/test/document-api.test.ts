@@ -732,6 +732,48 @@ describe('Document API', () => {
     });
   });
 
+  describe('POST /housing/:id/documents', () => {
+    const testRoute = (id: string) => `/housing/${id}/documents`;
+
+    it('should not duplicate the "housing:document-attached" event when the same document is linked twice', async () => {
+      const housing = genHousingApi(
+        faker.helpers.arrayElement(establishment.geoCodes)
+      );
+      await Housing().insert(formatHousingRecordApi(housing));
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      await request(url)
+        .post(testRoute(housing.id))
+        .use(tokenProvider(user))
+        .send({ documentIds: [document.id] });
+      const { status } = await request(url)
+        .post(testRoute(housing.id))
+        .use(tokenProvider(user))
+        .send({ documentIds: [document.id] });
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const links = await HousingDocuments()
+        .where({ document_id: document.id, housing_id: housing.id })
+        .select('*');
+      expect(links).toHaveLength(1);
+      const events = await Events()
+        .where({ type: 'housing:document-attached' })
+        .join(
+          HOUSING_DOCUMENT_EVENTS_TABLE,
+          `${HOUSING_DOCUMENT_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
+        )
+        .where(`${HOUSING_DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
+        .where(`${HOUSING_DOCUMENT_EVENTS_TABLE}.housing_id`, housing.id);
+      expect(events).toHaveLength(1);
+    });
+  });
+
   describe('POST /campaigns/:id/documents', () => {
     const testRoute = (id: string) => `/campaigns/${id}/documents`;
 
@@ -811,6 +853,42 @@ describe('Document API', () => {
         next_new: { filename: document.filename },
         created_by: user.id
       });
+    });
+
+    it('should not duplicate the "campaign:document-attached" event when the same document is linked twice', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      await request(url)
+        .post(testRoute(campaign.id))
+        .use(tokenProvider(user))
+        .send({ documentIds: [document.id] });
+      const { status } = await request(url)
+        .post(testRoute(campaign.id))
+        .use(tokenProvider(user))
+        .send({ documentIds: [document.id] });
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const links = await CampaignDocuments()
+        .where({ document_id: document.id, campaign_id: campaign.id })
+        .select('*');
+      expect(links).toHaveLength(1);
+      const events = await Events()
+        .where({ type: 'campaign:document-attached' })
+        .join(
+          CAMPAIGN_DOCUMENT_EVENTS_TABLE,
+          `${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
+        )
+        .where(`${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.document_id`, document.id);
+      expect(events).toHaveLength(1);
     });
 
     it('should return 404 if campaign not found', async () => {
@@ -1019,6 +1097,44 @@ describe('Document API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+  });
+
+  describe('DELETE /campaigns/:id (campaign document event cleanup)', () => {
+    it('should not leave orphaned events after the campaign is deleted', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const document = genDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        establishmentId: establishment.id
+      });
+      await Documents().insert(toDocumentDBO(document));
+
+      await request(url)
+        .post(`/campaigns/${campaign.id}/documents`)
+        .use(tokenProvider(user))
+        .send({ documentIds: [document.id] });
+
+      const attachedEvents = await Events()
+        .select(`${EVENTS_TABLE}.id`)
+        .join(
+          CAMPAIGN_DOCUMENT_EVENTS_TABLE,
+          `${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.event_id`,
+          `${EVENTS_TABLE}.id`
+        )
+        .where(`${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.campaign_id`, campaign.id);
+      expect(attachedEvents.length).toBeGreaterThan(0);
+      const eventIds = attachedEvents.map((event) => event.id);
+
+      const { status } = await request(url)
+        .delete(`/campaigns/${campaign.id}`)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
+      const orphanedEvents = await Events().whereIn('id', eventIds);
+      expect(orphanedEvents).toHaveLength(0);
     });
   });
 

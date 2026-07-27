@@ -48,34 +48,41 @@ async function link(document: CampaignDocumentApi): Promise<void> {
 
 async function linkMany(
   campaignDocuments: ReadonlyArray<CampaignDocumentDBO>
-): Promise<void> {
+): Promise<CampaignDocumentDBO[]> {
   if (campaignDocuments.length === 0) {
     logger.debug('No campaign documents to link. Skipping...');
-    return;
+    return [];
   }
 
   logger.debug('Linking documents to campaigns...', { campaignDocuments });
 
+  let inserted: CampaignDocumentDBO[] = [];
   await withinTransaction(async (transaction) => {
-    await CampaignDocuments(transaction)
+    inserted = await CampaignDocuments(transaction)
       .insert(campaignDocuments)
       .onConflict(['document_id', 'campaign_id'])
-      .ignore();
+      .ignore()
+      .returning(['document_id', 'campaign_id']);
   });
+  return inserted;
 }
 
 async function unlink(link: {
   documentId: string;
   campaignId: string;
-}): Promise<void> {
+}): Promise<number> {
   logger.debug('Unlinking document from campaign...', link);
 
-  await CampaignDocuments()
-    .where({
-      document_id: link.documentId,
-      campaign_id: link.campaignId
-    })
-    .delete();
+  let deletedCount = 0;
+  await withinTransaction(async (transaction) => {
+    deletedCount = await CampaignDocuments(transaction)
+      .where({
+        document_id: link.documentId,
+        campaign_id: link.campaignId
+      })
+      .delete();
+  });
+  return deletedCount;
 }
 
 async function unlinkMany(params: { documentIds: string[] }): Promise<void> {

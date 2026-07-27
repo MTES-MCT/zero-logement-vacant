@@ -38,6 +38,9 @@
   "references": [
     {
       "path": "../models/tsconfig.lib.json"
+    },
+    {
+      "path": "../factories/tsconfig.lib.json"
     }
   ]
 }

@@ -62,7 +62,11 @@ export default defineConfig(({ mode }) => ({
         'node:path',
         'node:stream',
         'node:url',
-        'node:worker_threads'
+        'node:worker_threads',
+        // Native addon - bundling would resolve its "browser" export
+        // condition (a document.createElement shim) instead of the
+        // real Node binding, since this build has no Node-only pass.
+        'skia-canvas'
         // @zerologementvacant/models is intentionally bundled:
         // the campaign worker runs in a standalone Node worker thread
         // where native ESM resolution would fail on models' dist output.

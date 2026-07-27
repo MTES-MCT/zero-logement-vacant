@@ -2404,6 +2404,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@codegouvfr/react-dsfr@npm:^1.32.4":
+  version: 1.32.4
+  resolution: "@codegouvfr/react-dsfr@npm:1.32.4"
+  dependencies:
+    tsafe: "npm:^1.8.5"
+    yargs-parser: "npm:^21.1.1"
+  peerDependencies:
+    "@gouvfr/dsfr-chart": ^1.0.0
+  peerDependenciesMeta:
+    "@gouvfr/dsfr-chart":
+      optional: true
+  bin:
+    copy-dsfr-to-public: bin/copy-dsfr-to-public.js
+    only-include-used-icons: bin/only-include-used-icons.js
+    react-dsfr: bin/react-dsfr.js
+  checksum: 10c0/db57e95070db5d476634a1429e86be234e80fc32131d44be258dddbe75558f941e858abc9aaa212425631d474ff94b9042013f88bf82938871a158a681dc4e0a
+  languageName: node
+  linkType: hard
+
 "@commander-js/extra-typings@npm:14.0.0":
   version: 14.0.0
   resolution: "@commander-js/extra-typings@npm:14.0.0"
@@ -3982,6 +4001,13 @@ __metadata:
     "@jridgewell/resolve-uri": "npm:^3.1.0"
     "@jridgewell/sourcemap-codec": "npm:^1.4.14"
   checksum: 10c0/4b30ec8cd56c5fd9a661f088230af01e0c1a3888d11ffb6b47639700f71225be21d1f7e168048d6d4f9449207b978a235c07c8f15c07705685d16dc06280e9d9
+  languageName: node
+  linkType: hard
+
+"@kurkle/color@npm:^0.3.0":
+  version: 0.3.4
+  resolution: "@kurkle/color@npm:0.3.4"
+  checksum: 10c0/0e9fd55c614b005c5f0c4c755bca19ec0293bc7513b4ea3ec1725234f9c2fa81afbc78156baf555c8b9cb0d305619253c3f5bca016067daeebb3d00ebb4ea683
   languageName: node
   linkType: hard
 
@@ -11765,7 +11791,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@zerologementvacant/factories@workspace:*, @zerologementvacant/factories@workspace:packages/factories":
+"@zerologementvacant/factories@workspace:*, @zerologementvacant/factories@workspace:^, @zerologementvacant/factories@workspace:packages/factories":
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/factories@workspace:packages/factories"
   dependencies:
@@ -11936,14 +11962,21 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@zerologementvacant/pdf@workspace:packages/pdf"
   dependencies:
+    "@codegouvfr/react-dsfr": "npm:^1.32.4"
     "@react-pdf/renderer": "npm:4.5.1"
+    "@turf/bbox": "npm:7.3.5"
+    "@turf/helpers": "npm:7.3.5"
+    "@turf/square": "npm:7.3.5"
     "@types/node": "npm:24"
     "@types/react": "npm:18.3.28"
+    "@zerologementvacant/factories": "workspace:^"
     "@zerologementvacant/models": "workspace:*"
+    chart.js: "npm:4.5.1"
     happy-dom: "npm:20.9.0"
     jest-extended: "npm:4.0.2"
     react: "npm:18.3.1"
     react-pdf-html: "npm:2.1.5"
+    skia-canvas: "npm:3.0.8"
     ts-pattern: "npm:5.9.0"
     unplugin-dts: "npm:1.0.0"
   peerDependencies:
@@ -13429,6 +13462,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chart.js@npm:4.5.1":
+  version: 4.5.1
+  resolution: "chart.js@npm:4.5.1"
+  dependencies:
+    "@kurkle/color": "npm:^0.3.0"
+  checksum: 10c0/3f2a11dcaae9079e8e6b8ad077e2ae311f04996f9da14815730891e66215ee8b5f2c0eb70b5a156e5bde0f89a41bae13506dc6153e50fd22dcb282b21eec706f
+  languageName: node
+  linkType: hard
+
 "chokidar@npm:^4.0.0":
   version: 4.0.3
   resolution: "chokidar@npm:4.0.3"
@@ -14600,7 +14642,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"detect-libc@npm:^2.0.3, detect-libc@npm:^2.1.2":
+"detect-libc@npm:^2.0.3, detect-libc@npm:^2.1.1, detect-libc@npm:^2.1.2":
   version: 2.1.2
   resolution: "detect-libc@npm:2.1.2"
   checksum: 10c0/acc675c29a5649fa1fb6e255f993b8ee829e510b6b56b0910666949c80c364738833417d0edb5f90e4e46be17228b0f2b66a010513984e18b15deeeac49369c4
@@ -17023,7 +17065,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"https-proxy-agent@npm:^7.0.1":
+"https-proxy-agent@npm:^7.0.1, https-proxy-agent@npm:^7.0.6":
   version: 7.0.6
   resolution: "https-proxy-agent@npm:7.0.6"
   dependencies:
@@ -20395,6 +20437,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"parenthesis@npm:^3.1.5":
+  version: 3.1.8
+  resolution: "parenthesis@npm:3.1.8"
+  checksum: 10c0/1c0d5dd8b238b7c703db5ff1ca35f41952a7b2597c2e97cd0d32ab345179062611bc4f8a849787ed7f23508e91140d74fea7c0050b6978c56499f707ff54c99c
+  languageName: node
+  linkType: hard
+
 "parse-json@npm:^5.0.0, parse-json@npm:^5.2.0":
   version: 5.2.0
   resolution: "parse-json@npm:5.2.0"
@@ -22996,6 +23045,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"skia-canvas@npm:3.0.8":
+  version: 3.0.8
+  resolution: "skia-canvas@npm:3.0.8"
+  dependencies:
+    detect-libc: "npm:^2.1.1"
+    follow-redirects: "npm:^1.15.11"
+    https-proxy-agent: "npm:^7.0.6"
+    string-split-by: "npm:^1.0.0"
+  checksum: 10c0/19cfd4371426274c03e146eb68f8add3643a2706582a14d92f898062c4db54ed07d8d90b797c011476b7b1a866c663a3929626f7c48f9fc126814161ad8e2e03
+  languageName: node
+  linkType: hard
+
 "skmeans@npm:0.9.7":
   version: 0.9.7
   resolution: "skmeans@npm:0.9.7"
@@ -23383,6 +23444,15 @@ __metadata:
   version: 1.1.3
   resolution: "string-hash@npm:1.1.3"
   checksum: 10c0/179725d7706b49fbbc0a4901703a2d8abec244140879afd5a17908497e586a6b07d738f6775450aefd9f8dd729e4a0abd073fbc6fa3bd020b7a1d2369614af88
+  languageName: node
+  linkType: hard
+
+"string-split-by@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "string-split-by@npm:1.0.0"
+  dependencies:
+    parenthesis: "npm:^3.1.5"
+  checksum: 10c0/7feac22db5eb4fedc418818fe6c9277d2b2bbe8d200877ed4be629eeff6dafb686b04d87f3c49aa0b7ccaedaf5c576e31dd0e756ea82421cc48f362ece48b942
   languageName: node
   linkType: hard
 
@@ -25613,6 +25683,8 @@ __metadata:
     nx:
       built: true
     sharp:
+      built: true
+    skia-canvas:
       built: true
     unrs-resolver:
       built: true

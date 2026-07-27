@@ -1,4 +1,5 @@
 import { PDFViewer } from '@react-pdf/renderer';
+import createFactories, { MemoryAdapter } from '@zerologementvacant/factories';
 import {
   genCampaignDTO,
   genDocumentDTO,
@@ -11,10 +12,20 @@ import {
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
 import { useState } from 'react';
+import { match } from 'ts-pattern';
 
+import {
+  browserCanvasFactory,
+  CampaignReportDocument,
+  CampaignReportPage,
+  CanvasProvider
+} from '~/browser.js';
 import { CampaignDocument, CampaignPage } from '~/templates/Campaign.js';
 
-type TemplateName = 'campaign';
+const TEMPLATE_NAMES = ['campaign', 'campaign-report'] as const;
+type TemplateName = (typeof TEMPLATE_NAMES)[number];
+
+const factories = createFactories(new MemoryAdapter());
 
 export function Previewer() {
   const [selectedTemplate, setSelectedTemplate] =
@@ -58,6 +69,8 @@ export function Previewer() {
     ]
   };
 
+  const housings = factories.housing.buildList(260);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       {/* Template selector */}
@@ -75,31 +88,46 @@ export function Previewer() {
           PDF Template Previewer
         </h2>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            onClick={() => setSelectedTemplate('campaign')}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor:
-                selectedTemplate === 'campaign' ? '#0066cc' : '#fff',
-              color: selectedTemplate === 'campaign' ? '#fff' : '#333',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: selectedTemplate === 'campaign' ? 'bold' : 'normal'
-            }}
-          >
-            Campaign Template
-          </button>
+          {TEMPLATE_NAMES.map((templateName) => (
+            <button
+              key={templateName}
+              onClick={() => setSelectedTemplate(templateName)}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor:
+                  selectedTemplate === templateName ? '#0066cc' : '#fff',
+                color: selectedTemplate === templateName ? '#fff' : '#333',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight:
+                  selectedTemplate === templateName ? 'bold' : 'normal'
+              }}
+            >
+              {templateName.replace('-', ' ').toUpperCase()}
+            </button>
+          ))}
         </div>
       </nav>
 
       {/* PDF Viewer */}
       <PDFViewer style={{ flex: 1, border: 'none' }}>
-        <CampaignDocument campaign={campaign}>
-          {selectedTemplate === 'campaign' && (
-            <CampaignPage draft={draft} housing={housing} owner={owner} />
-          )}
-        </CampaignDocument>
+        {match(selectedTemplate)
+          .with('campaign', () => (
+            <CampaignDocument campaign={campaign}>
+              {selectedTemplate === 'campaign' && (
+                <CampaignPage draft={draft} housing={housing} owner={owner} />
+              )}
+            </CampaignDocument>
+          ))
+          .with('campaign-report', () => (
+            <CanvasProvider factory={browserCanvasFactory}>
+              <CampaignReportDocument>
+                <CampaignReportPage housings={housings} />
+              </CampaignReportDocument>
+            </CanvasProvider>
+          ))
+          .exhaustive()}
       </PDFViewer>
     </div>
   );

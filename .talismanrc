@@ -1,4 +1,6 @@
 fileignoreconfig:
+- filename: .claude/rules/rgaa-accessibility.md
+  checksum: 7c3d25a7502faeb9fd4e438e7e6bdf39cc18ebd32401f1463420289cda46a4d3
 - filename: .github/workflows/release.yml
   checksum: 5b3a281c32a6fab83c8385a64a45faddcac10f226b8daa85bdbf6a29d6b062a8
 - filename: README.md
@@ -7,18 +9,14 @@ fileignoreconfig:
   checksum: 37f1b166a3faf6cb78b7591b6f7031aa110e05e8aeb90b3b222ee22bf71f9713
 - filename: analytics/dagster/src/assets/dwh/ingest/ingest_postgres_asset.py
   checksum: b379fbb88e46511c62682abf4cb422e730c4210f6dadc9d5ca648dfd68ff8f88
-- filename: analytics/dagster/src/config.py
-  checksum: 8f99243a8283bb0b5ea0f6513647557274a5da958684e68a9dc3b86b44974a5b
-- filename: analytics/dbt/models/marts/production/marts_production_cerema_lovac_users_unregistered.sql
-  checksum: db7ab30e098c757dbb98638392782d97f90c745fab9944d327d17060441dcaa4
-- filename: analytics/dbt/models/staging/external/cerema/stg_external_cerema_lovac_users.sql
-  checksum: e6ccfed9e9dd6d2b53f3f00eb89a1cb574e516736d7f2122e53c2f820b2f81f9
 - filename: analytics/dagster/src/assets/populate_edited_owners_ban_addresses.py
   checksum: c3a27f2457d2c1cd5f01ef1940c78bc40f8dedb0aff7a5edbc0d1b1e5000f5d3
 - filename: analytics/dagster/src/assets/populate_housings_ban_addresses.py
   checksum: d720c5bcf0d67c24b2aa74d821061ecbbec3a4b234a12cc7a465e5bb147aac37
 - filename: analytics/dagster/src/assets/populate_owners_ban_addresses.py
   checksum: 54f8ccc9115fd975ec41d6d43d3bc0f4deef78862ab9d10b077be993e128d1ca
+- filename: analytics/dagster/src/config.py
+  checksum: 8f99243a8283bb0b5ea0f6513647557274a5da958684e68a9dc3b86b44974a5b
 - filename: analytics/dagster/src/resources/ban_config.py
   checksum: 034c6924978983da0ca5897bb06b64598a5a813dc93d1d9e8f8a62da952d4d22
 - filename: analytics/dagster/src/resources/database_resources.py
@@ -27,8 +25,12 @@ fileignoreconfig:
   checksum: d715f66cce85ad8b53b0a393862cbcebb3c7814e63be0a2e2b3dfb2c0bb6d89f
 - filename: analytics/dbt/models/marts/analysis/marts_bi_housing_geography.sql
   checksum: 98bc58352cb1e18a4054f89282acf0d235a16d2451a0eddf646dbfe80d0d5dce
+- filename: analytics/dbt/models/marts/production/marts_production_cerema_lovac_users_unregistered.sql
+  checksum: db7ab30e098c757dbb98638392782d97f90c745fab9944d327d17060441dcaa4
 - filename: analytics/dbt/models/marts/public/marts_public_establishments_morphology_catagorized.sql
   checksum: cbc05c70b2131535f28d14f3824af20028eb610c823badcc55dc944553de8cfb
+- filename: analytics/dbt/models/staging/external/cerema/stg_external_cerema_lovac_users.sql
+  checksum: e6ccfed9e9dd6d2b53f3f00eb89a1cb574e516736d7f2122e53c2f820b2f81f9
 - filename: analytics/dbt/models/staging/external/dgaln/stg_external_dgaln_loyers_2025.sql
   checksum: a3944c6ae4111753592d793d8abb38c9a453d512c4b322641453fc94ac6faed0
 - filename: analytics/dbt/models/staging/external/dgfip/stg_external_dgfip_deliberation_fiscalite_locale_communes.sql
@@ -49,8 +51,12 @@ fileignoreconfig:
   checksum: 3d029146348a92af21c5d517a98df77d95510bd7c8ef363dd73cc7b79b1f9c3b
 - filename: docs/plans/2026-03-10-signatory-document-upload.md
   checksum: 5fc6d0a38dfacd3145943fd929a153ca68fd51a4424ceead78735f622f7a94e1
+- filename: docs/rgaa/methodologie-tests.md
+  checksum: b396fb5a9d17e2a81cad49491c35cc459db9f2ff494c94dada9f3eeae0efeb53
 - filename: docs/superpowers/plans/2026-06-08-metabase-bar-charts.md
   checksum: f543602319c43d5d38886e7ac48977ea0ac371164fe9390e16243847784ed596
+- filename: docs/superpowers/plans/2026-07-08-zlv-repair-harness.md
+  checksum: 5cdf8d316f37257420dfa761977b4dc6b7988c8f840a87774658aca3772eee85
 - filename: docs/superpowers/specs/2026-06-08-metabase-bar-charts-design.md
   checksum: 3b404f31883e5fc4f4171bcc3418127e4d60fc4636f8e8dae290423cff9e4284
 - filename: docs/superpowers/specs/2026-06-13-auth-hardening-design.md
@@ -87,6 +93,8 @@ fileignoreconfig:
   checksum: b200d9e1fec310660a91e99cd048b24cbe983e0f9f965861d061a7f0992af43e
 - filename: packages/healthcheck/src/checks/brevo.ts
   checksum: bf698fc5af96ed3a4b5f1dc466ccd11a0996c3ec60b1f8f456ef934c9cca0b7d
+- filename: packages/pdf/src/components/test/CanvasContext.test.tsx
+  checksum: 6270f5ee870aeb9d0bd94329648dcc94391008671ef89ac20d9233140b367391
 - filename: packages/schemas/src/test/draft-update-payload.test.ts
   checksum: 3a053d1e3f7b1b3f9be6b5c240157e215c9b57a65f44089bdede6e69551a9ccd
 - filename: packages/utils/src/object.ts
@@ -127,10 +135,28 @@ fileignoreconfig:
   checksum: ba1ea278d8321501976c7c9da7e9428fe8819776369f7eef0ff1fbf1ee4ed8bf
 - filename: server/src/scripts/import-dpe/import_dpe_raw.py
   checksum: 49c0bd05ec24ec5ad408541392e444e2b2d86f0d777e428032215d08045f784a
+- filename: server/src/scripts/repairs/README.md
+  checksum: 6075a3ee332afad9bf02ba9026ca3919e862b74839e2ef366b82ffa31e12828e
+- filename: server/src/scripts/repairs/cli.ts
+  checksum: e65f7bc1b35f9fd58e101304e593be01be75ff67dccf89a2d383325be50ffd65
+- filename: server/src/scripts/repairs/lib/apply.ts
+  checksum: 644044062362fa5da4d58e676e9b978d95d9b7e5ecc534733e69c5f270a80659
+- filename: server/src/scripts/repairs/lib/plan.ts
+  checksum: 875c7afaf9b48ab4acefa485bc5c46068bed0dfbb256475e36992892023b6bd4
+- filename: server/src/scripts/repairs/lib/row-stream.ts
+  checksum: 3cbcb5a8a89cea040732055b3248de5aaa86920b30bf12ab9f7a1a05b6190a31
+- filename: server/src/scripts/repairs/lib/test/apply.test.ts
+  checksum: a5ba4fbeabbfbd356fdf72499cd3ab95c29dd6ab51aaeeb5f697d002100bf0d5
+- filename: server/src/scripts/repairs/lib/types.ts
+  checksum: d80daec1b1043f972816648570248b1fc66127258c943494b22b2bc398d9e618
+- filename: server/src/scripts/repairs/test/cli.test.ts
+  checksum: f4ce3945b8c77a11f90ea9016d3f59e4465657b07c52f13a78a25b834451e30c
 - filename: server/src/services/ceremaService/ceremaService.ts
   checksum: 2005ee48d86de2c6e6e57b187862cdeaafcb9f0c49e9a82ec7031910957174e8
 - filename: server/src/services/document-upload.ts
   checksum: 0cb813413285efbcff1805170c8c6017b54d8708a0dab34a89ba08524ce9724b
+- filename: server/src/services/metabase/metabase-normalize.ts
+  checksum: 1bd122150d2d7806ebf7cb708750814288d528fad4b3a1a3da0e1f9ae91f2f5d
 - filename: server/src/services/test/document-upload.test.ts
   checksum: d72231d6b3e4620d79c61ac6470bce501b70780ca88a64b7e91d5510eab66fc5
 - filename: server/src/test/factories/campaign.ts
@@ -151,30 +177,6 @@ fileignoreconfig:
   checksum: 2304f4d7aae5a50399f1e841943d3644fa74b20d3eb23fac8bb13e0e6de95418
 - filename: tools/terraform/modules/front/main.tf
   checksum: d45082efb9f7475758beab81bb2d87f57bcb199d131648787d7541ecdfda3467
-- filename: docs/superpowers/plans/2026-07-08-zlv-repair-harness.md
-  checksum: 5cdf8d316f37257420dfa761977b4dc6b7988c8f840a87774658aca3772eee85
-- filename: server/src/services/metabase/metabase-normalize.ts
-  checksum: 1bd122150d2d7806ebf7cb708750814288d528fad4b3a1a3da0e1f9ae91f2f5d
-- filename: server/src/scripts/repairs/lib/apply.ts
-  checksum: 644044062362fa5da4d58e676e9b978d95d9b7e5ecc534733e69c5f270a80659
-- filename: server/src/scripts/repairs/lib/plan.ts
-  checksum: 875c7afaf9b48ab4acefa485bc5c46068bed0dfbb256475e36992892023b6bd4
-- filename: server/src/scripts/repairs/lib/row-stream.ts
-  checksum: 3cbcb5a8a89cea040732055b3248de5aaa86920b30bf12ab9f7a1a05b6190a31
-- filename: server/src/scripts/repairs/lib/types.ts
-  checksum: d80daec1b1043f972816648570248b1fc66127258c943494b22b2bc398d9e618
-- filename: server/src/scripts/repairs/cli.ts
-  checksum: e65f7bc1b35f9fd58e101304e593be01be75ff67dccf89a2d383325be50ffd65
-- filename: server/src/scripts/repairs/lib/test/apply.test.ts
-  checksum: a5ba4fbeabbfbd356fdf72499cd3ab95c29dd6ab51aaeeb5f697d002100bf0d5
-- filename: server/src/scripts/repairs/test/cli.test.ts
-  checksum: f4ce3945b8c77a11f90ea9016d3f59e4465657b07c52f13a78a25b834451e30c
-- filename: server/src/scripts/repairs/README.md
-  checksum: 6075a3ee332afad9bf02ba9026ca3919e862b74839e2ef366b82ffa31e12828e
-- filename: .claude/rules/rgaa-accessibility.md
-  checksum: 7c3d25a7502faeb9fd4e438e7e6bdf39cc18ebd32401f1463420289cda46a4d3
-- filename: docs/rgaa/methodologie-tests.md
-  checksum: b396fb5a9d17e2a81cad49491c35cc459db9f2ff494c94dada9f3eeae0efeb53
 scopeconfig:
 - scope: node
 allowed_patterns:

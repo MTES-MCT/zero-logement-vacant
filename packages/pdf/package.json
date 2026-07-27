@@ -18,15 +18,22 @@
     }
   },
   "dependencies": {
+    "@codegouvfr/react-dsfr": "^1.32.4",
     "@react-pdf/renderer": "4.5.1",
+    "@turf/bbox": "7.3.5",
+    "@turf/helpers": "7.3.5",
+    "@turf/square": "7.3.5",
     "@zerologementvacant/models": "workspace:*",
+    "chart.js": "4.5.1",
     "react": "18.3.1",
     "react-pdf-html": "2.1.5",
+    "skia-canvas": "3.0.8",
     "ts-pattern": "5.9.0"
   },
   "devDependencies": {
     "@types/node": "24",
     "@types/react": "18.3.28",
+    "@zerologementvacant/factories": "workspace:^",
     "happy-dom": "20.9.0",
     "jest-extended": "4.0.2",
     "unplugin-dts": "1.0.0"

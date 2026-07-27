@@ -108,6 +108,9 @@
     "sharp": {
       "built": true
     },
+    "skia-canvas": {
+      "built": true
+    },
     "unrs-resolver": {
       "built": true
     }

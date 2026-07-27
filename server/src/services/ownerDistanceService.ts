@@ -8,7 +8,10 @@ import {
   toRelativeLocationDBO
 } from '~/repositories/housingOwnerRepository';
 
-import { hasExplicitForeignCountry } from './ownerCountryDetection';
+import {
+  hasExplicitForeignCountry,
+  hasExplicitFrenchCountry
+} from './ownerCountryDetection';
 
 const logger = createLogger('ownerDistanceService');
 
@@ -300,6 +303,15 @@ function hasUngeocodedExplicitForeignCountry(
   );
 }
 
+function hasVerifiedFrenchLocation(
+  address: AddressApi | null
+): address is AddressApi {
+  return (
+    address !== null &&
+    (hasValidCoordinates(address) || hasExplicitFrenchCountry(address.label))
+  );
+}
+
 /**
  * Calculate distance and classification between owner and housing addresses.
  */
@@ -336,8 +348,8 @@ export function calculateDistance(
   ) {
     relativeLocation = 'foreign-country';
   } else if (
-    hasValidCoordinates(ownerAddress) &&
-    hasValidCoordinates(housingAddress)
+    hasVerifiedFrenchLocation(ownerAddress) &&
+    hasVerifiedFrenchLocation(housingAddress)
   ) {
     relativeLocation = calculateGeographicClassification(
       ownerAddress.postalCode,

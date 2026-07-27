@@ -36,6 +36,36 @@
       "expectedDatabaseValue": 6
     },
     {
+      "name": "explicit France without coordinates and matching postal codes",
+      "owner": {
+        "banId": "owner-ban-id",
+        "label": "1 rue de la Paix, 75001 Paris, France",
+        "postalCode": "75001"
+      },
+      "housing": {
+        "banId": "housing-ban-id",
+        "label": "2 rue de Rivoli, 75001 Paris, France",
+        "postalCode": "75001"
+      },
+      "expectedRelativeLocation": "same-commune",
+      "expectedDatabaseValue": 1
+    },
+    {
+      "name": "ambiguous addresses without coordinates and matching postal codes",
+      "owner": {
+        "banId": "owner-ban-id",
+        "label": "1 rue de la Paix, 75001 Paris",
+        "postalCode": "75001"
+      },
+      "housing": {
+        "banId": "housing-ban-id",
+        "label": "2 rue de Rivoli, 75001 Paris",
+        "postalCode": "75001"
+      },
+      "expectedRelativeLocation": "other",
+      "expectedDatabaseValue": 7
+    },
+    {
       "name": "valid BAN coordinates take precedence over free-text country",
       "owner": {
         "banId": "owner-ban-id",

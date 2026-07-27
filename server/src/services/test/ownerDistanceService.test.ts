@@ -5,6 +5,7 @@ import type { RelativeLocation } from '@zerologementvacant/models';
 import { describe, it, expect } from 'vitest';
 
 import { AddressApi } from '~/models/AddressApi';
+import { toRelativeLocationDBO } from '~/repositories/housingOwnerRepository';
 
 import {
   haversineDistance,
@@ -246,13 +247,16 @@ describe('Owner Distance Service', () => {
 
     it.each(distanceContract.cases)(
       'follows the shared location contract: $name',
-      ({ owner, housing, expectedRelativeLocation }) => {
+      ({ owner, housing, expectedRelativeLocation, expectedDatabaseValue }) => {
         const result = calculateDistance(
           contractAddress(owner, AddressKinds.Owner),
           contractAddress(housing, AddressKinds.Housing)
         );
 
         expect(result.relativeLocation).toBe(expectedRelativeLocation);
+        expect(toRelativeLocationDBO(result.relativeLocation)).toBe(
+          expectedDatabaseValue
+        );
       }
     );
 

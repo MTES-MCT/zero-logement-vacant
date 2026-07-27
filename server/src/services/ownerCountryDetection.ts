@@ -47,6 +47,11 @@ const STREET_OR_BUILDING_TERMS = [
   'villa'
 ];
 
+const COUNTRY_DISPLAY_NAMES = [
+  new Intl.DisplayNames(['en'], { type: 'region' }),
+  new Intl.DisplayNames(['fr'], { type: 'region' })
+];
+
 function normalizeCountryEvidence(value: string): string {
   return value
     .normalize('NFD')
@@ -57,22 +62,21 @@ function normalizeCountryEvidence(value: string): string {
     .trim();
 }
 
-const FOREIGN_COUNTRY_TERMS = (() => {
-  const displayNames = [
-    new Intl.DisplayNames(['en'], { type: 'region' }),
-    new Intl.DisplayNames(['fr'], { type: 'region' })
-  ];
-
+function countryTerms(countryCodes: string[]): Set<string> {
   return new Set(
-    ISO_COUNTRY_CODES.filter((code) => !FRENCH_COUNTRY_CODES.has(code)).flatMap(
-      (code) =>
-        displayNames.flatMap((names) => {
-          const name = names.of(code);
-          return name ? [normalizeCountryEvidence(name)] : [];
-        })
+    countryCodes.flatMap((code) =>
+      COUNTRY_DISPLAY_NAMES.flatMap((names) => {
+        const name = names.of(code);
+        return name ? [normalizeCountryEvidence(name)] : [];
+      })
     )
   );
-})();
+}
+
+const FRENCH_COUNTRY_TERMS = countryTerms([...FRENCH_COUNTRY_CODES]);
+const FOREIGN_COUNTRY_TERMS = countryTerms(
+  ISO_COUNTRY_CODES.filter((code) => !FRENCH_COUNTRY_CODES.has(code))
+);
 
 function isCountryTermPartOfStreetName(
   normalizedAddress: string,
@@ -85,7 +89,10 @@ function isCountryTermPartOfStreetName(
   return pattern.test(normalizedAddress);
 }
 
-export function hasExplicitForeignCountry(label: string | undefined): boolean {
+function hasExplicitCountry(
+  label: string | undefined,
+  countryTerms: ReadonlySet<string>
+): boolean {
   if (!label?.trim()) {
     return false;
   }
@@ -97,7 +104,7 @@ export function hasExplicitForeignCountry(label: string | undefined): boolean {
     .filter(Boolean);
   const lastComponent = components.at(-1);
 
-  for (const countryTerm of FOREIGN_COUNTRY_TERMS) {
+  for (const countryTerm of countryTerms) {
     if (normalized === countryTerm) {
       return true;
     }
@@ -114,4 +121,12 @@ export function hasExplicitForeignCountry(label: string | undefined): boolean {
   }
 
   return false;
+}
+
+export function hasExplicitFrenchCountry(label: string | undefined): boolean {
+  return hasExplicitCountry(label, FRENCH_COUNTRY_TERMS);
+}
+
+export function hasExplicitForeignCountry(label: string | undefined): boolean {
+  return hasExplicitCountry(label, FOREIGN_COUNTRY_TERMS);
 }

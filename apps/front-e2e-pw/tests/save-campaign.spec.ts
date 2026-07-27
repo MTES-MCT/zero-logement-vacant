@@ -81,7 +81,7 @@ test.describe('Save a campaign from a group', () => {
     // Success: toast, modal closes, and the campaign lands in the list. The
     // flow deliberately stays on /campagnes (unlike the group-page flow, which
     // navigates to the new campaign).
-    await expect(page.getByText('La campagne a été ajoutée')).toBeVisible();
+    await expect(page.getByText('Campagne créée !')).toBeVisible();
     await expect(step2(page)).toBeHidden();
 
     // The new campaign is in the list — its delete button carries a unique,

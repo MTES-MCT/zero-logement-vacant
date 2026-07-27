@@ -35,7 +35,7 @@ function SaveCampaignFlow() {
     message: {
       error: 'Erreur lors de la création de la campagne',
       loading: 'Création de la campagne...',
-      success: 'La campagne a été ajoutée'
+      success: 'Campagne créée !'
     }
   });
 

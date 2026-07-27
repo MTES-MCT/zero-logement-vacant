@@ -10,7 +10,6 @@ import ReactiveMap, {
   type ViewState,
   type ViewStateChangeEvent
 } from 'react-map-gl/maplibre';
-import { useNavigate } from 'react-router';
 
 import {
   type Building,
@@ -61,7 +60,6 @@ export interface MapProps {
 }
 
 function Map(props: MapProps) {
-  const navigate = useNavigate();
   const [viewState, setViewState] = useState<ViewState>({
     longitude: props.viewState?.longitude ?? 2,
     latitude: props.viewState?.latitude ?? 47,
@@ -238,9 +236,6 @@ function Map(props: MapProps) {
         open={isOpen}
         onClose={() => {
           setSelected(null);
-        }}
-        onView={(housing) => {
-          navigate(`/logements/${housing.id}`);
         }}
       />
     </>

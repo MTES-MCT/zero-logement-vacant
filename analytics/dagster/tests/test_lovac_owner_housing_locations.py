@@ -84,7 +84,7 @@ def _backfill_context(**overrides):
         "geo_codes": [],
         "allow_full_year": False,
         "dry_run": False,
-        "rebuild_targets": True,
+        "rebuild_targets": False,
         "limit": 500,
         "workers": 2,
         "chunk": 100,
@@ -141,6 +141,12 @@ def _backfill_report():
 
 def test_owner_housing_location_module_is_importable():
     assert LocationScope(data_file_year="lovac-2026").geo_codes == ()
+
+
+def test_backfill_defaults_to_resuming_existing_targets():
+    config = asset_module.lovac_owner_ban_backfill.op.config_schema.as_field()
+
+    assert config.config_type.fields["rebuild_targets"].default_value is False
 
 
 def test_runtime_script_fails_when_packaged_path_is_missing(tmp_path):
@@ -427,12 +433,31 @@ def test_backfill_asset_passes_scope_and_rebuilds_targets(monkeypatch):
         lambda relative_path: PROJECT_ROOT / "scripts" / "backfill_ban_owners.py",
     )
 
-    _compute(asset_module.lovac_owner_ban_backfill)(_backfill_context())
+    _compute(asset_module.lovac_owner_ban_backfill)(
+        _backfill_context(rebuild_targets=True)
+    )
 
     command = run.call_args.args[0]
     assert command[command.index("--establishment-id") + 1] == ESTABLISHMENT_ID
     assert "--rebuild-targets" in command
     assert "--reset" in command
+
+
+def test_backfill_asset_resumes_targets_by_default(monkeypatch):
+    completed = SimpleNamespace(returncode=0, stdout="ok", stderr="")
+    run = Mock(return_value=completed)
+    monkeypatch.setattr(asset_module.subprocess, "run", run)
+    monkeypatch.setattr(
+        asset_module,
+        "_runtime_script",
+        lambda relative_path: PROJECT_ROOT / "scripts" / "backfill_ban_owners.py",
+    )
+
+    _compute(asset_module.lovac_owner_ban_backfill)(_backfill_context())
+
+    command = run.call_args.args[0]
+    assert "--rebuild-targets" not in command
+    assert "--reset" not in command
 
 
 def test_scoped_backfill_allows_all_candidates_without_full_year_opt_in(monkeypatch):

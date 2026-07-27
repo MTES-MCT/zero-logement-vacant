@@ -186,7 +186,6 @@ ops:
       workers: 2
       chunk: 500
       fetch_batch: 5000
-      rebuild_targets: true
   lovac_owner_housing_locations:
     config:
       data_file_year: lovac-2026
@@ -205,9 +204,11 @@ ops:
 `limit` is a strict upper bound. The backfill stops the current batch on any BAN
 slice error and does not advance its resume cursor past failed owners. Fix the
 API or connectivity issue, then relaunch the same configuration to resume.
-Tables and cursor files are isolated by cohort and scope. Keep
-`rebuild_targets: true` for the first run after an import; set it to `false`
-only to resume that exact operation without rebuilding its target table.
+Tables and cursor files are isolated by cohort and scope. A missing target table
+is built automatically, while the default `rebuild_targets: false` preserves an
+existing table and its resume cursor. Set `rebuild_targets: true` explicitly
+only after a new import reuses a cohort and scope whose target table already
+exists.
 
 For a full-year owner BAN backfill, set `allow_full_year: true`. Do that only as
 a planned operation because it can geocode many owners:

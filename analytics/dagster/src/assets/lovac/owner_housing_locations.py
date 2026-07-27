@@ -158,10 +158,10 @@ LOVAC_SCOPE_CONFIG = {
         "dry_run": Field(Bool, default_value=True),
         "rebuild_targets": Field(
             Bool,
-            default_value=True,
+            default_value=False,
             description=(
                 "Rebuild the scoped owner target table and reset its cursor. "
-                "Disable only when resuming the same post-import operation."
+                "Enable explicitly after a new import reuses an existing scope."
             ),
         ),
         "limit": Field(Int, default_value=0, description="0 means all candidates."),

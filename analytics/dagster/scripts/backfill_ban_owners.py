@@ -11,12 +11,11 @@ This script:
   - Scopes candidates by one of two modes (``--by``):
       * ``owner-cohort`` (default) — owners whose ``owners.data_source`` matches
         ``--data-source`` (e.g. ``lovac-2026``). Original behaviour.
-      * ``housing-lovac`` — owners linked to at least one housing whose
+      * ``housing-lovac`` — owners linked through an active ownership row
+        (``owners_housing.rank >= 1``) to at least one housing whose
         ``fast_housing.data_file_years`` contains ``--data-source``, regardless
         of the owner's own ``data_source``. Catches owners imported in an older
-        cohort (e.g. ``lovac-2025``) who own a ``lovac-2026`` housing. The
-        predicate uses an EXISTS semi-join so keyset pagination on ``o.id`` stays
-        correct (no fan-out from one-to-many joins).
+        cohort (e.g. ``lovac-2025``) who own a ``lovac-2026`` housing.
   - Uses **keyset pagination** (``WHERE o.id > :last_id``) instead of re-scanning
     from the start each batch — O(N) over the cohort, not O(N²).
   - Geocodes chunks in **parallel** against the public BAN API.
@@ -134,8 +133,8 @@ WHERE o.address_dgfip IS NOT NULL
 
 # ---------------------------------------------------------------------------
 # housing-lovac mode
-# Geocodes owners linked to at least one housing whose data_file_years contains
-# the target cohort tag, regardless of the owner's own data_source.
+# Geocodes active owners linked to at least one housing whose data_file_years
+# contains the target cohort tag, regardless of the owner's own data_source.
 #
 # A live EXISTS / JOIN does NOT work here: the owner<-housing link is "all of
 # owners_housing (~6.6M rows) hash-joined to a 96-partition seq scan of
@@ -160,6 +159,7 @@ FROM owners_housing oh
 JOIN fast_housing fh
   ON fh.id = oh.housing_id AND fh.geo_code = oh.housing_geo_code
 WHERE fh.data_file_years @> ARRAY[%(data_source)s]::text[]
+  AND oh.rank >= 1
 {scope_sql};
 ALTER TABLE {table} ADD PRIMARY KEY (id);
 """
@@ -591,8 +591,9 @@ def main() -> None:
         help=(
             "Candidate selection mode. "
             "'owner-cohort' (default): owners whose data_source matches --data-source. "
-            "'housing-lovac': owners linked to a housing whose data_file_years contains "
-            "--data-source, regardless of the owner's own data_source. "
+            "'housing-lovac': active owners linked to a housing whose "
+            "data_file_years contains --data-source, regardless of the owner's "
+            "own data_source. "
             "'all-owners': every owner missing a BAN address, no filter."
         ),
     )

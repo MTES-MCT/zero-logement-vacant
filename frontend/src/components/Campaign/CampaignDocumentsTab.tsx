@@ -21,10 +21,28 @@ function CampaignDocumentsTab(props: Readonly<CampaignDocumentsTabProps>) {
   const {
     data: documents,
     isLoading,
-    isSuccess
+    isSuccess,
+    isError,
+    refetch
   } = useFindCampaignDocumentsQuery(campaign.id);
 
-  const [linkDocuments] = useLinkDocumentsToCampaignMutation();
+  const [linkDocuments, linkDocumentsMutation] =
+    useLinkDocumentsToCampaignMutation();
+  // The upload zone reports success once files are stored, under the same
+  // "file-upload" toast. Reuse it so the final state reflects the attach step:
+  // if linking fails, the document exists but is not associated to the campaign.
+  useNotification({
+    toastId: 'file-upload',
+    isError: linkDocumentsMutation.isError,
+    isLoading: linkDocumentsMutation.isLoading,
+    isSuccess: linkDocumentsMutation.isSuccess,
+    message: {
+      error:
+        'Le document a été importé mais n’a pas pu être associé à la campagne. Veuillez réessayer.',
+      loading: 'Association du document à la campagne...',
+      success: 'Document associé à la campagne !'
+    }
+  });
   function onUpload(uploaded: ReadonlyArray<DocumentDTO>): void {
     linkDocuments({
       campaignId: campaign.id,
@@ -70,6 +88,8 @@ function CampaignDocumentsTab(props: Readonly<CampaignDocumentsTabProps>) {
       documents={documents ?? []}
       isLoading={isLoading}
       isSuccess={isSuccess}
+      isError={isError}
+      onRetry={refetch}
       onRename={onRename}
       onDelete={onDelete}
       emptyStateMessage="Il n’y a pas de document associé à cette campagne"

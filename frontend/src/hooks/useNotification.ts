@@ -23,6 +23,8 @@ export function useNotification(props: NotificationProps) {
     // `role="status"` (`aria-live="polite"`).
     if (props.isLoading) {
       const loading = props.message?.loading || 'Sauvegarde...';
+      // Loading and success are non-critical: announce them politely (role
+      // "status" → aria-live polite). Errors keep the assertive "alert" role.
       toast(loading, {
         autoClose: false,
         isLoading: true,

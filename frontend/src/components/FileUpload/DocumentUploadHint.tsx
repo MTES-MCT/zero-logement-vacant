@@ -1,6 +1,8 @@
 function DocumentUploadHint() {
+  // Rendered inside DSFR's `<span class="fr-hint-text">`, so the content must
+  // stay inline: a block element here would produce invalid `<span><div>` markup.
   return (
-    <div>
+    <>
       Taille maximale par fichier : 25Mo. Formats supportés : images (png, jpg,
       heic, webp) et documents (pdf, doc, docx, xls, xlsx, ppt, pptx). Le nom du
       fichier doit faire moins de 255 caractères. Plusieurs fichiers possibles.
@@ -14,7 +16,7 @@ function DocumentUploadHint() {
         <span className="fr-sr-only"> (nouvelle fenêtre)</span>
       </a>
       .
-    </div>
+    </>
   );
 }
 

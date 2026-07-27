@@ -1,3 +1,5 @@
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import { Button } from '@codegouvfr/react-dsfr/Button';
 import Pictures from '@codegouvfr/react-dsfr/picto/Pictures';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
@@ -19,6 +21,12 @@ export interface DocumentsTabProps {
   documents: ReadonlyArray<DocumentDTO>;
   isLoading?: boolean;
   isSuccess?: boolean;
+  isError?: boolean;
+  /**
+   * Called when the user retries after a loading error. When provided, a retry
+   * button is shown alongside the error alert.
+   */
+  onRetry?: () => void;
   documentCardProps?: Pick<DocumentCardProps, 'actions'>;
   /**
    * The upload zone to render in the header, when the current user has write access.
@@ -160,9 +168,29 @@ function DocumentsTab(props: Readonly<DocumentsTabProps>) {
         {match({
           documents,
           isLoading: props.isLoading,
-          isSuccess: props.isSuccess
+          isSuccess: props.isSuccess,
+          isError: props.isError
         })
           .returnType<ReactNode>()
+          .with({ isError: true }, () => (
+            <Stack
+              component="section"
+              spacing="1rem"
+              useFlexGap
+              sx={{ alignItems: 'flex-start' }}
+            >
+              <Alert
+                severity="error"
+                title="Le chargement des documents a échoué"
+                description="Une erreur est survenue. Veuillez réessayer."
+              />
+              {props.onRetry ? (
+                <Button priority="secondary" onClick={props.onRetry}>
+                  Réessayer
+                </Button>
+              ) : null}
+            </Stack>
+          ))
           .with({ isSuccess: true, documents: [] }, () => (
             <Stack
               component="section"
@@ -192,9 +220,13 @@ function DocumentsTab(props: Readonly<DocumentsTabProps>) {
                   Documents ({documents.length})
                 </Typography>
 
-                <Grid container spacing="1rem">
+                <Grid container spacing="1rem" role="list">
                   {documents.map((document, index) => (
-                    <Grid key={document.id} size={{ xs: 12, md: 6, xl: 4 }}>
+                    <Grid
+                      key={document.id}
+                      size={{ xs: 12, md: 6, xl: 4 }}
+                      role="listitem"
+                    >
                       <DocumentCard
                         {...props.documentCardProps}
                         document={document}

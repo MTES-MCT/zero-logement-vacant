@@ -121,11 +121,6 @@ export function createCampaignFromGroupModal(
               </Stack>
             )}
 
-            <Typography variant="body2" sx={{ mb: '0.25rem' }}>
-              Une fois la campagne créée, les logements « Non suivi » passeront
-              « En attente de retour ».
-            </Typography>
-
             <Box sx={{ '& .fr-input-group': { marginBottom: '0.75rem' } }}>
               <AppTextInputNext<FormSchema>
                 label="Nom (obligatoire)"

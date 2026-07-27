@@ -19,7 +19,10 @@ from dagster import (
     asset,
 )
 
-from ...owner_housing_locations import calculate_owner_housing_locations
+from ...owner_housing_locations import (
+    LocationComputationError,
+    calculate_owner_housing_locations,
+)
 
 
 def _analytics_dagster_dir() -> Path:
@@ -279,18 +282,27 @@ def lovac_owner_housing_locations(
         )
     limit = config["limit"] or None
 
-    report = calculate_owner_housing_locations(
-        db_url=context.resources.psycopg2_connection.dsn,
-        data_file_year=config["data_file_year"],
-        establishment_id=establishment_id,
-        geo_codes=geo_codes,
-        allow_full_year=config["allow_full_year"],
-        limit=limit,
-        force=config["force"],
-        dry_run=config["dry_run"],
-        batch_size=config["batch_size"],
-        num_workers=config["num_workers"],
-    )
+    try:
+        report = calculate_owner_housing_locations(
+            db_url=context.resources.psycopg2_connection.dsn,
+            data_file_year=config["data_file_year"],
+            establishment_id=establishment_id,
+            geo_codes=geo_codes,
+            allow_full_year=config["allow_full_year"],
+            limit=limit,
+            force=config["force"],
+            dry_run=config["dry_run"],
+            batch_size=config["batch_size"],
+            num_workers=config["num_workers"],
+        )
+    except LocationComputationError as error:
+        report_dict = error.report.to_dict()
+        raise Failure(
+            "Owner-housing location run failed after processing "
+            f"{report_dict['processed_pairs']} of "
+            f"{report_dict['candidate_count']} candidate pair(s).",
+            metadata=_metadata_from_dict(report_dict),
+        ) from error
     report_dict = report.to_dict()
     context.log.info("Location computation report: %s", report_dict)
     if report_dict["errors"] > 0:

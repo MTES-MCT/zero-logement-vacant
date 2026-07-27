@@ -65,6 +65,14 @@ class LocationComputationReport:
         return asdict(self)
 
 
+class LocationComputationError(RuntimeError):
+    """Fatal location-computation error with its partial execution report."""
+
+    def __init__(self, report: LocationComputationReport, cause: BaseException) -> None:
+        super().__init__(f"Owner-housing location computation failed: {cause}")
+        self.report = report
+
+
 def _execute_update_batches(calculator, batches: list[tuple], num_workers: int):
     if num_workers <= 1:
         for batch in tqdm(batches, desc="Saving to database", unit="batch"):
@@ -194,7 +202,9 @@ class DistanceCalculator:
     ) -> int:
         clauses, params = self._scope_sql(scope)
         if not force:
-            clauses.append("oh.locprop_relative_ban IS NULL")
+            clauses.append(
+                "(oh.locprop_relative_ban IS NULL OR oh.locprop_relative_ban = 7)"
+            )
 
         where_sql = "\nAND ".join(clauses)
         query = f"""
@@ -218,7 +228,9 @@ class DistanceCalculator:
     ) -> list[dict]:
         clauses, params = self._scope_sql(scope)
         if not force:
-            clauses.append("oh.locprop_relative_ban IS NULL")
+            clauses.append(
+                "(oh.locprop_relative_ban IS NULL OR oh.locprop_relative_ban = 7)"
+            )
         if last_key != ZERO_KEY:
             clauses.append("""
                 (oh.owner_id::text, oh.housing_id::text, oh.housing_geo_code)
@@ -254,7 +266,10 @@ class DistanceCalculator:
         return list(self.cursor.fetchall())
 
     def get_address_data(
-        self, ref_id: str, address_kind: str
+        self,
+        ref_id: str,
+        address_kind: str,
+        housing_geo_code: str | None = None,
     ) -> Optional[tuple[str, str, float, float, str, str]]:
         try:
             if address_kind == "Owner":
@@ -280,13 +295,12 @@ class DistanceCalculator:
                       ba.address,
                       ba.latitude,
                       ba.longitude,
-                      h.geo_code,
+                      %s::text AS geo_code,
                       ba.ban_id
                     FROM ban_addresses ba
-                    LEFT JOIN fast_housing h ON h.id = ba.ref_id
                     WHERE ba.ref_id = %s AND ba.address_kind = %s
                     """,
-                    (ref_id, address_kind),
+                    (housing_geo_code, ref_id, address_kind),
                 )
 
             result = self.cursor.fetchone()
@@ -345,10 +359,9 @@ class DistanceCalculator:
                       ba.address,
                       ba.latitude,
                       ba.longitude,
-                      h.geo_code,
+                      NULL::text AS geo_code,
                       ba.ban_id
                     FROM ban_addresses ba
-                    LEFT JOIN fast_housing h ON h.id = ba.ref_id
                     WHERE ba.ref_id = ANY(%s::uuid[]) AND ba.address_kind = 'Housing'
                     """,
                     (housing_ids,),
@@ -415,7 +428,11 @@ class DistanceCalculator:
         return self.detect_country_simple(address)
 
     def process_single_pair(
-        self, owner_id: str, housing_id: str, address_cache: dict | None = None
+        self,
+        owner_id: str,
+        housing_id: str,
+        address_cache: dict | None = None,
+        housing_geo_code: str | None = None,
     ) -> tuple[Optional[float], int]:
         if address_cache is not None:
             owner_data = address_cache.get((owner_id, "Owner"))
@@ -423,6 +440,13 @@ class DistanceCalculator:
         else:
             owner_data = self.get_address_data(owner_id, "Owner")
             housing_data = self.get_address_data(housing_id, "Housing")
+
+        if housing_data and housing_geo_code:
+            housing_data = (
+                *housing_data[:4],
+                housing_geo_code,
+                *housing_data[5:],
+            )
 
         data_presence = (bool(owner_data), bool(housing_data))
         missing_data_stat = MISSING_PAIR_DATA_STAT.get(data_presence)
@@ -856,12 +880,16 @@ class DistanceCalculator:
         pairs: list[dict],
         address_cache: dict,
         classification_counts: Counter[int],
+        report: LocationComputationReport | None = None,
     ) -> list[dict]:
         updates = []
         for pair in tqdm(pairs, desc="Processing pairs", unit="pair"):
             try:
                 distance, classification = self.process_single_pair(
-                    pair["owner_id"], pair["housing_id"], address_cache
+                    pair["owner_id"],
+                    pair["housing_id"],
+                    address_cache,
+                    housing_geo_code=pair["housing_geo_code"],
                 )
                 classification_counts[classification] += 1
                 updates.append(
@@ -874,6 +902,14 @@ class DistanceCalculator:
                     }
                 )
                 self.stats["processed_pairs"] += 1
+                if report is not None:
+                    report.processed_pairs = self.stats["processed_pairs"]
+                    report.updates_prepared += 1
+                    report.classification_counts = {
+                        str(key): value
+                        for key, value in sorted(classification_counts.items())
+                    }
+                    report.stats = dict(self.stats)
             except Exception as error:
                 logging.exception(
                     "Error processing pair %s-%s: %s",
@@ -894,6 +930,7 @@ class DistanceCalculator:
         dry_run: bool,
         batch_size: int,
         num_workers: int,
+        report: LocationComputationReport,
     ) -> tuple[int, int, int, Counter[int]]:
         classification_counts: Counter[int] = Counter()
         total_updated = 0
@@ -925,13 +962,15 @@ class DistanceCalculator:
             )
             address_cache = self.batch_get_address_data(pairs)
             updates = self._prepare_pair_updates(
-                pairs, address_cache, classification_counts
+                pairs, address_cache, classification_counts, report
             )
             processed += len(updates)
             prepared += len(updates)
             total_updated += self.update_database(
                 updates, num_workers=num_workers, dry_run=dry_run
             )
+            report.updated_pairs = total_updated
+            report.stats = dict(self.stats)
 
         return processed, prepared, total_updated, classification_counts
 
@@ -945,23 +984,23 @@ class DistanceCalculator:
         num_workers: int = 1,
     ) -> LocationComputationReport:
         self._print_run_configuration(scope, limit, force, dry_run)
-        self.connect()
+        report = LocationComputationReport(
+            scope={
+                "data_file_year": scope.data_file_year,
+                "establishment_id": scope.establishment_id,
+                "geo_codes": list(scope.geo_codes),
+            },
+            dry_run=dry_run,
+            force=force,
+            limit=limit,
+            candidate_count=0,
+        )
 
         try:
-            candidate_count = self.count_owner_housing_pairs(scope, force=force)
-            report = LocationComputationReport(
-                scope={
-                    "data_file_year": scope.data_file_year,
-                    "establishment_id": scope.establishment_id,
-                    "geo_codes": list(scope.geo_codes),
-                },
-                dry_run=dry_run,
-                force=force,
-                limit=limit,
-                candidate_count=candidate_count,
-            )
-            print(f"Candidate pairs: {candidate_count:,}")
-            if candidate_count == 0:
+            self.connect()
+            report.candidate_count = self.count_owner_housing_pairs(scope, force=force)
+            print(f"Candidate pairs: {report.candidate_count:,}")
+            if report.candidate_count == 0:
                 return report
 
             processed, prepared, total_updated, classification_counts = (
@@ -972,6 +1011,7 @@ class DistanceCalculator:
                     dry_run=dry_run,
                     batch_size=batch_size,
                     num_workers=num_workers,
+                    report=report,
                 )
             )
 
@@ -985,6 +1025,12 @@ class DistanceCalculator:
             report.stats = dict(self.stats)
             self.print_final_statistics(report)
             return report
+        except Exception as error:
+            self.stats["errors"] = max(1, self.stats["errors"])
+            report.processed_pairs = self.stats["processed_pairs"]
+            report.errors = self.stats["errors"]
+            report.stats = dict(self.stats)
+            raise LocationComputationError(report, error) from error
         finally:
             self.disconnect()
 

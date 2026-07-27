@@ -40,6 +40,9 @@ def _load_asset_module():
 
 asset_module = _load_asset_module()
 from src.owner_housing_locations import LocationScope  # noqa: E402
+from src.owner_housing_locations.calculator import (  # noqa: E402
+    LocationComputationError,
+)
 
 
 def _load_backfill_module():
@@ -167,6 +170,34 @@ def test_location_asset_fails_real_run_when_report_contains_errors(monkeypatch):
 
     with pytest.raises(asset_module.Failure, match="reported 1 processing error"):
         compute(context, backfill_report)
+
+
+def test_location_asset_exposes_partial_report_on_computation_failure(monkeypatch):
+    partial_report = _report(
+        candidate_count=2,
+        processed_pairs=1,
+        updates_prepared=1,
+        updated_pairs=1,
+        errors=1,
+        classification_counts={"1": 1},
+    )
+    calculate = Mock(
+        side_effect=LocationComputationError(
+            partial_report,
+            RuntimeError("invalid second pair"),
+        )
+    )
+    monkeypatch.setattr(asset_module, "calculate_owner_housing_locations", calculate)
+    compute = _compute(asset_module.lovac_owner_housing_locations)
+
+    with pytest.raises(
+        asset_module.Failure,
+        match="failed after processing 1 of 2 candidate pair",
+    ) as raised:
+        compute(_location_context(), _backfill_report())
+
+    assert raised.value.metadata["errors"].value == 1
+    assert raised.value.metadata["classification_counts"].data == {"1": 1}
 
 
 def test_dry_run_backfill_reports_its_normalized_scope():

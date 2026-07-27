@@ -2,6 +2,7 @@
 
 from .calculator import (
     DistanceCalculator,
+    LocationComputationError,
     LocationComputationReport,
     LocationScope,
     calculate_owner_housing_locations,
@@ -9,6 +10,7 @@ from .calculator import (
 
 __all__ = [
     "DistanceCalculator",
+    "LocationComputationError",
     "LocationComputationReport",
     "LocationScope",
     "calculate_owner_housing_locations",

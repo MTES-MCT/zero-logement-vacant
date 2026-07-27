@@ -16,6 +16,7 @@ Run tests with:
 
 import json
 import math
+from collections import Counter
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
@@ -27,6 +28,7 @@ from calculate_distances import (
     main,
 )
 from country_detector import CountryDetector
+from src.owner_housing_locations.calculator import LocationComputationError
 
 DISTANCE_CONTRACT_CASES = json.loads(
     (
@@ -419,6 +421,65 @@ class TestProcessSinglePair:
 
         assert classification == contract_case["expectedDatabaseValue"]
 
+    def test_pair_geo_code_overrides_stale_housing_lookup_geo_code(self):
+        calculator = DistanceCalculator("postgresql://unused")
+        address_cache = {
+            ("owner123", "Owner"): (
+                "75001",
+                "1 rue de Paris",
+                48.86,
+                2.35,
+                "75001",
+                "owner-ban",
+            ),
+            ("housing456", "Housing"): (
+                None,
+                "2 rue de Paris",
+                48.87,
+                2.36,
+                "75001",
+                "housing-ban",
+            ),
+        }
+
+        _, classification = calculator.process_single_pair(
+            "owner123",
+            "housing456",
+            address_cache,
+            housing_geo_code="75002",
+        )
+
+        assert classification == 2
+
+    def test_pair_geo_code_also_overrides_the_fallback_lookup(self):
+        calculator = DistanceCalculator("postgresql://unused")
+        calculator.get_address_data = Mock(
+            side_effect=[
+                (
+                    "75001",
+                    "1 rue de Paris",
+                    48.86,
+                    2.35,
+                    "75001",
+                    "owner-ban",
+                ),
+                (
+                    None,
+                    "2 rue de Paris",
+                    48.87,
+                    2.36,
+                    None,
+                    "housing-ban",
+                ),
+            ]
+        )
+
+        _, classification = calculator.process_single_pair(
+            "owner123", "housing456", housing_geo_code="75002"
+        )
+
+        assert classification == 2
+
     def test_missing_owner_data(self, calculator):
         """Test pair with missing owner data."""
         address_cache = {
@@ -689,6 +750,32 @@ class TestProcessSinglePair:
         assert classification == 1
 
 
+class TestAddressData:
+    def test_housing_lookup_uses_the_pair_geo_code_without_joining_housing(self):
+        calculator = DistanceCalculator("postgresql://unused")
+        calculator.cursor = Mock()
+        calculator.cursor.fetchone.return_value = {
+            "postal_code": None,
+            "address": "2 rue de Paris",
+            "latitude": 48.87,
+            "longitude": 2.36,
+            "geo_code": "75002",
+            "ban_id": "housing-ban",
+        }
+
+        result = calculator.get_address_data(
+            "00000000-0000-0000-0000-000000000001",
+            "Housing",
+            housing_geo_code="75002",
+        )
+
+        query = calculator.cursor.execute.call_args.args[0]
+        params = calculator.cursor.execute.call_args.args[1]
+        assert result[4] == "75002"
+        assert "fast_housing" not in query
+        assert params == ("75002", "00000000-0000-0000-0000-000000000001", "Housing")
+
+
 class TestBatchAddressData:
     """Test batch address data loading."""
 
@@ -776,6 +863,8 @@ class TestBatchAddressData:
 
         # Verify that execute was called twice (once for owners, once for housing)
         assert calculator.cursor.execute.call_count == 2
+        housing_query = calculator.cursor.execute.call_args_list[1].args[0]
+        assert "fast_housing" not in housing_query
 
     def test_batch_loading_with_empty_pairs(self, calculator):
         """Test batch loading with no pairs."""
@@ -953,6 +1042,43 @@ class TestFunctionalEndToEnd:
 class TestRunFailurePropagation:
     """Test that orchestration failures cannot produce a successful report."""
 
+    def test_pair_preparation_uses_the_geo_code_from_each_pair(self):
+        calc = DistanceCalculator("postgresql://example")
+        pairs = [
+            {
+                "owner_id": "owner-1",
+                "housing_id": "housing-1",
+                "housing_geo_code": "75001",
+            },
+            {
+                "owner_id": "owner-1",
+                "housing_id": "housing-1",
+                "housing_geo_code": "75002",
+            },
+        ]
+        address_cache = {
+            ("owner-1", "Owner"): (
+                "75001",
+                "1 rue de Paris",
+                48.86,
+                2.35,
+                "75001",
+                "owner-ban",
+            ),
+            ("housing-1", "Housing"): (
+                None,
+                "2 rue de Paris",
+                48.87,
+                2.36,
+                "99999",
+                "housing-ban",
+            ),
+        }
+
+        updates = calc._prepare_pair_updates(pairs, address_cache, Counter())
+
+        assert [update["classification"] for update in updates] == [1, 2]
+
     def test_address_batch_query_error_aborts_run_before_processing_or_writing(self):
         calc = DistanceCalculator("postgresql://example")
         calc.connect = Mock()
@@ -974,11 +1100,36 @@ class TestRunFailurePropagation:
         calc.update_database = Mock()
         scope = LocationScope(data_file_year="lovac-2026")
 
-        with pytest.raises(RuntimeError, match="Address batch query failed"):
+        with pytest.raises(
+            LocationComputationError, match="Address batch query failed"
+        ) as raised:
             calc.run(scope, batch_size=1)
 
+        assert isinstance(raised.value.__cause__, RuntimeError)
+        assert raised.value.report.candidate_count == 1
+        assert raised.value.report.errors == 1
+        assert raised.value.report.stats["errors"] == 1
         calc.process_single_pair.assert_not_called()
         calc.update_database.assert_not_called()
+        calc.disconnect.assert_called_once_with()
+
+    def test_candidate_count_failure_has_a_structured_empty_report(self):
+        calc = DistanceCalculator("postgresql://example")
+        calc.connect = Mock()
+        calc.disconnect = Mock()
+        calc.count_owner_housing_pairs = Mock(
+            side_effect=RuntimeError("candidate count failed")
+        )
+
+        with pytest.raises(
+            LocationComputationError, match="candidate count failed"
+        ) as raised:
+            calc.run(LocationScope(data_file_year="lovac-2026"))
+
+        assert raised.value.report.candidate_count == 0
+        assert raised.value.report.processed_pairs == 0
+        assert raised.value.report.errors == 1
+        assert isinstance(raised.value.__cause__, RuntimeError)
         calc.disconnect.assert_called_once_with()
 
     def test_database_write_error_aborts_run_and_disconnects(self):
@@ -1005,7 +1156,9 @@ class TestRunFailurePropagation:
         with pytest.raises(RuntimeError, match="database update failed"):
             calc.run(scope, batch_size=1)
 
-        calc.process_single_pair.assert_called_once_with("owner-1", "housing-1", {})
+        calc.process_single_pair.assert_called_once_with(
+            "owner-1", "housing-1", {}, housing_geo_code="75001"
+        )
         calc.update_database.assert_called_once()
         calc.disconnect.assert_called_once_with()
 
@@ -1033,6 +1186,47 @@ class TestRunFailurePropagation:
 
         calc.update_database.assert_not_called()
         calc.disconnect.assert_called_once_with()
+
+    def test_failure_reports_completed_batches_and_classifications(self):
+        calc = DistanceCalculator("postgresql://example")
+        calc.connect = Mock()
+        calc.disconnect = Mock()
+        calc.count_owner_housing_pairs = Mock(return_value=2)
+        calc.fetch_owner_housing_pair_batch = Mock(
+            side_effect=[
+                [
+                    {
+                        "owner_id": "owner-1",
+                        "housing_id": "housing-1",
+                        "housing_geo_code": "75001",
+                    }
+                ],
+                [
+                    {
+                        "owner_id": "owner-2",
+                        "housing_id": "housing-2",
+                        "housing_geo_code": "75002",
+                    }
+                ],
+            ]
+        )
+        calc.batch_get_address_data = Mock(return_value={})
+        calc.process_single_pair = Mock(
+            side_effect=[(1.2, 1), RuntimeError("invalid second pair")]
+        )
+        calc.update_database = Mock(return_value=1)
+
+        with pytest.raises(LocationComputationError) as raised:
+            calc.run(LocationScope(data_file_year="lovac-2026"), batch_size=1)
+
+        report = raised.value.report
+        assert report.candidate_count == 2
+        assert report.processed_pairs == 1
+        assert report.updates_prepared == 1
+        assert report.updated_pairs == 1
+        assert report.classification_counts == {"1": 1}
+        assert report.errors == 1
+        assert report.stats["processed_pairs"] == 1
 
 
 class TestDatabaseUpdates:
@@ -1208,7 +1402,7 @@ class TestCandidateScope:
 
         assert calculate.call_args.kwargs["allow_full_year"] is True
 
-    def test_default_candidates_are_missing_relative_only(self):
+    def test_default_candidates_include_missing_and_other_relative(self):
         calc = Mock(spec=DistanceCalculator)
         calc.cursor = Mock()
         calc.cursor.fetchone.return_value = {"count": 42}
@@ -1226,6 +1420,7 @@ class TestCandidateScope:
         assert count == 42
         assert "h.data_file_years @> ARRAY[%(data_file_year)s]::text[]" in query
         assert "oh.locprop_relative_ban IS NULL" in query
+        assert "oh.locprop_relative_ban = 7" in query
         assert "locprop_distance_ban IS NULL OR" not in query
         assert params["data_file_year"] == "lovac-2026"
         assert params["geo_codes"] == ["38200"]
@@ -1245,6 +1440,23 @@ class TestCandidateScope:
 
         query = calc.cursor.execute.call_args.args[0]
         assert "locprop_relative_ban IS NULL" not in query
+
+    def test_default_candidate_batch_includes_other_classification(self):
+        calc = Mock(spec=DistanceCalculator)
+        calc.cursor = Mock()
+        calc.cursor.fetchall.return_value = []
+        calc._scope_sql = DistanceCalculator._scope_sql.__get__(calc)
+        calc.fetch_owner_housing_pair_batch = (
+            DistanceCalculator.fetch_owner_housing_pair_batch.__get__(calc)
+        )
+
+        calc.fetch_owner_housing_pair_batch(
+            LocationScope(data_file_year="lovac-2026"), batch_size=10
+        )
+
+        query = calc.cursor.execute.call_args.args[0]
+        assert "oh.locprop_relative_ban IS NULL" in query
+        assert "oh.locprop_relative_ban = 7" in query
 
 
 class TestRegionDetection:

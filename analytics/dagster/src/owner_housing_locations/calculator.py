@@ -38,6 +38,17 @@ PAIR_COORDINATE_STAT = {
     (False, True): "pairs_with_housing_coords_only",
     (False, False): "pairs_with_no_coords",
 }
+# A postal code is not a commune code. Older BAN rows predate `city_code`,
+# but their structured identifier starts with the commune code.
+OWNER_CITY_CODE_SQL = """
+CASE
+  WHEN ba.city_code ~ '^([0-9]{5}|2[ABab][0-9]{3})$'
+    THEN UPPER(ba.city_code)
+  WHEN ba.ban_id ~ '^([0-9]{5}|2[ABab][0-9]{3})(_|$)'
+    THEN UPPER(split_part(ba.ban_id, '_', 1))
+  ELSE NULL
+END
+"""
 
 
 @dataclass(frozen=True)
@@ -274,13 +285,13 @@ class DistanceCalculator:
         try:
             if address_kind == "Owner":
                 self.cursor.execute(
-                    """
+                    f"""
                     SELECT
                       ba.postal_code,
                       ba.address,
                       ba.latitude,
                       ba.longitude,
-                      LEFT(ba.postal_code, 5) AS geo_code,
+                      {OWNER_CITY_CODE_SQL} AS geo_code,
                       ba.ban_id
                     FROM ban_addresses ba
                     WHERE ba.ref_id = %s AND ba.address_kind = %s
@@ -326,14 +337,14 @@ class DistanceCalculator:
 
             if owner_ids:
                 self.cursor.execute(
-                    """
+                    f"""
                     SELECT
                       ba.ref_id::text,
                       ba.postal_code,
                       ba.address,
                       ba.latitude,
                       ba.longitude,
-                      LEFT(ba.postal_code, 5) AS geo_code,
+                      {OWNER_CITY_CODE_SQL} AS geo_code,
                       ba.ban_id
                     FROM ban_addresses ba
                     WHERE ba.ref_id = ANY(%s::uuid[]) AND ba.address_kind = 'Owner'
@@ -452,7 +463,9 @@ class DistanceCalculator:
         missing_data_stat = MISSING_PAIR_DATA_STAT.get(data_presence)
         if missing_data_stat:
             self.stats[missing_data_stat] += 1
-            return None, 7
+            if not owner_data or not housing_geo_code:
+                return None, 7
+            housing_data = (None, None, None, None, housing_geo_code, None)
 
         (
             owner_postal,
@@ -491,7 +504,11 @@ class DistanceCalculator:
             return distance, 0
 
         owner_country = self._country_from_address_data(owner_data)
-        housing_country = self._country_from_address_data(housing_data)
+        housing_country = (
+            "FRANCE"
+            if housing_geo_code
+            else self._country_from_address_data(housing_data)
+        )
         if owner_country == "FOREIGN" or housing_country == "FOREIGN":
             self.stats["foreign_detected"] += 1
             return distance, 6

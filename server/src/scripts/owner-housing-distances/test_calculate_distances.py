@@ -522,6 +522,122 @@ class TestProcessSinglePair:
         assert classification == 7  # Default classification
         assert calculator.stats["missing_housing_data"] == 1
 
+    def test_missing_housing_ban_uses_known_city_codes(self):
+        """Known owner and housing city codes remain usable without housing BAN."""
+        calculator = DistanceCalculator("postgresql://unused")
+        address_cache = {
+            ("owner123", "Owner"): (
+                "75001",
+                "123 Rue de Rivoli",
+                48.8566,
+                2.3522,
+                "75056",
+                "owner-ban",
+            )
+        }
+
+        distance, classification = calculator.process_single_pair(
+            "owner123",
+            "housing456",
+            address_cache,
+            housing_geo_code="75056",
+        )
+
+        assert distance is None
+        assert classification == 1
+        assert calculator.stats["missing_housing_data"] == 1
+
+    def test_missing_housing_ban_does_not_compare_postal_to_city_code(self):
+        calculator = DistanceCalculator("postgresql://unused")
+        address_cache = {
+            ("owner123", "Owner"): (
+                "38200",
+                "1 rue de Grenoble",
+                45.18,
+                5.72,
+                "38185",
+                "38185_1234",
+            )
+        }
+
+        _, classification = calculator.process_single_pair(
+            "owner123",
+            "housing456",
+            address_cache,
+            housing_geo_code="38200",
+        )
+
+        assert classification == 2
+
+    def test_missing_housing_ban_keeps_explicit_foreign_owner(self):
+        calculator = DistanceCalculator("postgresql://unused")
+        calculator.detect_country_simple = Mock(return_value="FOREIGN")
+        address_cache = {
+            ("owner123", "Owner"): (
+                "SW1A",
+                "10 Downing Street, London",
+                None,
+                None,
+                None,
+                None,
+            )
+        }
+
+        distance, classification = calculator.process_single_pair(
+            "owner123",
+            "housing456",
+            address_cache,
+            housing_geo_code="75056",
+        )
+
+        assert distance is None
+        assert classification == 6
+
+    def test_missing_housing_ban_keeps_unproven_owner_unknown(self):
+        calculator = DistanceCalculator("postgresql://unused")
+        address_cache = {("owner123", "Owner"): (None, None, None, None, None, None)}
+
+        distance, classification = calculator.process_single_pair(
+            "owner123",
+            "housing456",
+            address_cache,
+            housing_geo_code="75056",
+        )
+
+        assert distance is None
+        assert classification == 7
+
+    def test_housing_ban_sentinel_uses_known_housing_geo_code(self):
+        calculator = DistanceCalculator("postgresql://unused")
+        address_cache = {
+            ("owner123", "Owner"): (
+                "75001",
+                "123 Rue de Rivoli",
+                48.8566,
+                2.3522,
+                "75056",
+                "75056_1234",
+            ),
+            ("housing456", "Housing"): (
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+        }
+
+        distance, classification = calculator.process_single_pair(
+            "owner123",
+            "housing456",
+            address_cache,
+            housing_geo_code="75056",
+        )
+
+        assert distance is None
+        assert classification == 1
+
     def test_foreign_owner_address(self, calculator):
         """Test pair with foreign owner address."""
         calculator.detect_country_simple = Mock(
@@ -751,6 +867,27 @@ class TestProcessSinglePair:
 
 
 class TestAddressData:
+    def test_owner_lookup_uses_city_code_with_ban_id_fallback(self):
+        calculator = DistanceCalculator("postgresql://unused")
+        calculator.cursor = Mock()
+        calculator.cursor.fetchone.return_value = {
+            "postal_code": "75001",
+            "address": "1 rue de Paris",
+            "latitude": 48.86,
+            "longitude": 2.35,
+            "geo_code": "75056",
+            "ban_id": "75056_1234",
+        }
+
+        result = calculator.get_address_data(
+            "00000000-0000-0000-0000-000000000001", "Owner"
+        )
+
+        query = calculator.cursor.execute.call_args.args[0]
+        assert result[4] == "75056"
+        assert "ba.city_code" in query
+        assert "split_part(ba.ban_id" in query
+
     def test_housing_lookup_uses_the_pair_geo_code_without_joining_housing(self):
         calculator = DistanceCalculator("postgresql://unused")
         calculator.cursor = Mock()

@@ -534,13 +534,10 @@ const removeByHousing: RequestHandler<
     throw new HousingMissingError(params.housingId);
   }
 
-  // Validate association exists
-  const links = await housingDocumentRepository.find({
-    filters: { housingIds: [housing] }
+  // Validate association exists (indexed lookup)
+  const document = await housingDocumentRepository.get(params.documentId, {
+    housing: [housing]
   });
-
-  // Get document details for event
-  const document = links.find((link) => link.id === params.documentId);
   if (!document) {
     throw new DocumentMissingError(params.documentId);
   }

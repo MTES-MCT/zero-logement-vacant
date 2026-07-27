@@ -14,6 +14,9 @@ import { expect, test } from '../fixtures/auth';
  * stay green while the feature is broken. `expect(step 2).toBeVisible()` after
  * selecting a group is the regression guard.
  *
+ * On success the flow redirects to the new campaign's own page
+ * (`/campagnes/:id`), matching the group-page flow.
+ *
  * Requires the default user (`CYPRESS_EMAIL`) to be Usual/Admin (Visitors don't
  * see the button) with at least one eligible group (not archived, ≥1 housing).
  * Skips gracefully when no such group is seeded.
@@ -76,22 +79,21 @@ test.describe('Save a campaign from a group', () => {
         /\/groups\/[^/]+\/campaigns$/.test(response.url())
     );
     await step2(page).getByRole('button', { name: 'Confirmer' }).click();
-    expect((await created).ok()).toBe(true);
+    const createdResponse = await created;
+    expect(createdResponse.ok()).toBe(true);
+    const { id: campaignId } = await createdResponse.json();
 
-    // Success: toast, modal closes, and the campaign lands in the list. The
-    // flow deliberately stays on /campagnes (unlike the group-page flow, which
-    // navigates to the new campaign).
+    // Success: redirected to the new campaign's own page, matching the
+    // group-page flow.
+    await page.waitForURL(`**/campagnes/${campaignId}`);
     await expect(page.getByText('Campagne créée !')).toBeVisible();
-    await expect(step2(page)).toBeHidden();
 
-    // The new campaign is in the list — its delete button carries a unique,
-    // exact accessible name, so it's a reliable per-campaign anchor.
+    // Cleanup so the run is repeatable and doesn't pollute the environment.
+    await page.goto('/campagnes');
     const deleteButton = page.getByRole('button', {
       name: `Supprimer la campagne ${name}`
     });
     await expect(deleteButton).toBeVisible();
-
-    // Cleanup so the run is repeatable and doesn't pollute the environment.
     await deleteButton.click();
     await page
       .getByRole('dialog')

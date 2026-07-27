@@ -1,5 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 import { createCampaignFromGroupModal } from '~/components/Group/CreateCampaignFromGroupModal';
 import { useNotification } from '~/hooks/useNotification';
@@ -17,6 +18,7 @@ const campaignFromGroupModal = createCampaignFromGroupModal({
 
 function SaveCampaignFlow() {
   const { canCreateCampaign } = useUser();
+  const navigate = useNavigate();
 
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   // Bumped every time the flow is (re)opened. Passed to SelectGroupModal to
@@ -60,9 +62,10 @@ function SaveCampaignFlow() {
       createCampaignFromGroup({ campaign, group: selectedGroup })
         .unwrap()
         .then(
-          () => {
+          (created) => {
             campaignFromGroupModal.close();
             setSelectedGroup(null);
+            navigate(`/campagnes/${created.id}`);
           },
           // Swallow the rejection so a failed submit doesn't surface as an
           // unhandled promise rejection. No recovery is needed here: on failure

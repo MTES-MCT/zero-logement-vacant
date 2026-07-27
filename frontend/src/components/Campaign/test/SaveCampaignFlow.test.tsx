@@ -8,8 +8,10 @@ import {
   genHousingDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
+import { addDays, format } from 'date-fns';
 import { delay, http, HttpResponse } from 'msw';
 import { Provider } from 'react-redux';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 
 import SaveCampaignFlow from '~/components/Campaign/SaveCampaignFlow';
 import data from '~/mocks/handlers/data';
@@ -29,13 +31,23 @@ describe('SaveCampaignFlow', () => {
     data.users.push(authDTO);
     const store = configureTestStore();
 
+    const router = createMemoryRouter(
+      [
+        { path: '/campagnes', element: <SaveCampaignFlow /> },
+        { path: '/campagnes/:id', element: 'Campagne' }
+      ],
+      { initialEntries: ['/campagnes'] }
+    );
+
     render(
       <Provider store={store}>
         <MockAuthProvider options={{ user: authDTO, establishment }}>
-          <SaveCampaignFlow />
+          <RouterProvider router={router} />
         </MockAuthProvider>
       </Provider>
     );
+
+    return { router };
   }
 
   it('should hide the button for a visitor', () => {
@@ -58,7 +70,7 @@ describe('SaveCampaignFlow', () => {
     const group = genGroupDTO(creator, [genHousingDTO()]);
     data.groups.push(group);
 
-    renderFlow();
+    const { router } = renderFlow();
 
     const openButton = screen.getByRole('button', {
       name: 'Enregistrer une campagne'
@@ -87,6 +99,48 @@ describe('SaveCampaignFlow', () => {
         groupId: group.id
       })
     );
+    expect(router.state.location.pathname).toMatch(/^\/campagnes\/.+/);
+  });
+
+  it('should create a campaign with a sending date from a group selected in step 1', async () => {
+    const group = genGroupDTO(creator, [genHousingDTO()]);
+    data.groups.push(group);
+    const sentAt = format(addDays(new Date(), 7), 'yyyy-MM-dd');
+
+    const { router } = renderFlow();
+
+    const openButton = screen.getByRole('button', {
+      name: 'Enregistrer une campagne'
+    });
+    await user.click(openButton);
+
+    const selectDialog = await screen.findByRole('dialog');
+    const selectButton = await within(selectDialog).findByRole('button', {
+      name: `Sélectionner le groupe ${group.title}`
+    });
+    await user.click(selectButton);
+
+    const createDialog = await screen.findByRole('dialog');
+    await within(createDialog).findByText('Étape 2 sur 2');
+    const title = await within(createDialog).findByLabelText(/^Nom/);
+    await user.type(title, 'Ma campagne programmée');
+    const sentAtInput =
+      await within(createDialog).findByLabelText(/Date d’envoi/);
+    await user.type(sentAtInput, sentAt);
+    const confirm = await within(createDialog).findByText('Confirmer');
+    await user.click(confirm);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    expect(data.campaigns).toContainEqual(
+      expect.objectContaining({
+        title: 'Ma campagne programmée',
+        groupId: group.id,
+        sentAt
+      })
+    );
+    expect(router.state.location.pathname).toMatch(/^\/campagnes\/.+/);
   });
 
   it('should reopen step 2 when the same group is re-selected after cancelling', async () => {
@@ -151,7 +205,7 @@ describe('SaveCampaignFlow', () => {
       })
     );
 
-    renderFlow();
+    const { router } = renderFlow();
 
     await user.click(
       screen.getByRole('button', { name: 'Enregistrer une campagne' })
@@ -180,6 +234,7 @@ describe('SaveCampaignFlow', () => {
     expect(data.campaigns).not.toContainEqual(
       expect.objectContaining({ title: 'Ma campagne', groupId: group.id })
     );
+    expect(router.state.location.pathname).toBe('/campagnes');
   });
 
   it('should disable Confirmer while the create request is in flight, preventing a double-submit', async () => {

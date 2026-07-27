@@ -13,6 +13,11 @@ export interface ConfirmationModalProps extends Omit<
   'buttons'
 > {
   onSubmit?(): void;
+  /**
+   * Disables the "Confirmer" button, e.g. while an async submission is in
+   * flight, to prevent a double-submit. The button stays enabled by default.
+   */
+  submitting?: boolean;
 }
 
 export function createConfirmationModal(options: ConfirmationModalOptions) {
@@ -21,7 +26,7 @@ export function createConfirmationModal(options: ConfirmationModalOptions) {
   return {
     ...modal,
     Component(props: ConfirmationModalProps): JSX.Element {
-      const { onSubmit, ...rest } = props;
+      const { onSubmit, submitting, ...rest } = props;
 
       return (
         <modal.Component
@@ -39,6 +44,7 @@ export function createConfirmationModal(options: ConfirmationModalOptions) {
             {
               children: 'Confirmer',
               doClosesModal: false,
+              disabled: submitting,
               nativeButtonProps: {
                 type: 'submit'
               },

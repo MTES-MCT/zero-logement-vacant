@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   UserRole,
@@ -380,6 +380,37 @@ describe('CampaignListView', () => {
       await user.click(confirm);
       const countAfter = await count();
       expect(countAfter).toBe(countBefore ? countBefore - 1 : false);
+    });
+
+    it('should redirect to the campaign page after creating a campaign', async () => {
+      const housings = faker.helpers.multiple(() => genHousingDTO(), {
+        count: { min: 1, max: 5 }
+      });
+      const group = genGroupDTO(auth, housings);
+      data.groups.push(group);
+
+      const { router } = renderView({ campaigns: [] });
+
+      await user.click(
+        screen.getByRole('button', { name: 'Enregistrer une campagne' })
+      );
+      const selectDialog = await screen.findByRole('dialog');
+      await user.click(
+        await within(selectDialog).findByRole('button', {
+          name: `Sélectionner le groupe ${group.title}`
+        })
+      );
+      const createDialog = await screen.findByRole('dialog');
+      await within(createDialog).findByText('Étape 2 sur 2');
+      await user.type(
+        await within(createDialog).findByLabelText(/^Nom/),
+        'Ma campagne'
+      );
+      await user.click(await within(createDialog).findByText('Confirmer'));
+
+      await waitFor(() => {
+        expect(router.state.location.pathname).toMatch(/^\/campagnes\/.+/);
+      });
     });
   });
 });

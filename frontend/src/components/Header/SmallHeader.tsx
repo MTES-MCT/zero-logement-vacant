@@ -132,6 +132,7 @@ function SmallHeader() {
         className="fr-header"
         component="header"
         id="fr-header"
+        role="banner"
         square
         sx={(theme) => ({
           position: 'sticky',

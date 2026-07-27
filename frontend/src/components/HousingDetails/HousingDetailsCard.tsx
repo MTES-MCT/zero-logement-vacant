@@ -3,7 +3,9 @@ import Skeleton from '@mui/material/Skeleton';
 import { skipToken } from '@reduxjs/toolkit/query';
 import type { DocumentDTO } from '@zerologementvacant/models';
 
-import type { HousingDocumentUploadProps } from '~/components/FileUpload/HousingDocumentUpload';
+import HousingDocumentUpload, {
+  type HousingDocumentUploadProps
+} from '~/components/FileUpload/HousingDocumentUpload';
 import { useHousing } from '~/hooks/useHousing';
 import { useNotification } from '~/hooks/useNotification';
 import {
@@ -108,7 +110,7 @@ function HousingDetailsCard() {
               documents={housingDocuments ?? []}
               isLoading={isDocumentLoading}
               isSuccess={isDocumentSuccess}
-              onUpload={link}
+              uploadSlot={<HousingDocumentUpload onUpload={link} />}
               onRename={rename}
               onDelete={remove}
             />

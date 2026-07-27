@@ -123,6 +123,8 @@ fileignoreconfig:
   checksum: 1d816ff7b060a0100cbd90a60182bb7c3e230ab5761909b18871af6ced2a6efb
 - filename: server/src/repositories/documentRepository.ts
   checksum: 08cf7ff79afbf8604d02913f97a4a3a7a5ba21921a104096a6973f293b81d107
+- filename: server/src/repositories/test/campaignDocumentRepository.test.ts
+  checksum: d4b78953d3f5c8b36205457c510a2b351874906e1e71a8cd5d85a1b06eb0f3b1
 - filename: server/src/scripts/import-dpe/import-dpe.py
   checksum: ba1ea278d8321501976c7c9da7e9428fe8819776369f7eef0ff1fbf1ee4ed8bf
 - filename: server/src/scripts/import-dpe/import_dpe_raw.py
@@ -175,6 +177,10 @@ fileignoreconfig:
   checksum: 7c3d25a7502faeb9fd4e438e7e6bdf39cc18ebd32401f1463420289cda46a4d3
 - filename: docs/rgaa/methodologie-tests.md
   checksum: b396fb5a9d17e2a81cad49491c35cc459db9f2ff494c94dada9f3eeae0efeb53
+- filename: docs/superpowers/specs/2026-07-20-campaign-documents-design.md
+  checksum: 45db32afbf267b94ffb071c725691dad57b28c8bb12554e0b8397a5bf0a9d141
+- filename: docs/superpowers/plans/2026-07-20-campaign-documents.md
+  checksum: 1e3050356fc1503522f81a38384a26cf11310d81881707ccc34df0279ca6b90f
 scopeconfig:
 - scope: node
 allowed_patterns:

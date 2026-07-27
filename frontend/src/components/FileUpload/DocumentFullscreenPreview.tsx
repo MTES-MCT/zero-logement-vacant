@@ -52,7 +52,13 @@ function DocumentFullscreenPreview(
   }
 
   return (
-    <Modal {...modalProps} {...rest} role="dialog">
+    <Modal
+      {...modalProps}
+      {...rest}
+      role="dialog"
+      aria-modal
+      aria-label={`Aperçu du document : ${currentDocument.filename}`}
+    >
       <Container
         maxWidth="xl"
         sx={{ padding: '1.5rem', pb: '3rem', height: '100vh' }}

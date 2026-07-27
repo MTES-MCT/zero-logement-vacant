@@ -41,6 +41,7 @@ import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
 import { CampaignApi } from '~/models/CampaignApi';
+import { CampaignDocumentApi } from '~/models/CampaignDocumentApi';
 import { DocumentApi } from '~/models/DocumentApi';
 import { DraftApi } from '~/models/DraftApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
@@ -578,5 +579,16 @@ export function genHousingDocumentApi(
     housingId: overrides?.housingId ?? faker.string.uuid(),
     housingGeoCode:
       overrides?.housingGeoCode ?? faker.location.zipCode('######')
+  };
+}
+
+export function genCampaignDocumentApi(
+  overrides?: Partial<CampaignDocumentApi>
+): CampaignDocumentApi {
+  const baseDocument = genDocumentApi(overrides);
+
+  return {
+    ...baseDocument,
+    campaignId: overrides?.campaignId ?? faker.string.uuid()
   };
 }

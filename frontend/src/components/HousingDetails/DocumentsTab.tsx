@@ -1,3 +1,5 @@
+import { Alert } from '@codegouvfr/react-dsfr/Alert';
+import { Button } from '@codegouvfr/react-dsfr/Button';
 import Pictures from '@codegouvfr/react-dsfr/picto/Pictures';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
@@ -8,9 +10,6 @@ import { useId, useMemo, useState } from 'react';
 import { match, Pattern } from 'ts-pattern';
 
 import DocumentFullscreenPreview from '~/components/FileUpload/DocumentFullscreenPreview';
-import HousingDocumentUpload, {
-  type HousingDocumentUploadProps
-} from '~/components/FileUpload/HousingDocumentUpload';
 import DocumentCard, {
   type DocumentCardProps
 } from '~/components/HousingDetails/DocumentCard';
@@ -22,8 +21,22 @@ export interface DocumentsTabProps {
   documents: ReadonlyArray<DocumentDTO>;
   isLoading?: boolean;
   isSuccess?: boolean;
+  isError?: boolean;
+  /**
+   * Called when the user retries after a loading error. When provided, a retry
+   * button is shown alongside the error alert.
+   */
+  onRetry?: () => void;
   documentCardProps?: Pick<DocumentCardProps, 'actions'>;
-  onUpload: HousingDocumentUploadProps['onUpload'];
+  /**
+   * The upload zone to render in the header, when the current user has write access.
+   * Rendered only if `canUpload` is true, so the caller does not need to gate it.
+   */
+  uploadSlot?: ReactNode;
+  /**
+   * @default 'Il n’y a pas de document associé à ce logement'
+   */
+  emptyStateMessage?: string;
   onRename(document: DocumentDTO): void;
   onDelete: DocumentCardProps['onDelete'];
 }
@@ -148,18 +161,36 @@ function DocumentsTab(props: Readonly<DocumentsTabProps>) {
       )}
 
       <Stack component="section" spacing="2rem" useFlexGap>
-        {canUpload ? (
-          <Stack component="header">
-            <HousingDocumentUpload onUpload={props.onUpload} />
-          </Stack>
+        {canUpload && props.uploadSlot ? (
+          <Stack component="header">{props.uploadSlot}</Stack>
         ) : null}
 
         {match({
           documents,
           isLoading: props.isLoading,
-          isSuccess: props.isSuccess
+          isSuccess: props.isSuccess,
+          isError: props.isError
         })
           .returnType<ReactNode>()
+          .with({ isError: true }, () => (
+            <Stack
+              component="section"
+              spacing="1rem"
+              useFlexGap
+              sx={{ alignItems: 'flex-start' }}
+            >
+              <Alert
+                severity="error"
+                title="Le chargement des documents a échoué"
+                description="Une erreur est survenue. Veuillez réessayer."
+              />
+              {props.onRetry ? (
+                <Button priority="secondary" onClick={props.onRetry}>
+                  Réessayer
+                </Button>
+              ) : null}
+            </Stack>
+          ))
           .with({ isSuccess: true, documents: [] }, () => (
             <Stack
               component="section"
@@ -173,7 +204,8 @@ function DocumentsTab(props: Readonly<DocumentsTabProps>) {
                 variant="subtitle2"
                 sx={{ fontWeight: 500, width: '17rem' }}
               >
-                Il n’y a pas de document associé à ce logement
+                {props.emptyStateMessage ??
+                  'Il n’y a pas de document associé à ce logement'}
               </Typography>
             </Stack>
           ))
@@ -188,9 +220,13 @@ function DocumentsTab(props: Readonly<DocumentsTabProps>) {
                   Documents ({documents.length})
                 </Typography>
 
-                <Grid container spacing="1rem">
+                <Grid container spacing="1rem" role="list">
                   {documents.map((document, index) => (
-                    <Grid key={document.id} size={{ xs: 12, md: 6, xl: 4 }}>
+                    <Grid
+                      key={document.id}
+                      size={{ xs: 12, md: 6, xl: 4 }}
+                      role="listitem"
+                    >
                       <DocumentCard
                         {...props.documentCardProps}
                         document={document}

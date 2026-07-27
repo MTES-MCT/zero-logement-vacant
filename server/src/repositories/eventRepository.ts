@@ -4,6 +4,7 @@ import db from '~/infra/database';
 import { withinTransaction } from '~/infra/database/transaction';
 import { createLogger } from '~/infra/logger';
 import {
+  CampaignDocumentEventApi,
   CampaignEventApi,
   CampaignHousingEventApi,
   DocumentEventApi,
@@ -59,6 +60,11 @@ export const DocumentEvents = (transaction = db) =>
   transaction<DocumentEventDBO>(DOCUMENT_EVENTS_TABLE);
 export const HousingDocumentEvents = (transaction = db) =>
   transaction<HousingDocumentEventDBO>(HOUSING_DOCUMENT_EVENTS_TABLE);
+
+export const CAMPAIGN_DOCUMENT_EVENTS_TABLE = 'campaign_document_events';
+
+export const CampaignDocumentEvents = (transaction = db) =>
+  transaction<CampaignDocumentEventDBO>(CAMPAIGN_DOCUMENT_EVENTS_TABLE);
 
 async function insertManyHousingEvents(
   events: ReadonlyArray<HousingEventApi>
@@ -234,6 +240,25 @@ async function insertManyHousingDocumentEvents(
   });
 }
 
+async function insertManyCampaignDocumentEvents(
+  events: ReadonlyArray<CampaignDocumentEventApi>
+): Promise<void> {
+  if (!events.length) {
+    return;
+  }
+
+  logger.debug('Inserting campaign document events...', {
+    events: events.length
+  });
+  await withinTransaction(async (transaction) => {
+    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
+    await transaction.batchInsert(
+      CAMPAIGN_DOCUMENT_EVENTS_TABLE,
+      events.map(formatCampaignDocumentEventApi)
+    );
+  });
+}
+
 interface FindEventsOptions<Type extends EventType> {
   filters?: {
     types?: ReadonlyArray<Type>;
@@ -359,13 +384,22 @@ async function removeCampaignEvents(campaignId: string): Promise<void> {
     campaign: campaignId
   });
   await withinTransaction(async (transaction) => {
+    // Delete the parent `events` rows referenced both by campaign events and by
+    // campaign document events; the join-table rows cascade from `events`.
+    // Otherwise document events would be left orphaned when a campaign is removed.
     await Events(transaction)
-      .join(
-        CAMPAIGN_EVENTS_TABLE,
-        `${CAMPAIGN_EVENTS_TABLE}.event_id`,
-        `${EVENTS_TABLE}.id`
-      )
-      .where(`${CAMPAIGN_EVENTS_TABLE}.campaign_id`, campaignId)
+      .whereIn(`${EVENTS_TABLE}.id`, (subquery) => {
+        subquery
+          .select('event_id')
+          .from(CAMPAIGN_EVENTS_TABLE)
+          .where('campaign_id', campaignId)
+          .unionAll((union) => {
+            union
+              .select('event_id')
+              .from(CAMPAIGN_DOCUMENT_EVENTS_TABLE)
+              .where('campaign_id', campaignId);
+          });
+      })
       .delete();
   });
   logger.debug('Campaign events removed', {
@@ -575,9 +609,26 @@ export function formatHousingDocumentEventApi(
   };
 }
 
+export interface CampaignDocumentEventDBO {
+  event_id: string;
+  campaign_id: string;
+  document_id: string;
+}
+
+export function formatCampaignDocumentEventApi(
+  event: CampaignDocumentEventApi
+): CampaignDocumentEventDBO {
+  return {
+    event_id: event.id,
+    campaign_id: event.campaignId,
+    document_id: event.documentId
+  };
+}
+
 export default {
   insertManyCampaignEvents,
   insertManyCampaignHousingEvents,
+  insertManyCampaignDocumentEvents,
   insertManyHousingEvents,
   insertManyHousingOwnerEvents,
   insertManyGroupHousingEvents,

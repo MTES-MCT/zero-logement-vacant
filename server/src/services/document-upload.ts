@@ -33,7 +33,7 @@ export async function upload(
       ContentType: file.mimetype,
       ACL: 'authenticated-read',
       Metadata: {
-        originalName: file.originalname,
+        originalName: encodeURIComponent(file.originalname),
         fieldName: file.fieldname
       }
     });

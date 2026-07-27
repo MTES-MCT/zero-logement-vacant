@@ -130,6 +130,9 @@ function IndividualEventCard(props: IndividualEventCardProps) {
           type: Pattern.union(
             'owner:created',
             'campaign:updated',
+            'campaign:document-attached',
+            'campaign:document-detached',
+            'campaign:document-removed',
             'document:created',
             'document:updated',
             'document:removed',

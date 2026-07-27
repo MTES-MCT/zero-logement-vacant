@@ -20,7 +20,7 @@ const findByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
   async ({ params }) => {
     const documents = (data.housingDocuments.get(params.id) ?? [])
       .map((ref) => data.documents.get(ref.id))
-      .filter(Predicate.isNotUndefined);
+      .filter((document) => Predicate.isNotUndefined(document));
 
     return HttpResponse.json(documents, {
       status: constants.HTTP_STATUS_OK
@@ -31,10 +31,8 @@ const findByHousing = http.get<{ id: string }, never, DocumentDTO[]>(
 const findByCampaign = http.get<{ id: string }, never, DocumentDTO[] | Error>(
   `${config.apiEndpoint}/campaigns/:id/documents`,
   async ({ params }) => {
-    const campaign = data.campaigns.find(
-      (campaign) => campaign.id === params.id
-    );
-    if (!campaign) {
+    const exists = data.campaigns.some((campaign) => campaign.id === params.id);
+    if (!exists) {
       return HttpResponse.json(
         {
           name: 'CampaignMissingError',
@@ -46,7 +44,7 @@ const findByCampaign = http.get<{ id: string }, never, DocumentDTO[] | Error>(
 
     const documents = (data.campaignDocuments.get(params.id) ?? [])
       .map((ref) => data.documents.get(ref.id))
-      .filter(Predicate.isNotUndefined);
+      .filter((document) => Predicate.isNotUndefined(document));
 
     return HttpResponse.json(documents, {
       status: constants.HTTP_STATUS_OK

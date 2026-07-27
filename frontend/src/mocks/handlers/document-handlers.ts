@@ -74,19 +74,30 @@ const linkToCampaign = http.post<
       );
     }
 
-    const documents = documentIds
+    // Mirror the real controller: de-duplicate ids and only accept documents
+    // owned by the caller's establishment, 404-ing on any that are missing.
+    const auth = getMockSession();
+    const uniqueIds = [...new Set(documentIds)];
+    const documents = uniqueIds
       .map((id) => data.documents.get(id))
-      .filter(Predicate.isNotUndefined);
+      .filter(Predicate.isNotUndefined)
+      .filter(
+        (document) =>
+          !auth || document.establishmentId === auth.establishment.id
+      );
 
-    if (documents.length !== documentIds.length) {
+    if (documents.length !== uniqueIds.length) {
       return HttpResponse.json(
         { name: 'DocumentMissingError', message: 'Some documents not found' },
-        { status: constants.HTTP_STATUS_BAD_REQUEST }
+        { status: constants.HTTP_STATUS_NOT_FOUND }
       );
     }
 
     const existingDocuments = data.campaignDocuments.get(params.id) ?? [];
-    const newRefs = documentIds.map((id) => ({ id }));
+    const existingIds = new Set(existingDocuments.map((ref) => ref.id));
+    const newRefs = uniqueIds
+      .filter((id) => !existingIds.has(id))
+      .map((id) => ({ id }));
     data.campaignDocuments.set(params.id, [...existingDocuments, ...newRefs]);
 
     return HttpResponse.json(documents, {
@@ -197,21 +208,31 @@ const linkToHousing = http.post<
       );
     }
 
-    // Verify all documents exist
-    const documents = documentIds
+    // Mirror the real controller: de-duplicate ids and only accept documents
+    // owned by the caller's establishment, 404-ing on any that are missing.
+    const auth = getMockSession();
+    const uniqueIds = [...new Set(documentIds)];
+    const documents = uniqueIds
       .map((id) => data.documents.get(id))
-      .filter(Predicate.isNotUndefined);
+      .filter(Predicate.isNotUndefined)
+      .filter(
+        (document) =>
+          !auth || document.establishmentId === auth.establishment.id
+      );
 
-    if (documents.length !== documentIds.length) {
+    if (documents.length !== uniqueIds.length) {
       return HttpResponse.json(
         { name: 'DocumentMissingError', message: 'Some documents not found' },
-        { status: constants.HTTP_STATUS_BAD_REQUEST }
+        { status: constants.HTTP_STATUS_NOT_FOUND }
       );
     }
 
     // Link documents to housing
     const existingDocuments = data.housingDocuments.get(params.id) ?? [];
-    const newRefs = documentIds.map((id) => ({ id }));
+    const existingIds = new Set(existingDocuments.map((ref) => ref.id));
+    const newRefs = uniqueIds
+      .filter((id) => !existingIds.has(id))
+      .map((id) => ({ id }));
     data.housingDocuments.set(params.id, [...existingDocuments, ...newRefs]);
 
     return HttpResponse.json(documents, {

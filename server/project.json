@@ -91,6 +91,7 @@
 
     "migrate": {
       "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
       "options": {
         "cwd": "server",
         "command": "yarn migrate"

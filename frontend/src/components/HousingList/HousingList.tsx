@@ -273,6 +273,7 @@ function HousingList(props: HousingListProps) {
         state={{ pagination }}
         pageCount={Math.ceil(filteredCount / pagination.pageSize)}
         selection={selected}
+        caption="Liste des logements du parc de logements"
         tableProps={{
           noCaption: true,
           fixedRowHeight: true

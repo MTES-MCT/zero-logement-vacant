@@ -281,7 +281,7 @@ describe('AnalysisCard', () => {
 
     setup({ card: tableCard, dashboardId });
 
-    await screen.findByText('Statistiques par EPCI');
+    await screen.findByRole('heading', { name: 'Statistiques par EPCI' });
     expect(
       screen.getByRole('columnheader', { name: /Code EPCI/i })
     ).toBeInTheDocument();
@@ -363,7 +363,7 @@ describe('AnalysisCard', () => {
     expect(await screen.findByText('15/03/2024')).toBeInTheDocument();
   });
 
-  it('exposes the card title as the table caption (aria-label)', async () => {
+  it('exposes the card title as the table <caption> (RGAA 5.4)', async () => {
     const tableCard = genTableCard({ id: 95, title: 'Tableau intitulé' });
     const cardData = genTableDataDTO({
       id: 95,
@@ -378,9 +378,12 @@ describe('AnalysisCard', () => {
 
     setup({ card: tableCard, dashboardId });
 
-    expect(
-      await screen.findByRole('table', { name: 'Tableau intitulé' })
-    ).toBeInTheDocument();
+    const table = await screen.findByRole('table', {
+      name: 'Tableau intitulé'
+    });
+    const caption = table.querySelector('caption');
+    expect(caption).not.toBeNull();
+    expect(caption).toHaveTextContent('Tableau intitulé');
   });
 
   it('sorts numeric rows when a sortable column header is clicked', async () => {
@@ -406,7 +409,7 @@ describe('AnalysisCard', () => {
 
     setup({ card: tableCard, dashboardId });
 
-    await screen.findByText('Tri numérique');
+    await screen.findByRole('heading', { name: 'Tri numérique' });
     // AdvancedTable renders a SortButton beside sortable headers. Its accessible name
     // comes from columnDef.meta?.sort?.title and falls back to `Trier par ${header.id}`.
     // We use the column id here, which equals meta.name ("amount").

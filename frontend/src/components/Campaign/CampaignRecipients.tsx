@@ -297,6 +297,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
         manualSorting
         state={{ pagination, sorting }}
         pageCount={Math.ceil(filteredCount / pagination.pageSize)}
+        caption={`Destinataires de la campagne « ${props.campaign.title} »`}
         tableProps={{ noCaption: true, size: 'lg' }}
         onPaginationChange={setPagination}
         onSortingChange={setSorting}

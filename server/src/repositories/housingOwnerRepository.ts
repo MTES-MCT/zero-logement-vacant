@@ -4,7 +4,7 @@ import type {
 } from '@zerologementvacant/models';
 import { OwnerRank, PropertyRight } from '@zerologementvacant/models';
 import type { Insertable, Selectable } from 'kysely';
-import { match } from 'ts-pattern';
+import { match, Pattern } from 'ts-pattern';
 
 import db from '~/infra/database';
 import type { DB } from '~/infra/database/db';
@@ -83,9 +83,7 @@ async function insert(housingOwner: HousingOwnerApi): Promise<void> {
   logger.debug('Saved housing owner.');
 }
 
-// Camel-case Insertable mirror of formatHousingOwnerApi. start_date/end_date are
-// `date` columns typed as string by kysely-codegen; the API carries Date values,
-// so they are passed through unchanged (pg serializes them exactly as Knex did).
+// Camel-case Insertable mirror of formatHousingOwnerApi.
 function toHousingOwnerInsert(
   housingOwner: Omit<HousingOwnerApi, keyof OwnerApi>
 ): Insertable<DB['ownersHousing']> {
@@ -94,8 +92,8 @@ function toHousingOwnerInsert(
     housingId: housingOwner.housingId,
     housingGeoCode: housingOwner.housingGeoCode,
     rank: housingOwner.rank,
-    startDate: housingOwner.startDate as unknown as string | null,
-    endDate: housingOwner.endDate as unknown as string | null,
+    startDate: housingOwner.startDate,
+    endDate: housingOwner.endDate,
     origin: housingOwner.origin,
     idprocpte: housingOwner.idprocpte,
     idprodroit: housingOwner.idprodroit,
@@ -154,8 +152,8 @@ export interface HousingOwnerDBO {
   housing_id: string;
   housing_geo_code: string;
   rank: OwnerRank;
-  start_date: Date | null;
-  end_date: Date | null;
+  start_date: Date | string | null;
+  end_date: Date | string | null;
   origin: string | null;
   idprocpte: string | null;
   idprodroit: string | null;
@@ -165,6 +163,15 @@ export interface HousingOwnerDBO {
   property_right: PropertyRight | null;
 }
 
+const toDateOnlyString = (value: Date | string | null): string | null =>
+  match(value)
+    .returnType<string | null>()
+    .with(Pattern.string, (v) => v.substring(0, 'yyyy-mm-dd'.length))
+    .with(Pattern.instanceOf(Date), (v) =>
+      v.toJSON().substring(0, 'yyyy-mm-dd'.length)
+    )
+    .otherwise(() => null);
+
 export function parseOwnerHousingApi(
   ownerHousing: HousingOwnerDBO & HousingRecordDBO
 ): Omit<HousingOwnerApi, keyof OwnerApi> & HousingRecordApi {
@@ -173,8 +180,8 @@ export function parseOwnerHousingApi(
     housingId: ownerHousing.id,
     ownerId: ownerHousing.owner_id,
     rank: ownerHousing.rank,
-    startDate: ownerHousing.start_date,
-    endDate: ownerHousing.end_date,
+    startDate: toDateOnlyString(ownerHousing.start_date),
+    endDate: toDateOnlyString(ownerHousing.end_date),
     origin: ownerHousing.origin,
     idprocpte: ownerHousing.idprocpte,
     idprodroit: ownerHousing.idprodroit,
@@ -210,10 +217,8 @@ export function parseOwnerHousingRow(
     housingId: row.id,
     ownerId: row.ownerId,
     rank: row.rank as OwnerRank,
-    // DATE columns come back as "YYYY-MM-DD" strings; the API type declares Date,
-    // matching the pre-migration passthrough.
-    startDate: row.startDate as unknown as Date | null,
-    endDate: row.endDate as unknown as Date | null,
+    startDate: row.startDate,
+    endDate: row.endDate,
     origin: row.origin,
     idprocpte: row.idprocpte,
     idprodroit: row.idprodroit,

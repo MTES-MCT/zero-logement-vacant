@@ -14,16 +14,6 @@ export const DatafoncierHouses = (transaction = db) =>
 
 interface DatafoncierHousingFilters {
   idlocal?: string;
-  /**
-   * @deprecated typo'd — the real column/field is `idprocpte`. No caller has
-   * ever passed this (only `idlocal` is used in practice), so it is kept in
-   * the type for API compatibility but is not wired to any query. Before
-   * this migration, passing it would have crashed with a Postgres
-   * "column idpropcte does not exist" error (Knex's `.where(object)` treats
-   * object keys as literal column names); this is now a silent no-op
-   * instead — a deliberate simplification of an unreachable, dead path.
-   */
-  idpropcte?: string;
 }
 
 class DatafoncierHousingRepository {

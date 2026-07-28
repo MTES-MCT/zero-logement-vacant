@@ -45,7 +45,12 @@ import {
 } from '~/models/HousingApi';
 import { HousingCountApi } from '~/models/HousingCountApi';
 import { HousingFiltersApi } from '~/models/HousingFiltersApi';
-import { isPaginationEnabled, PaginationApi } from '~/models/PaginationApi';
+import {
+  DEFAULT_PAGINATION,
+  isPaginationEnabled,
+  PaginationApi,
+  toLimitOffset
+} from '~/models/PaginationApi';
 import { normalizeAddressQuery } from '~/utils/addressNormalization';
 
 import { AddressDBO } from './banAddressesRepository';
@@ -123,15 +128,11 @@ async function find(opts: FindOptions): Promise<HousingApi[]> {
     includes: opts.includes
   });
   query = applyHousingSort(query, opts.sort);
-  const pagination: PaginationApi = (opts.pagination as PaginationApi) ?? {
-    paginate: true,
-    page: 1,
-    perPage: 50
-  };
+  const pagination: PaginationApi =
+    (opts.pagination as PaginationApi) ?? DEFAULT_PAGINATION;
   if (isPaginationEnabled(pagination)) {
-    query = query
-      .limit(pagination.perPage)
-      .offset((pagination.page - 1) * pagination.perPage);
+    const { limit, offset } = toLimitOffset(pagination);
+    query = query.limit(limit).offset(offset);
   }
   const rows: HousingRow[] = await query.execute();
 

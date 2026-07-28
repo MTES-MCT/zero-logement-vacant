@@ -23,7 +23,9 @@ import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { PaginatedResultApi } from '~/models/PaginatedResultApi';
 import {
+  DEFAULT_PAGINATION,
   isPaginationEnabled,
+  toLimitOffset,
   type PaginationApi
 } from '~/models/PaginationApi';
 
@@ -114,17 +116,10 @@ async function find(opts?: FindOptions): Promise<OwnerApi[]> {
   if (opts?.filters?.fullName !== undefined) {
     query = query.where('owners.fullName', '=', opts.filters.fullName);
   }
-  // paginate() defaulted to { page: 1, perPage: 50 } when no pagination was
-  // provided, so unpaginated find() calls were still capped at 50 rows.
-  const pagination: PaginationApi = opts?.pagination ?? {
-    paginate: true,
-    page: 1,
-    perPage: 50
-  };
+  const pagination: PaginationApi = opts?.pagination ?? DEFAULT_PAGINATION;
   if (isPaginationEnabled(pagination)) {
-    query = query
-      .limit(pagination.perPage)
-      .offset((pagination.page - 1) * pagination.perPage);
+    const { limit, offset } = toLimitOffset(pagination);
+    query = query.limit(limit).offset(offset);
   }
   query = query.orderBy('full_name');
 
@@ -261,8 +256,8 @@ const searchOwners = async (
     kysely.selectFrom('owners').selectAll('owners') as any
   )
     .where(sql`full_name_fts @@ to_tsquery('simple', ${tsQuery})`)
-    .orderBy('full_name')
-    .orderBy('id');
+    .orderBy('id', 'desc')
+    .orderBy('full_name');
   if (page && perPage) {
     filterQuery = filterQuery.offset((page - 1) * perPage).limit(perPage);
   }
@@ -438,11 +433,8 @@ const insertHousingOwners = async (
           housingId: ho.housingId,
           housingGeoCode: ho.housingGeoCode,
           rank: ho.rank,
-          // startDate/endDate are DATE columns; the pg driver serializes a
-          // JS Date to the right date literal on write regardless of the
-          // Kysely-generated (string) insert type — cast to satisfy it.
-          startDate: ho.startDate as unknown as string,
-          endDate: ho.endDate as unknown as string,
+          startDate: ho.startDate,
+          endDate: ho.endDate,
           origin: ho.origin
         }))
       )
@@ -535,10 +527,8 @@ const parseHousingOwnerRow = (row: HousingOwnerRow): HousingOwnerApi => ({
   housingId: row.housingId,
   housingGeoCode: row.housingGeoCode,
   rank: row.rank as OwnerRank,
-  // DATE columns come back as "YYYY-MM-DD" strings (global pg DATE parser); the
-  // API type still declares Date, matching the pre-migration passthrough.
-  startDate: row.startDate as unknown as Date | null,
-  endDate: row.endDate as unknown as Date | null,
+  startDate: row.startDate,
+  endDate: row.endDate,
   origin: row.origin,
   idprocpte: row.idprocpte,
   idprodroit: row.idprodroit,
@@ -661,6 +651,15 @@ export const parseOwnerApi = (owner: OwnerDBO): OwnerApi => {
   };
 };
 
+const toDateOnlyString = (value: Date | string | null): string | null =>
+  match(value)
+    .returnType<string | null>()
+    .with(Pattern.string, (v) => v.substring(0, 'yyyy-mm-dd'.length))
+    .with(Pattern.instanceOf(Date), (v) =>
+      v.toJSON().substring(0, 'yyyy-mm-dd'.length)
+    )
+    .otherwise(() => null);
+
 export const parseHousingOwnerApi = (
   housingOwner: OwnerDBO & HousingOwnerDBO
 ): HousingOwnerApi => ({
@@ -669,8 +668,8 @@ export const parseHousingOwnerApi = (
   housingId: housingOwner.housing_id,
   housingGeoCode: housingOwner.housing_geo_code,
   rank: housingOwner.rank,
-  startDate: housingOwner.start_date,
-  endDate: housingOwner.end_date,
+  startDate: toDateOnlyString(housingOwner.start_date),
+  endDate: toDateOnlyString(housingOwner.end_date),
   origin: housingOwner.origin,
   idprocpte: housingOwner.idprocpte,
   idprodroit: housingOwner.idprodroit,

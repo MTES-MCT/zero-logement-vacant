@@ -1,6 +1,11 @@
 import { EventPayloads, EventType } from '@zerologementvacant/models';
 import { Array } from 'effect';
-import type { ExpressionBuilder, Insertable, Selectable } from 'kysely';
+import type {
+  ExpressionBuilder,
+  Insertable,
+  Selectable,
+  Transaction
+} from 'kysely';
 import { sql } from 'kysely';
 import pMap from 'p-map';
 
@@ -72,33 +77,55 @@ export const CAMPAIGN_DOCUMENT_EVENTS_TABLE = 'campaign_document_events';
 export const CampaignDocumentEvents = (transaction = db) =>
   transaction<CampaignDocumentEventDBO>(CAMPAIGN_DOCUMENT_EVENTS_TABLE);
 
-async function insertManyHousingEvents(
-  events: ReadonlyArray<HousingEventApi>
+// Shared control flow for every insertMany*Events function below: skip on
+// empty input, chunk to stay under Postgres's 65535 bind-parameter limit,
+// and insert chunks serially (concurrency: 1) within the ambient transaction.
+// Each call site supplies its own table-specific inserts (and onConflict
+// behaviour, which intentionally differs by event type).
+async function insertEventsInBatches<T>(
+  events: ReadonlyArray<T>,
+  options: { label: string; emptyMessage?: string },
+  insertBatch: (trx: Transaction<DB>, batch: T[]) => Promise<void>
 ): Promise<void> {
   if (!events.length) {
-    logger.debug('No housing event to insert. Skipping...');
+    if (options.emptyMessage) {
+      logger.debug(options.emptyMessage);
+    }
     return;
   }
 
-  logger.debug('Inserting housing events...', { events: events.length });
+  logger.debug(`Inserting ${options.label}...`, { events: events.length });
   await withinKyselyTransaction(async (trx) => {
     await pMap(
       Array.chunksOf(events, INSERT_BATCH_SIZE),
-      async (batch) => {
-        await trx
-          .insertInto('events')
-          .values(batch.map(toEventInsert))
-          .onConflict((oc) => oc.column('id').doNothing())
-          .execute();
-        await trx
-          .insertInto('housingEvents')
-          .values(batch.map(toHousingEventInsert))
-          .onConflict((oc) => oc.column('eventId').doNothing())
-          .execute();
-      },
+      (batch) => insertBatch(trx, batch),
       { concurrency: 1 }
     );
   });
+}
+
+async function insertManyHousingEvents(
+  events: ReadonlyArray<HousingEventApi>
+): Promise<void> {
+  await insertEventsInBatches(
+    events,
+    {
+      label: 'housing events',
+      emptyMessage: 'No housing event to insert. Skipping...'
+    },
+    async (trx, batch) => {
+      await trx
+        .insertInto('events')
+        .values(batch.map(toEventInsert))
+        .onConflict((oc) => oc.column('id').doNothing())
+        .execute();
+      await trx
+        .insertInto('housingEvents')
+        .values(batch.map(toHousingEventInsert))
+        .onConflict((oc) => oc.column('eventId').doNothing())
+        .execute();
+    }
+  );
 }
 
 function toEventInsert<Type extends EventType>(
@@ -147,31 +174,22 @@ function toHousingOwnerEventInsert(
 async function insertManyHousingOwnerEvents(
   events: ReadonlyArray<HousingOwnerEventApi>
 ): Promise<void> {
-  if (!events.length) {
-    return;
-  }
-
-  logger.debug('Inserting housing owner events...', {
-    events: events.length
-  });
-  await withinKyselyTransaction(async (trx) => {
-    await pMap(
-      Array.chunksOf(events, INSERT_BATCH_SIZE),
-      async (batch) => {
-        await trx
-          .insertInto('events')
-          .values(batch.map(toEventInsert))
-          .onConflict((oc) => oc.column('id').doNothing())
-          .execute();
-        await trx
-          .insertInto('housingOwnerEvents')
-          .values(batch.map(toHousingOwnerEventInsert))
-          .onConflict((oc) => oc.column('eventId').doNothing())
-          .execute();
-      },
-      { concurrency: 1 }
-    );
-  });
+  await insertEventsInBatches(
+    events,
+    { label: 'housing owner events' },
+    async (trx, batch) => {
+      await trx
+        .insertInto('events')
+        .values(batch.map(toEventInsert))
+        .onConflict((oc) => oc.column('id').doNothing())
+        .execute();
+      await trx
+        .insertInto('housingOwnerEvents')
+        .values(batch.map(toHousingOwnerEventInsert))
+        .onConflict((oc) => oc.column('eventId').doNothing())
+        .execute();
+    }
+  );
 }
 
 function toPrecisionHousingEventInsert(
@@ -188,84 +206,52 @@ function toPrecisionHousingEventInsert(
 async function insertManyPrecisionHousingEvents(
   events: ReadonlyArray<PrecisionHousingEventApi>
 ): Promise<void> {
-  if (!events.length) {
-    return;
-  }
-
-  logger.debug('Inserting precision housing events...', {
-    events: events.length
-  });
-  await withinKyselyTransaction(async (trx) => {
-    await pMap(
-      Array.chunksOf(events, INSERT_BATCH_SIZE),
-      async (batch) => {
-        await trx
-          .insertInto('events')
-          .values(batch.map(toEventInsert))
-          .execute();
-        await trx
-          .insertInto('precisionHousingEvents')
-          .values(batch.map(toPrecisionHousingEventInsert))
-          .execute();
-      },
-      { concurrency: 1 }
-    );
-  });
+  await insertEventsInBatches(
+    events,
+    { label: 'precision housing events' },
+    async (trx, batch) => {
+      await trx.insertInto('events').values(batch.map(toEventInsert)).execute();
+      await trx
+        .insertInto('precisionHousingEvents')
+        .values(batch.map(toPrecisionHousingEventInsert))
+        .execute();
+    }
+  );
 }
 
 async function insertManyOwnerEvents(
   events: ReadonlyArray<OwnerEventApi>
 ): Promise<void> {
-  if (!events.length) {
-    logger.debug('No owner event to insert. Skipping...');
-    return;
-  }
-
-  logger.debug('Inserting owner events...', { events: events.length });
-  await withinKyselyTransaction(async (trx) => {
-    await pMap(
-      Array.chunksOf(events, INSERT_BATCH_SIZE),
-      async (batch) => {
-        await trx
-          .insertInto('events')
-          .values(batch.map(toEventInsert))
-          .execute();
-        await trx
-          .insertInto('ownerEvents')
-          .values(batch.map(toOwnerEventInsert))
-          .execute();
-      },
-      { concurrency: 1 }
-    );
-  });
+  await insertEventsInBatches(
+    events,
+    {
+      label: 'owner events',
+      emptyMessage: 'No owner event to insert. Skipping...'
+    },
+    async (trx, batch) => {
+      await trx.insertInto('events').values(batch.map(toEventInsert)).execute();
+      await trx
+        .insertInto('ownerEvents')
+        .values(batch.map(toOwnerEventInsert))
+        .execute();
+    }
+  );
 }
 
 async function insertManyCampaignHousingEvents(
   events: ReadonlyArray<CampaignHousingEventApi>
 ): Promise<void> {
-  if (!events.length) {
-    return;
-  }
-
-  logger.debug('Inserting campaign housing events...', {
-    events: events.length
-  });
-  await withinKyselyTransaction(async (trx) => {
-    await pMap(
-      Array.chunksOf(events, INSERT_BATCH_SIZE),
-      async (batch) => {
-        await trx
-          .insertInto('events')
-          .values(batch.map(toEventInsert))
-          .execute();
-        await trx
-          .insertInto('campaignHousingEvents')
-          .values(batch.map(toCampaignHousingEventInsert))
-          .execute();
-      },
-      { concurrency: 1 }
-    );
-  });
+  await insertEventsInBatches(
+    events,
+    { label: 'campaign housing events' },
+    async (trx, batch) => {
+      await trx.insertInto('events').values(batch.map(toEventInsert)).execute();
+      await trx
+        .insertInto('campaignHousingEvents')
+        .values(batch.map(toCampaignHousingEventInsert))
+        .execute();
+    }
+  );
 }
 
 function toCampaignHousingEventInsert(
@@ -291,57 +277,33 @@ function toCampaignEventInsert(
 async function insertManyCampaignEvents(
   events: ReadonlyArray<CampaignEventApi>
 ): Promise<void> {
-  if (!events.length) {
-    return;
-  }
-
-  logger.debug('Inserting campaign events...', {
-    events: events.length
-  });
-  await withinKyselyTransaction(async (trx) => {
-    await pMap(
-      Array.chunksOf(events, INSERT_BATCH_SIZE),
-      async (batch) => {
-        await trx
-          .insertInto('events')
-          .values(batch.map(toEventInsert))
-          .execute();
-        await trx
-          .insertInto('campaignEvents')
-          .values(batch.map(toCampaignEventInsert))
-          .execute();
-      },
-      { concurrency: 1 }
-    );
-  });
+  await insertEventsInBatches(
+    events,
+    { label: 'campaign events' },
+    async (trx, batch) => {
+      await trx.insertInto('events').values(batch.map(toEventInsert)).execute();
+      await trx
+        .insertInto('campaignEvents')
+        .values(batch.map(toCampaignEventInsert))
+        .execute();
+    }
+  );
 }
 
 async function insertManyGroupHousingEvents(
   events: GroupHousingEventApi[]
 ): Promise<void> {
-  if (!events.length) {
-    return;
-  }
-
-  logger.debug('Inserting group events...', {
-    events: events.length
-  });
-  await withinKyselyTransaction(async (trx) => {
-    await pMap(
-      Array.chunksOf(events, INSERT_BATCH_SIZE),
-      async (batch) => {
-        await trx
-          .insertInto('events')
-          .values(batch.map(toEventInsert))
-          .execute();
-        await trx
-          .insertInto('groupHousingEvents')
-          .values(batch.map(toGroupHousingEventDBO))
-          .execute();
-      },
-      { concurrency: 1 }
-    );
-  });
+  await insertEventsInBatches(
+    events,
+    { label: 'group events' },
+    async (trx, batch) => {
+      await trx.insertInto('events').values(batch.map(toEventInsert)).execute();
+      await trx
+        .insertInto('groupHousingEvents')
+        .values(batch.map(toGroupHousingEventDBO))
+        .execute();
+    }
+  );
 }
 
 function toGroupHousingEventDBO(
@@ -367,28 +329,20 @@ function toDocumentEventInsert(
 async function insertManyDocumentEvents(
   events: ReadonlyArray<DocumentEventApi>
 ): Promise<void> {
-  if (!events.length) {
-    logger.debug('No document event to insert. Skipping...');
-    return;
-  }
-
-  logger.debug('Inserting document events...', { events: events.length });
-  await withinKyselyTransaction(async (trx) => {
-    await pMap(
-      Array.chunksOf(events, INSERT_BATCH_SIZE),
-      async (batch) => {
-        await trx
-          .insertInto('events')
-          .values(batch.map(toEventInsert))
-          .execute();
-        await trx
-          .insertInto('documentEvents')
-          .values(batch.map(toDocumentEventInsert))
-          .execute();
-      },
-      { concurrency: 1 }
-    );
-  });
+  await insertEventsInBatches(
+    events,
+    {
+      label: 'document events',
+      emptyMessage: 'No document event to insert. Skipping...'
+    },
+    async (trx, batch) => {
+      await trx.insertInto('events').values(batch.map(toEventInsert)).execute();
+      await trx
+        .insertInto('documentEvents')
+        .values(batch.map(toDocumentEventInsert))
+        .execute();
+    }
+  );
 }
 
 function toHousingDocumentEventInsert(
@@ -405,57 +359,33 @@ function toHousingDocumentEventInsert(
 async function insertManyHousingDocumentEvents(
   events: ReadonlyArray<HousingDocumentEventApi>
 ): Promise<void> {
-  if (!events.length) {
-    return;
-  }
-
-  logger.debug('Inserting housing document events...', {
-    events: events.length
-  });
-  await withinKyselyTransaction(async (trx) => {
-    await pMap(
-      Array.chunksOf(events, INSERT_BATCH_SIZE),
-      async (batch) => {
-        await trx
-          .insertInto('events')
-          .values(batch.map(toEventInsert))
-          .execute();
-        await trx
-          .insertInto('housingDocumentEvents')
-          .values(batch.map(toHousingDocumentEventInsert))
-          .execute();
-      },
-      { concurrency: 1 }
-    );
-  });
+  await insertEventsInBatches(
+    events,
+    { label: 'housing document events' },
+    async (trx, batch) => {
+      await trx.insertInto('events').values(batch.map(toEventInsert)).execute();
+      await trx
+        .insertInto('housingDocumentEvents')
+        .values(batch.map(toHousingDocumentEventInsert))
+        .execute();
+    }
+  );
 }
 
 async function insertManyCampaignDocumentEvents(
   events: ReadonlyArray<CampaignDocumentEventApi>
 ): Promise<void> {
-  if (!events.length) {
-    return;
-  }
-
-  logger.debug('Inserting campaign document events...', {
-    events: events.length
-  });
-  await withinKyselyTransaction(async (trx) => {
-    await pMap(
-      Array.chunksOf(events, INSERT_BATCH_SIZE),
-      async (batch) => {
-        await trx
-          .insertInto('events')
-          .values(batch.map(toEventInsert))
-          .execute();
-        await trx
-          .insertInto('campaignDocumentEvents')
-          .values(batch.map(toCampaignDocumentEventInsert))
-          .execute();
-      },
-      { concurrency: 1 }
-    );
-  });
+  await insertEventsInBatches(
+    events,
+    { label: 'campaign document events' },
+    async (trx, batch) => {
+      await trx.insertInto('events').values(batch.map(toEventInsert)).execute();
+      await trx
+        .insertInto('campaignDocumentEvents')
+        .values(batch.map(toCampaignDocumentEventInsert))
+        .execute();
+    }
+  );
 }
 
 function toCampaignDocumentEventInsert(

@@ -1,6 +1,5 @@
 import type { Knex } from 'knex';
 import type { Insertable, Selectable } from 'kysely';
-import { sql } from 'kysely';
 
 import db, { fromDateDBO } from '~/infra/database';
 import type { DB } from '~/infra/database/db';
@@ -11,7 +10,11 @@ import { CampaignApi } from '~/models/CampaignApi';
 import { CampaignDocumentApi } from '~/models/CampaignDocumentApi';
 import { UserDBO, fromUserDBO } from '~/repositories/userRepository';
 
-import { fromDocumentDBO, type DocumentDBO } from './documentRepository';
+import {
+  creatorJsonBuildObject,
+  fromDocumentDBO,
+  type DocumentDBO
+} from './documentRepository';
 
 const logger = createLogger('campaignDocumentRepository');
 
@@ -181,11 +184,13 @@ async function get(
 
 async function remove(document: CampaignDocumentApi): Promise<void> {
   logger.debug('Soft-deleting campaign document...', document);
-  await kysely
-    .updateTable('documents')
-    .set({ deletedAt: new Date() })
-    .where('id', '=', document.id)
-    .execute();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .updateTable('documents')
+      .set({ deletedAt: new Date() })
+      .where('id', '=', document.id)
+      .execute();
+  });
 }
 
 // Base query joining documents, their campaign links, and the creator.
@@ -200,20 +205,7 @@ function listQuery() {
     .innerJoin('users', 'users.id', 'documents.createdBy')
     .selectAll('documents')
     .select(['documentsCampaigns.campaignId'])
-    .select(
-      sql<UserDBO>`json_build_object(
-        'id', users.id,
-        'email', users.email,
-        'first_name', users.first_name,
-        'last_name', users.last_name,
-        'role', users.role,
-        'establishment_id', users.establishment_id,
-        'time_per_week', users.time_per_week,
-        'phone', users.phone,
-        'position', users.position,
-        'updated_at', users.updated_at
-      )`.as('creator')
-    );
+    .select(creatorJsonBuildObject.as('creator'));
 }
 
 export function toCampaignDocumentDBO(

@@ -54,6 +54,20 @@ describe('housingOwnerRepository', () => {
       });
     });
 
+    it('should return startDate as a YYYY-MM-DD string, not a Date instance', async () => {
+      const owner = genOwnerApi();
+      await Owners().insert(formatOwnerApi(owner));
+      const housing = genHousingApi();
+      await Housing().insert(formatHousingRecordApi(housing));
+      const housingOwner = genHousingOwnerApi(housing, owner);
+      await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
+
+      const [actual] = await housingOwnerRepository.findByOwner(owner);
+
+      expect(actual.startDate).toBe(housingOwner.startDate);
+      expect(actual.startDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
     describe('geoCodes filter', () => {
       it('should return empty array when geoCodes is empty (whereRaw 1=0 path)', async () => {
         const owner = genOwnerApi();

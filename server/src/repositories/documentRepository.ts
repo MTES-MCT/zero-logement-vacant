@@ -185,6 +185,24 @@ export function selectDocumentWithCreator(fkColumn: string, alias: string) {
   )`.as(alias);
 }
 
+// Shared `creator` JSON projection for queries that inner-join `users` as
+// `users` (selectAll('documents') + .as('creator')). Reused by
+// campaignDocumentRepository/housingDocumentRepository's equivalent
+// listQuery — not the `u`-aliased raw subquery in
+// {@link selectDocumentWithCreator} above, which has its own local aliases.
+export const creatorJsonBuildObject = sql<UserDBO>`json_build_object(
+  'id', users.id,
+  'email', users.email,
+  'first_name', users.first_name,
+  'last_name', users.last_name,
+  'role', users.role,
+  'establishment_id', users.establishment_id,
+  'time_per_week', users.time_per_week,
+  'phone', users.phone,
+  'position', users.position,
+  'updated_at', users.updated_at
+)`;
+
 // Kysely query builder with the creator embedded as a JSON column.
 // The creator fields mirror the Knex `queryWithCreator` projection (no
 // sensitive columns) so the parsed `UserDBO` shape is unchanged.
@@ -193,20 +211,7 @@ function queryWithCreator() {
     .selectFrom('documents')
     .innerJoin('users', 'users.id', 'documents.createdBy')
     .selectAll('documents')
-    .select(
-      sql<UserDBO>`json_build_object(
-        'id', users.id,
-        'email', users.email,
-        'first_name', users.first_name,
-        'last_name', users.last_name,
-        'role', users.role,
-        'establishment_id', users.establishment_id,
-        'time_per_week', users.time_per_week,
-        'phone', users.phone,
-        'position', users.position,
-        'updated_at', users.updated_at
-      )`.as('creator')
-    );
+    .select(creatorJsonBuildObject.as('creator'));
 }
 
 export function toDocumentDBO(document: DocumentApi): DocumentDBO {

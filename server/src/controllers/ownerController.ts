@@ -407,7 +407,7 @@ const updateHousingOwners: RequestHandler<
         relativeLocation: null,
         absoluteDistance: null,
         propertyRight: housingOwnerPayload.propertyRight,
-        startDate: new Date(),
+        startDate: new Date().toJSON().substring(0, 'yyyy-mm-dd'.length),
         endDate: null,
         origin: null
       };

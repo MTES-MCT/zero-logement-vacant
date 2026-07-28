@@ -180,11 +180,13 @@ export const remove = async (refId: string, addressKind: AddressKinds) => {
     ref: refId,
     addressKind
   });
-  await kysely
-    .deleteFrom('banAddresses')
-    .where('refId', '=', refId)
-    .where('addressKind', '=', addressKind)
-    .execute();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .deleteFrom('banAddresses')
+      .where('refId', '=', refId)
+      .where('addressKind', '=', addressKind)
+      .execute();
+  });
 
   logger.debug(`Deleted ${addressKind} refId=${refId} address.`);
 };

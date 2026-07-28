@@ -8,7 +8,9 @@ import { kysely } from '~/infra/database/kysely';
 import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import {
+  DEFAULT_PAGINATION,
   isPaginationEnabled,
+  toLimitOffset,
   type PaginationApi
 } from '~/models/PaginationApi';
 import { UserApi } from '~/models/UserApi';
@@ -115,19 +117,9 @@ interface FindOptions {
 
 async function find(opts?: FindOptions): Promise<UserApi[]> {
   const establishmentIds = opts?.filters?.establishments;
-  // paginationQuery() defaulted to { page: 1, perPage: 50 } when no
-  // pagination was provided, so unpaginated find() calls were still capped
-  // at 50 rows.
-  const pagination: PaginationApi = opts?.pagination ?? {
-    paginate: true,
-    page: 1,
-    perPage: 50
-  };
+  const pagination: PaginationApi = opts?.pagination ?? DEFAULT_PAGINATION;
   const paginationParams = isPaginationEnabled(pagination)
-    ? {
-        limit: pagination.perPage,
-        offset: (pagination.page - 1) * pagination.perPage
-      }
+    ? toLimitOffset(pagination)
     : null;
 
   const rows = await kysely

@@ -369,7 +369,7 @@ const create: RequestHandler<
         housingId: housing.id,
         ownerId: owner.id,
         rank: rank,
-        startDate: new Date(),
+        startDate: new Date().toJSON().substring(0, 'yyyy-mm-dd'.length),
         endDate: null,
         origin: 'datafoncier-manual',
         idprocpte: datafoncierOwner.idprocpte,

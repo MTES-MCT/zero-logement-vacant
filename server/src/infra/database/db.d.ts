@@ -103,6 +103,12 @@ export interface Buildings {
   vacantHousingCount: number;
 }
 
+export interface CampaignDocumentEvents {
+  campaignId: string;
+  documentId: string;
+  eventId: string;
+}
+
 export interface CampaignEvents {
   campaignId: string;
   eventId: string;
@@ -384,6 +390,11 @@ export interface Documents {
   s3Key: string;
   sizeBytes: number;
   updatedAt: Timestamp | null;
+}
+
+export interface DocumentsCampaigns {
+  campaignId: string;
+  documentId: string;
 }
 
 export interface DocumentsHousings {
@@ -817,6 +828,7 @@ export interface DB {
   authUsers: AuthUsers;
   banAddresses: BanAddresses;
   buildings: Buildings;
+  campaignDocumentEvents: CampaignDocumentEvents;
   campaignEvents: CampaignEvents;
   campaignHousingEvents: CampaignHousingEvents;
   campaigns: Campaigns;
@@ -827,6 +839,7 @@ export interface DB {
   dfOwnersNat2024: DfOwnersNat2024;
   documentEvents: DocumentEvents;
   documents: Documents;
+  documentsCampaigns: DocumentsCampaigns;
   documentsHousings: DocumentsHousings;
   drafts: Drafts;
   establishments: Establishments;

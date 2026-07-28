@@ -129,6 +129,8 @@ fileignoreconfig:
   checksum: 1d816ff7b060a0100cbd90a60182bb7c3e230ab5761909b18871af6ced2a6efb
 - filename: server/src/repositories/documentRepository.ts
   checksum: 08cf7ff79afbf8604d02913f97a4a3a7a5ba21921a104096a6973f293b81d107
+- filename: server/src/repositories/campaignDocumentRepository.ts
+  checksum: bc89e4d6cc903adce91e339d4beff276e921f9566a20ae0f8f419499139554a8
 - filename: server/src/repositories/test/campaignDocumentRepository.test.ts
   checksum: d4b78953d3f5c8b36205457c510a2b351874906e1e71a8cd5d85a1b06eb0f3b1
 - filename: server/src/repositories/datafoncierHousingRepository.ts

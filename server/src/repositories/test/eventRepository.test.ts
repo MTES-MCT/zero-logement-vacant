@@ -1192,6 +1192,18 @@ describe('Event repository', () => {
         nextOld: { filename: 'document.pdf' },
         nextNew: null
       },
+      'campaign:document-attached': {
+        nextOld: null,
+        nextNew: { filename: 'document.pdf' }
+      },
+      'campaign:document-detached': {
+        nextOld: { filename: 'document.pdf' },
+        nextNew: null
+      },
+      'campaign:document-removed': {
+        nextOld: { filename: 'document.pdf' },
+        nextNew: null
+      },
       'owner:created': {
         nextOld: null,
         nextNew: {

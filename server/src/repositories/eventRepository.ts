@@ -440,13 +440,32 @@ async function insertManyCampaignDocumentEvents(
   logger.debug('Inserting campaign document events...', {
     events: events.length
   });
-  await withinTransaction(async (transaction) => {
-    await transaction.batchInsert(EVENTS_TABLE, events.map(formatEventApi));
-    await transaction.batchInsert(
-      CAMPAIGN_DOCUMENT_EVENTS_TABLE,
-      events.map(formatCampaignDocumentEventApi)
+  await withinKyselyTransaction(async (trx) => {
+    await pMap(
+      Array.chunksOf(events, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx
+          .insertInto('events')
+          .values(batch.map(toEventInsert))
+          .execute();
+        await trx
+          .insertInto('campaignDocumentEvents')
+          .values(batch.map(toCampaignDocumentEventInsert))
+          .execute();
+      },
+      { concurrency: 1 }
     );
   });
+}
+
+function toCampaignDocumentEventInsert(
+  event: CampaignDocumentEventApi
+): Insertable<DB['campaignDocumentEvents']> {
+  return {
+    eventId: event.id,
+    campaignId: event.campaignId,
+    documentId: event.documentId
+  };
 }
 
 interface FindEventsOptions<Type extends EventType> {

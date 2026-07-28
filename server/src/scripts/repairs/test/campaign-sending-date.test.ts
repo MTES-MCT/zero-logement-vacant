@@ -98,6 +98,7 @@ function base() {
 describe('campaignSendingDateRepair.decide', () => {
   it('reverts a housing flipped early by an unsent campaign', () => {
     expect(campaignSendingDateRepair.decide(base())).toEqual({
+      expect: { status: HousingStatus.WAITING, subStatus: null },
       update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null },
       deleteEventIds: ['status-event-id']
     });
@@ -165,9 +166,10 @@ describe('campaignSendingDateRepair.decide', () => {
   });
 
   it('skips when no campaign-attached event correlates in time', () => {
+    // An attachment far *before* the flip (beyond the tolerance) is not its pair.
     const farApart = new Date(
-      new Date(STATUS_EVENT_TIME).getTime() +
-        ATTACHMENT_CORRELATION_TOLERANCE_MS +
+      new Date(STATUS_EVENT_TIME).getTime() -
+        ATTACHMENT_CORRELATION_TOLERANCE_MS -
         1
     ).toJSON();
     const housing = {
@@ -179,9 +181,26 @@ describe('campaignSendingDateRepair.decide', () => {
     });
   });
 
+  it('skips when the attachment lands after the status flip (reverse order)', () => {
+    // createFromGroup writes the attachment before the flip. A manual flip
+    // followed by an attachment seconds later is the reverse order and must not
+    // be mistaken for the old bug, even though it sits inside the window.
+    const afterFlip = new Date(
+      new Date(STATUS_EVENT_TIME).getTime() + 5_000
+    ).toJSON();
+    const housing = {
+      ...base(),
+      campaignAttachedEvents: [attachedEvent(afterFlip)]
+    };
+    expect(campaignSendingDateRepair.decide(housing)).toEqual({
+      action: 'skip'
+    });
+  });
+
   it('correlates at exactly the tolerance boundary', () => {
+    // Attachment the full tolerance *before* the flip: the boundary of a pair.
     const atBoundary = new Date(
-      new Date(STATUS_EVENT_TIME).getTime() +
+      new Date(STATUS_EVENT_TIME).getTime() -
         ATTACHMENT_CORRELATION_TOLERANCE_MS
     ).toJSON();
     const housing = {
@@ -234,11 +253,12 @@ describe('campaignSendingDateRepair.query (integration)', () => {
     });
     // Pin created_at so attach + flip fall within ATTACHMENT_CORRELATION_TOLERANCE_MS
     // (genEventApi uses faker.date.past(), which would otherwise place them far apart).
+    // The attachment precedes the flip, as createFromGroup writes it.
     const flipTime = new Date('2026-01-01T10:00:00.000Z');
     await Events().insert({ ...formatEventApi(flip), created_at: flipTime });
     await Events().insert({
       ...formatEventApi(attached),
-      created_at: new Date(flipTime.getTime() + 2000)
+      created_at: new Date(flipTime.getTime() - 2000)
     });
     await CampaignHousingEvents().insert({
       event_id: attached.id,

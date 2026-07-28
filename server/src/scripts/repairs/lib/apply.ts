@@ -2,6 +2,7 @@ import { stat } from 'node:fs/promises';
 import { Writable } from 'node:stream';
 
 import { compactUndefined } from '@zerologementvacant/utils';
+import { chunksOf } from 'effect/Array';
 
 import db from '~/infra/database';
 import type { HousingEventApi } from '~/models/EventApi';
@@ -11,7 +12,7 @@ import {
   formatHousingEventApi,
   HousingEvents
 } from '~/repositories/eventRepository';
-import { Housing } from '~/repositories/housingRepository';
+import { Housing, type HousingDBO } from '~/repositories/housingRepository';
 import {
   disableHousingsTriggers,
   enableHousingsTriggers,
@@ -44,7 +45,7 @@ export async function apply(
   // Empty plan: short-circuit before opening a transaction or recomputing.
   const { size } = await stat(planFile);
   if (size === 0) {
-    return { updated: 0, eventsDeleted: 0, eventsCreated: 0 };
+    return { updated: 0, eventsDeleted: 0, eventsCreated: 0, skipped: 0 };
   }
 
   // Fail fast (before taking any lock) if a trigger we can't compensate for
@@ -56,8 +57,14 @@ export async function apply(
   const summary: ApplySummary = {
     updated: 0,
     eventsDeleted: 0,
-    eventsCreated: 0
+    eventsCreated: 0,
+    skipped: 0
   };
+
+  // Rows carrying a state precondition (`expect`). Only these are held in
+  // memory — a plan whose rows have no `expect` yields an empty list and streams
+  // through apply exactly as before.
+  const preconditions = await collectPreconditions(planFile);
 
   // A repair is a reviewed, point-in-time operation. The writes below use the
   // table accessors and pure formatters directly — never the repository
@@ -73,6 +80,40 @@ export async function apply(
     // disable — rolls back and the triggers are never left off.
     if (bypassTriggers) {
       await disableHousingsTriggers(transaction);
+    }
+
+    // Re-validate the state preconditions under a row lock before writing. The
+    // plan is a point-in-time snapshot; a housing may have drifted between plan
+    // and apply (a caseworker edit, the daily cron). Read the expected columns
+    // `FOR UPDATE` so the lock is held for the rest of the transaction — nothing
+    // can move these rows between this check and the writes below — and mark any
+    // that no longer match as stale so their whole row is skipped.
+    const staleKeys = new Set<string>();
+    for (const chunk of chunksOf(preconditions, CHUNK_SIZE)) {
+      const current = await Housing(transaction)
+        .whereIn(
+          ['geo_code', 'id'],
+          chunk.map((row) => [row.housingGeoCode, row.housingId])
+        )
+        .forUpdate()
+        .select(
+          'geo_code',
+          'id',
+          'status',
+          'sub_status',
+          'occupancy',
+          'occupancy_intended'
+        );
+      const currentByKey = new Map<string, HousingStateRow>(
+        current.map((row) => [`${row.geo_code}:${row.id}`, row])
+      );
+      for (const row of chunk) {
+        const key = `${row.housingGeoCode}:${row.housingId}`;
+        const housing = currentByKey.get(key);
+        if (!housing || !matchesExpect(housing, row.expect)) {
+          staleKeys.add(key);
+        }
+      }
     }
 
     // Rows sharing an update payload arrive contiguously (plan.jsonl is ordered
@@ -141,6 +182,16 @@ export async function apply(
     };
 
     const processRow = async (row: PlanRow) => {
+      // The row's state precondition no longer holds: skip update, deletes and
+      // creates together so a drifted housing is never partially rewritten.
+      if (
+        row.expect &&
+        staleKeys.has(`${row.housingGeoCode}:${row.housingId}`)
+      ) {
+        summary.skipped++;
+        return;
+      }
+
       if (row.update && Object.keys(row.update).length > 0) {
         const key = JSON.stringify(row.update);
         if (key !== currentKey) {
@@ -207,4 +258,79 @@ function toHousingColumns(update: NonNullable<PlanRow['update']>) {
     occupancy: update.occupancy,
     occupancy_intended: update.occupancyIntended
   });
+}
+
+interface Precondition {
+  housingGeoCode: string;
+  housingId: string;
+  expect: NonNullable<PlanRow['expect']>;
+}
+
+/**
+ * Stream the plan once and collect only the rows that carry a non-empty state
+ * precondition. Keeps memory proportional to the preconditioned rows, not the
+ * whole plan, so a repair that does not use `expect` pays nothing.
+ */
+async function collectPreconditions(planFile: string): Promise<Precondition[]> {
+  const preconditions: Precondition[] = [];
+  await readPlan(
+    planFile,
+    new Writable({
+      objectMode: true,
+      write(row: PlanRow, _encoding, callback) {
+        if (row.expect && Object.keys(row.expect).length > 0) {
+          preconditions.push({
+            housingGeoCode: row.housingGeoCode,
+            housingId: row.housingId,
+            expect: row.expect
+          });
+        }
+        callback();
+      }
+    })
+  );
+  return preconditions;
+}
+
+type HousingStateRow = Pick<
+  HousingDBO,
+  | 'geo_code'
+  | 'id'
+  | 'status'
+  | 'sub_status'
+  | 'occupancy'
+  | 'occupancy_intended'
+>;
+
+/**
+ * Whether the current housing still matches every column named in `expect`.
+ * Only listed columns are compared, and `null` is a meaningful expected value
+ * (e.g. "sub_status must still be null"), distinct from an omitted column.
+ */
+function matchesExpect(
+  current: HousingStateRow,
+  expect: NonNullable<PlanRow['expect']>
+): boolean {
+  if (expect.status !== undefined && current.status !== expect.status) {
+    return false;
+  }
+  if (
+    expect.subStatus !== undefined &&
+    current.sub_status !== expect.subStatus
+  ) {
+    return false;
+  }
+  if (
+    expect.occupancy !== undefined &&
+    current.occupancy !== expect.occupancy
+  ) {
+    return false;
+  }
+  if (
+    expect.occupancyIntended !== undefined &&
+    current.occupancy_intended !== expect.occupancyIntended
+  ) {
+    return false;
+  }
+  return true;
 }

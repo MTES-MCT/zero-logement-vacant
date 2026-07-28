@@ -36,12 +36,16 @@ import type { RowStream } from './lib/row-stream';
 import type { Repair } from './lib/types';
 
 /**
- * How far apart (ms) a `housing:campaign-attached` event may sit from its paired
- * `housing:status-updated` event and still count as the same createFromGroup
- * call. createFromGroup builds the two event lists in back-to-back synchronous
- * `.map()` passes with no I/O between them, so genuine pairs are milliseconds
- * apart. Calibrate against production before applying (see the plan's rollout
- * task) and raise this above the observed maximum with real margin.
+ * How long (ms) after a `housing:campaign-attached` event its paired
+ * `housing:status-updated` flip may land and still count as the same
+ * createFromGroup call. In createFromGroup the attachment events are timestamped
+ * up front (before the transaction opens) and the flip is written later, inside
+ * the transaction, after the campaign/sender/draft/link writes — so a genuine
+ * pair always has the attachment *at or before* the flip, a small bounded gap
+ * apart. The correlation is therefore directional (see `decide`): an attachment
+ * that lands *after* the flip is not the old bug and must not be reverted.
+ * Calibrate against production before applying (see the plan's rollout task) and
+ * raise this above the observed maximum with real margin.
  */
 export const ATTACHMENT_CORRELATION_TOLERANCE_MS = 10_000;
 
@@ -255,13 +259,16 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
     }
 
     // Attributable to a campaign attachment: a campaign-attached event for this
-    // housing sits within the tolerance window of the status event.
+    // housing precedes the status event by no more than the tolerance window.
+    // The check is directional — `attached <= status` — because createFromGroup
+    // always writes the attachment before the flip. A `Math.abs` window would
+    // also accept the reverse order (a manual flip followed by an attachment
+    // seconds later), misreading it as the old bug and reverting it.
     const statusTime = new Date(event.createdAt).getTime();
-    const correlated = housing.campaignAttachedEvents.some(
-      (attached) =>
-        Math.abs(new Date(attached.createdAt).getTime() - statusTime) <=
-        ATTACHMENT_CORRELATION_TOLERANCE_MS
-    );
+    const correlated = housing.campaignAttachedEvents.some((attached) => {
+      const gap = statusTime - new Date(attached.createdAt).getTime();
+      return gap >= 0 && gap <= ATTACHMENT_CORRELATION_TOLERANCE_MS;
+    });
     if (!correlated) {
       return { action: 'skip' };
     }
@@ -281,14 +288,22 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
         return { action: 'skip' };
       }
       return {
+        // Only act if the housing is still the untouched WAITING auto-flip at
+        // apply time; if a caseworker or the cron moved it since planning, skip
+        // the re-author rather than resurrect a stale event.
+        expect: { status: HousingStatus.WAITING, subStatus: null },
         deleteEventIds: [event.id],
         createEvents: [{ ...event, id: uuidv4(), createdBy: housing.systemId }]
       };
     }
 
     // No campaign has sent: the housing was flipped early and should be
-    // reverted to NEVER_CONTACTED; the erroneous event is hard-deleted.
+    // reverted to NEVER_CONTACTED; the erroneous event is hard-deleted. Guard
+    // the destructive revert on the housing still being the untouched WAITING
+    // auto-flip at apply time, so a manual edit made between plan and apply is
+    // not clobbered.
     return {
+      expect: { status: HousingStatus.WAITING, subStatus: null },
       update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null },
       deleteEventIds: [event.id]
     };

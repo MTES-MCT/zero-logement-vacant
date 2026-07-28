@@ -157,7 +157,8 @@ describe('repairCommand()', () => {
     const summary: ApplySummary = {
       updated: 7,
       eventsDeleted: 4,
-      eventsCreated: 2
+      eventsCreated: 2,
+      skipped: 0
     };
 
     async function registerRepair(bypassTriggers?: boolean): Promise<string> {

@@ -30,6 +30,18 @@ export interface RepairAction {
   >;
   createEvents?: HousingEventApi[];
   deleteEventIds?: string[];
+  /**
+   * State the housing must still be in at `apply` time for this row to run. The
+   * plan is a point-in-time snapshot; between `plan` and `apply` a housing may
+   * have moved (a caseworker edit, a concurrent cron). `apply` re-reads the
+   * listed columns under a row lock and, if any drifted, skips the *whole* row
+   * (update, deletes and creates) rather than blindly overwriting — counting it
+   * as `skipped`. Only the listed columns are checked; omit for repairs that do
+   * not need it (they keep streaming without the per-row pre-read).
+   */
+  expect?: Partial<
+    Pick<HousingApi, 'status' | 'subStatus' | 'occupancy' | 'occupancyIntended'>
+  >;
 }
 
 export interface RepairSkip {
@@ -47,6 +59,7 @@ export interface PlanRow {
   update?: RepairAction['update'];
   createEvents?: HousingEventApi[];
   deleteEventIds?: string[];
+  expect?: RepairAction['expect'];
 }
 
 export interface SkippedRow {
@@ -73,4 +86,10 @@ export interface ApplySummary {
   updated: number;
   eventsDeleted: number;
   eventsCreated: number;
+  /**
+   * Rows dropped because their `expect` precondition no longer held at apply
+   * time (the housing drifted between `plan` and `apply`). Always 0 for plans
+   * whose rows carry no `expect`.
+   */
+  skipped: number;
 }

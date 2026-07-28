@@ -281,7 +281,7 @@ SELECT
     , lovac.count_vacant_housing_private
     , lovac.count_vacant_housing_private_fil
     , lovac.count_vacant_housing_private_fil_ccthp
-    , CASE WHEN year > 2025 THEN lovac.count_vacant_housing_private_fil ELSE count_vacant_housing_private_fil_ccthp END AS count_vacant_housing_private_fil_public
+    , CASE WHEN year >= 2025 THEN lovac.count_vacant_housing_private_fil ELSE count_vacant_housing_private_fil_ccthp END AS count_vacant_housing_private_fil_public
     , lovac.sum_living_area_vacant_housing_private_fil_ccthp
     , lovac.sum_plot_area_vacant_housing_private_fil_ccthp
     , ff.count_housing

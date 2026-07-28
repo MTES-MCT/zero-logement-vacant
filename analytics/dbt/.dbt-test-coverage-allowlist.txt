@@ -94,7 +94,6 @@ marts_admin_departements
 marts_admin_epci
 marts_admin_regions
 marts_common_cities
-marts_common_morphology
 marts_production_events
 marts_production_housing_out
 marts_production_join_campaigns_housing

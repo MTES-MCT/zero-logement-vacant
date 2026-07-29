@@ -2030,7 +2030,11 @@ describe('Housing repository', () => {
           const actual = await housingRepository.find({
             filters: {
               dataFileYearsExcluded: [null, 'datafoncier-manual']
-            }
+            },
+            // Disable pagination: with the default 50-row page, the fixtures can
+            // fall outside page 1 once other tests have seeded the table, making
+            // the presence/absence assertions below unreliable.
+            pagination: { paginate: false }
           });
 
           const ids = actual.map((housing) => housing.id);

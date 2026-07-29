@@ -1951,6 +1951,16 @@ paths:
           schema:
             type: boolean
           description: Filtrer les établissements disponibles pour inscription
+        - in: query
+          name: kindAdmin
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+              maxLength: 50
+          description: Filtrer par nature administrative issue du référentiel Gold, avec repli sur le type historique si elle est absente
       responses:
         '200':
           description: Liste des établissements

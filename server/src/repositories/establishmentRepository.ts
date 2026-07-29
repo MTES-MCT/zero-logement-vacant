@@ -183,6 +183,21 @@ function listQuery(opts?: ListOptions) {
     .$if(!!filters?.kind, (query) =>
       query.where('establishments.kind', 'in', filters?.kind ?? [])
     )
+    .$if(!!filters?.kindAdmin, (query) =>
+      query.where((eb) =>
+        eb.or([
+          eb(
+            'establishments.kindAdmin',
+            'in',
+            filters?.kindAdmin ?? []
+          ),
+          eb.and([
+            eb('establishments.kindAdmin', 'is', null),
+            eb('establishments.kind', 'in', filters?.kindAdmin ?? [])
+          ])
+        ])
+      )
+    )
     .$if(!!filters?.name, (query) =>
       query.where(
         sql<boolean>`lower(unaccent(regexp_replace(regexp_replace(establishments.name, '''| [(].*[)]', '', 'g'), ' | - ', '-', 'g'))) like '%' || ${filters?.name}`

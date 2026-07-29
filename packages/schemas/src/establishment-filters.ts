@@ -18,6 +18,9 @@ export const establishmentFilters: ObjectSchema<EstablishmentFiltersDTO> =
     kind: array()
       .transform(commaSeparatedString)
       .of(string().oneOf(ESTABLISHMENT_KIND_VALUES).required()),
+    kindAdmin: array()
+      .transform(commaSeparatedString)
+      .of(string().trim().max(50).required()),
     siren: array().transform(commaSeparatedString).of(siren.required()),
     query: string().trim(),
     related: string().uuid()

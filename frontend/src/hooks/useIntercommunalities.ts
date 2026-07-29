@@ -10,7 +10,7 @@ export function useIntercommunalities() {
   const { establishment } = useUser();
   const query = useFindEstablishmentsQuery(
     {
-      kind: ['CA', 'CC', 'CU', 'METRO', 'EPT'] // Intercommunalities
+      kindAdmin: ['CA', 'CC', 'CU', 'METRO', 'EPT'] // Intercommunalities
     },
     {
       skip: establishment && !isDepartmentalEstablishment(establishment)

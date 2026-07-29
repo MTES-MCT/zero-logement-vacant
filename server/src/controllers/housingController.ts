@@ -6,6 +6,7 @@ import {
   HOUSING_STATUS_LABELS,
   HousingDTO,
   HousingFiltersDTO,
+  type HousingPointField,
   HousingStatus,
   HousingUpdatePayloadDTO,
   isSingleChoicePrecisionCategory,
@@ -59,6 +60,7 @@ import {
   HousingSortableApi,
   isContacted,
   toHousingDTO,
+  toHousingPointDTO,
   type HousingId
 } from '~/models/HousingApi';
 import { HousingCountApi } from '~/models/HousingCountApi';
@@ -133,7 +135,7 @@ type ListHousingPayload = Pagination & {
 };
 
 type HousingQuery = HousingFiltersDTO &
-  Partial<Pagination> & { sort?: string[] };
+  Partial<Pagination> & { sort?: string[]; fields?: HousingPointField[] };
 
 const list: RequestHandler<
   never,
@@ -180,17 +182,27 @@ const list: RequestHandler<
     sort
   });
 
+  // Sparse projection (map view): fetch lightweight points instead of
+  // fully-hydrated housings — no owner/campaign joins, no to_json, no sort.
+  const fields = query.fields;
+
   const [housings, count] = await Promise.all([
-    housingRepository.find({
-      filters,
-      pagination,
-      sort,
-      includes: ['owner', 'campaigns']
-    }),
+    fields?.length
+      ? housingRepository.find({ filters, pagination, sort, fields })
+      : housingRepository.find({
+          filters,
+          pagination,
+          sort,
+          includes: ['owner', 'campaigns']
+        }),
     // Kept for backward-compatibility
     // TODO: remove this
     Promise.resolve({ housing: 1, owners: 1 })
   ]);
+
+  const entities = fields?.length
+    ? housings.map(toHousingPointDTO)
+    : housings.map(toHousingDTO);
 
   const offset = (pagination.page - 1) * pagination.perPage;
   response
@@ -199,14 +211,15 @@ const list: RequestHandler<
       'Content-Range',
       `housing ${offset}-${offset + housings.length - 1}/${count.housing}`
     )
+    // `entities` may be the sparse point projection; cast at the response boundary.
     .json({
-      entities: housings.map(toHousingDTO),
+      entities,
       filteredCount: count.housing,
       filteredOwnerCount: count.owners,
       page: pagination.page,
       perPage: pagination.perPage,
       totalCount: 0
-    });
+    } as HousingPaginatedDTO);
 };
 
 const count: RequestHandler<

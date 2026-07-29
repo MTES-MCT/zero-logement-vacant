@@ -6,6 +6,7 @@ import {
   ACTIVE_OWNER_RANKS,
   fromHousing,
   getSubStatuses,
+  HOUSING_POINT_FIELDS,
   HOUSING_STATUS_LABELS,
   HousingDTO,
   HousingStatus,
@@ -256,6 +257,35 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
+
+    describe('Projection via ?fields=', () => {
+      const pointFields = [...HOUSING_POINT_FIELDS] as string[];
+
+      it('should return only the requested point fields', async () => {
+        const { status, body } = await request(url)
+          .get(testRoute)
+          .query({ fields: HOUSING_POINT_FIELDS.join(',') })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body.entities.length).toBeGreaterThan(0);
+        expect(body.entities).toSatisfyAll<Record<string, unknown>>((entity) =>
+          Object.keys(entity).every((key) => pointFields.includes(key))
+        );
+        expect(body.entities).toSatisfyAll<Record<string, unknown>>(
+          (entity) => 'id' in entity && !('owner' in entity)
+        );
+      });
+
+      it('should reject unknown fields with 400', async () => {
+        const { status } = await request(url)
+          .get(testRoute)
+          .query({ fields: 'id,secretField' })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      });
     });
 
     describe('Filters', () => {

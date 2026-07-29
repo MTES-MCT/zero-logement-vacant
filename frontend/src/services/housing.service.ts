@@ -3,6 +3,8 @@ import type {
   HousingBatchUpdatePayload,
   HousingDTO,
   HousingFiltersDTO,
+  HousingPointDTO,
+  HousingPointField,
   HousingUpdatePayloadDTO,
   PaginationOptions
 } from '@zerologementvacant/models';
@@ -77,6 +79,30 @@ export const housingApi = zlvApi.injectEndpoints({
           entities: response.entities.map(parseHousing)
         };
       }
+    }),
+
+    // Lightweight projection for the map: fetches all housings as points via
+    // `GET /housing?fields=…`. Callers pick which allowlisted fields they want;
+    // the precise result type is derived by the `useHousingPoints` wrapper.
+    getHousingPoints: builder.query<
+      Partial<HousingPointDTO>[],
+      {
+        filters: HousingFiltersDTO;
+        fields: readonly HousingPointField[];
+      } & AbortOptions
+    >({
+      query: (opts) => ({
+        url: '/housing',
+        params: {
+          ...opts.filters,
+          fields: [...opts.fields],
+          paginate: false
+        },
+        method: 'GET'
+      }),
+      transformResponse: (response: { entities: Partial<HousingPointDTO>[] }) =>
+        response.entities,
+      providesTags: ['Housing']
     }),
 
     countHousing: builder.query<HousingCount, HousingFilters>({
@@ -155,10 +181,36 @@ export const housingApi = zlvApi.injectEndpoints({
   })
 });
 
+/**
+ * Strongly-typed wrapper around `getHousingPoints`: the result type is derived
+ * from the exact `fields` requested, bounded to the allowlisted point fields.
+ *
+ * @example
+ * // data is Pick<HousingDTO, 'id' | 'latitude' | 'longitude'>[] | undefined
+ * const { data } = useHousingPoints({
+ *   filters,
+ *   fields: ['id', 'latitude', 'longitude']
+ * });
+ *
+ * RTK Query endpoints are not per-call generic, so the projection type lives
+ * here. The narrowing is a boundary assertion — sound because the server honors
+ * `fields` via its allowlist projection ({@link HOUSING_POINT_FIELDS}).
+ */
+export function useHousingPoints<
+  const Fields extends readonly HousingPointField[]
+>(args: { filters: HousingFiltersDTO; fields: Fields } & AbortOptions) {
+  const result = useGetHousingPointsQuery(args);
+  return result as Omit<typeof result, 'data'> & {
+    data: Pick<HousingDTO, Fields[number]>[] | undefined;
+  };
+}
+
 export const {
   useGetHousingQuery,
   useFindHousingQuery,
   useLazyFindHousingQuery,
+  useGetHousingPointsQuery,
+  useLazyGetHousingPointsQuery,
   useCountHousingQuery,
   useLazyCountHousingQuery,
   useCreateHousingMutation,

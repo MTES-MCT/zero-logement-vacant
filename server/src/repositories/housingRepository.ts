@@ -8,6 +8,7 @@ import {
   HousingKind,
   HousingSource,
   HousingStatus,
+  type HousingPointField,
   INTERNAL_CO_CONDOMINIUM_VALUES,
   INTERNAL_MONO_CONDOMINIUM_VALUES,
   Mutation,
@@ -67,6 +68,22 @@ const logger = createLogger('housingRepository');
 export const housingTable = 'fast_housing';
 export const buildingTable = 'buildings';
 
+/**
+ * Maps the API-level map-point fields to their `fast_housing` columns, so a
+ * `fields` projection can select scalar columns directly (no joins, no
+ * `to_json`). See {@link HOUSING_POINT_FIELDS}.
+ */
+const HOUSING_POINT_COLUMNS: Record<HousingPointField, string> = {
+  id: 'id',
+  geoCode: 'geo_code',
+  latitude: 'latitude_dgfip',
+  longitude: 'longitude_dgfip',
+  status: 'status',
+  occupancy: 'occupancy',
+  subStatus: 'sub_status',
+  rawAddress: 'address_dgfip'
+};
+
 export const Housing = (transaction = db) =>
   transaction<HousingDBO>(housingTable);
 
@@ -76,6 +93,12 @@ interface FindOptions extends PaginationOptions {
   filters: HousingFiltersApi;
   sort?: HousingSortApi;
   includes?: HousingInclude[];
+  /**
+   * Sparse projection: when set, only these columns are selected, joined data
+   * (`includes`) is skipped and rows are returned unsorted. Used by the map
+   * view to fetch lightweight points instead of fully-hydrated housings.
+   */
+  fields?: ReadonlyArray<HousingPointField>;
 }
 
 async function find(opts: FindOptions): Promise<HousingApi[]> {

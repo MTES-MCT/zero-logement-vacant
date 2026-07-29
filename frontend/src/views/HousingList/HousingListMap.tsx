@@ -1,9 +1,11 @@
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { HOUSING_POINT_FIELDS } from '@zerologementvacant/models';
 
 import Label from '~/components/Label/Label';
 import Map from '~/components/Map/Map';
 import { type GeoPerimeter } from '~/models/GeoPerimeter';
+import type { Housing } from '~/models/Housing';
 import { displayHousingCount } from '~/models/HousingCount';
 import {
   hasPerimetersFilter,
@@ -12,7 +14,7 @@ import {
 import { useListGeoPerimetersQuery } from '~/services/geo.service';
 import {
   useCountHousingQuery,
-  useFindHousingQuery
+  useHousingPoints
 } from '~/services/housing.service';
 import {
   excludeWith,
@@ -25,13 +27,15 @@ interface Props {
 }
 const HousingListMap = ({ filters }: Props) => {
   const { data: perimeters } = useListGeoPerimetersQuery();
-  const { data } = useFindHousingQuery({
+  const { data: housingPoints } = useHousingPoints({
     filters,
-    pagination: {
-      paginate: false
-    }
+    fields: HOUSING_POINT_FIELDS
   });
-  const housingList = data?.entities;
+  // The map only needs a lightweight projection (markers + building panel);
+  // `owner` is not fetched here and is shown as "Pas d’information" in the
+  // panel. Cast to Housing[] since the map components are typed against the
+  // full model.
+  const housingList = housingPoints as Housing[] | undefined;
 
   const { data: housingCount } = useCountHousingQuery({
     dataFileYearsIncluded: filters.dataFileYearsIncluded,

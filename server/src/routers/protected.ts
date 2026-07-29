@@ -125,6 +125,7 @@ router.get(
     query: schemas.housingFilters
       .concat(sortApi.sortSchema)
       .concat(paginationSchema)
+      .concat(schemas.housingListQuery)
   }),
   housingController.list
 );

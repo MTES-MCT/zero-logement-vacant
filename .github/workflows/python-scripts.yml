@@ -43,6 +43,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-cov
 
+      - name: Test Portail DF JWT authentication
+        run: |
+          pip install -r server/src/scripts/perimeters-portaildf/requirements.txt tqdm
+          pytest \
+            server/src/scripts/perimeters-portaildf/test_fetch_groups_perimeters.py \
+            server/src/scripts/sync-user-kind/test_sync_user_kind.py \
+            -v --tb=short
+
       - name: Test owner-housing-distances
         run: |
           cd server/src/scripts/owner-housing-distances

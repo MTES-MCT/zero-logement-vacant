@@ -80,11 +80,9 @@ export const configSchema = z.object({
   cerema: z
     .object({
       enabled: z.stringbool().default(isProduction),
-      api: z.url().default('https://getdf.cerema.fr'),
+      api: z.url().default('https://datafoncier-dev.osc-fr1.scalingo.io'),
       username: z.string().nullable().default(null),
-      password: z.string().nullable().default(null),
-      authVersion: z.literal(['v1', 'v2']).default('v1'),
-      apiV2: z.url().default('https://datafoncier-dev.osc-fr1.scalingo.io')
+      password: z.string().nullable().default(null)
     })
     .superRefine((val, ctx) => {
       if (val.enabled) {
@@ -298,9 +296,7 @@ const config = configSchema.parse({
     enabled: env('CEREMA_ENABLED'),
     api: env('CEREMA_API'),
     username: env('CEREMA_USERNAME'),
-    password: env('CEREMA_PASSWORD'),
-    authVersion: env('CEREMA_AUTH_VERSION'),
-    apiV2: env('CEREMA_API_V2')
+    password: env('CEREMA_PASSWORD')
   },
   datafoncier: {
     api: env('DATAFONCIER_API'),

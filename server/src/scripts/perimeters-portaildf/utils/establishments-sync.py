@@ -34,7 +34,7 @@ BEARER_TOKEN = os.getenv('CEREMA_API_TOKEN')  # Get token from environment varia
 
 # Portail DF API Configuration
 PORTAIL_DF_API_CONFIG = {
-    'base_url': 'https://portaildf.cerema.fr/api',
+    'base_url': 'https://datafoncier.cerema.fr/api',
     'headers': {
         'User-Agent': 'ZLV-Sync/1.0',
         'Accept': 'application/json'

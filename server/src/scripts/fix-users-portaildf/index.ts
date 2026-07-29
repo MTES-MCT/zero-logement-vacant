@@ -3,26 +3,16 @@ import fs from 'fs';
 import axios from 'axios';
 import { parse as csvParse } from 'csv-parse';
 
-import config from '~/infra/config';
 import userRepository from '~/repositories/userRepository';
-import { createAuthProvider } from '~/services/ceremaService/ceremaAuthProvider';
+import {
+  authenticate,
+  type CeremaAuth
+} from '~/services/ceremaService/ceremaAuthProvider';
 
 const CSV_INPUT_PATH = 'users.csv';
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-const authProvider = createAuthProvider();
-
-interface AuthResult {
-  token: string;
-  authPrefix: string;
-  apiUrl: string;
-}
-
-async function getAuth(): Promise<AuthResult> {
-  return authProvider.authenticate();
 }
 
 async function readEmailsFromCSV(): Promise<string[]> {
@@ -43,14 +33,14 @@ async function readEmailsFromCSV(): Promise<string[]> {
   });
 }
 
-async function checkEmailWithRetry(email: string, auth: AuthResult) {
+async function checkEmailWithRetry(email: string, auth: CeremaAuth) {
   const { default: pRetry } = await import('p-retry');
   return pRetry(
     async () => {
       const response = await axios.get(
         `${auth.apiUrl}/api/utilisateurs?email=${encodeURIComponent(email)}`,
         {
-          headers: { Authorization: `${auth.authPrefix} ${auth.token}` },
+          headers: { Authorization: auth.authorization },
           timeout: 5000
         }
       );
@@ -65,7 +55,7 @@ async function checkEmailWithRetry(email: string, auth: AuthResult) {
   );
 }
 
-async function verifyUsers(auth: AuthResult, emails: string[]) {
+async function verifyUsers(auth: CeremaAuth, emails: string[]) {
   for (const email of emails) {
     try {
       const data = await checkEmailWithRetry(email, auth);
@@ -109,8 +99,7 @@ async function verifyUsers(auth: AuthResult, emails: string[]) {
 
 (async () => {
   try {
-    const auth = await getAuth();
-    console.log(`Using auth version: ${config.cerema.authVersion}`);
+    const auth = await authenticate();
     const emails = await readEmailsFromCSV();
     await verifyUsers(auth, emails);
   } catch (err) {

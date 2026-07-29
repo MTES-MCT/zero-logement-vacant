@@ -26,7 +26,7 @@ from datetime import datetime
 from typing import Optional, Dict, Set, List
 
 # Configuration
-API_BASE_URL = "https://portaildf.cerema.fr/api"
+API_BASE_URL = "https://datafoncier.cerema.fr/api"
 DELAY_BETWEEN_REQUESTS = 0.3  # seconds
 MAX_RETRIES = 3
 
@@ -36,12 +36,13 @@ def authenticate(username: str, password: str) -> Optional[str]:
 
     try:
         response = requests.post(
-            f"{API_BASE_URL}/api-token-auth/",
-            data={"username": username, "password": password}
+            f"{API_BASE_URL}/token/",
+            json={"username": username, "password": password},
+            timeout=60,
         )
 
         if response.status_code == 200:
-            token = response.json().get("token")
+            token = response.json().get("access")
             print("✅ Authentication successful")
             return token
         else:
@@ -111,7 +112,7 @@ def fetch_all_groups(token: str, group_ids: Set[int], output_file: str) -> Dict[
     print(f"\n📦 Fetching {len(group_ids)} groups...")
 
     headers = {
-        "Authorization": f"Token {token}",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
 
@@ -170,7 +171,7 @@ def fetch_all_perimeters(token: str, perimeter_ids: Set[int], output_file: str) 
     print(f"\n🗺️ Fetching {len(perimeter_ids)} perimeters...")
 
     headers = {
-        "Authorization": f"Token {token}",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
 

@@ -45,10 +45,9 @@ flowchart TB
 
 Configured in `clevercloud/cron.json`:
 
-| Schedule       | Script                   | Description                                 |
-| -------------- | ------------------------ | ------------------------------------------- |
-| `*/30 * * * *` | `cerema-sync.sh`         | Sync users/structures from Cerema DF Portal |
-| `0 3 1 * *`    | `export-monthly-logs.sh` | Export Elasticsearch logs to S3             |
+| Schedule    | Script                   | Description                     |
+| ----------- | ------------------------ | ------------------------------- |
+| `0 3 1 * *` | `export-monthly-logs.sh` | Export Elasticsearch logs to S3 |
 
 ## Script Directory Structure
 
@@ -66,8 +65,7 @@ server/src/scripts/
 ├── perimeters-portaildf/      # Cerema sync pipeline
 │   ├── 01-cerema-scraper/
 │   ├── 02-establishment-verifier/
-│   ├── 03-users-verifier/
-│   └── cerema-sync.sh
+│   └── 03-users-verifier/
 ├── fix-campaign-housing-status/
 ├── sync-user-kind/
 ├── logs/                      # Log export scripts
@@ -77,36 +75,36 @@ server/src/scripts/
 
 ## Key Scripts
 
-### Cerema Sync Pipeline
+### Cerema Audit Pipeline
 
-Automated synchronization with Cerema DF Portal every 30 minutes.
+The former 30-minute cron has been removed. Rights are synchronized by the
+application during login and account creation. These scripts remain available
+for manual audits and troubleshooting.
 
 ```mermaid
 sequenceDiagram
-    participant Cron
-    participant Script as cerema-sync.sh
+    participant Operator
     participant Scraper as 01-cerema-scraper
     participant EstabVerifier as 02-establishment-verifier
     participant UserVerifier as 03-users-verifier
     participant API as Cerema API
     participant DB as PostgreSQL
 
-    Cron->>Script: Execute (*/30 * * * *)
-    Script->>API: POST /api/api-token-auth/
-    API-->>Script: Bearer token
+    Operator->>API: POST /api/token/ (JSON credentials)
+    API-->>Operator: access + refresh JWT
 
-    Script->>Scraper: Run with token
+    Operator->>Scraper: Run with Authorization: Bearer access
     Scraper->>API: GET /api/structures
     Scraper->>API: GET /api/utilisateurs
     Scraper->>API: GET /api/groupes
     API-->>Scraper: JSON data
-    Scraper-->>Script: structures.jsonl, users.jsonl, groups.jsonl
+    Scraper-->>Operator: structures.jsonl, users.jsonl, groups.jsonl
 
-    Script->>EstabVerifier: Verify establishments
+    Operator->>EstabVerifier: Verify establishments
     EstabVerifier->>DB: Check SIREN, LOVAC expiry
     EstabVerifier->>DB: Suspend/delete invalid establishments
 
-    Script->>UserVerifier: Verify users
+    Operator->>UserVerifier: Verify users
     UserVerifier->>DB: Check ToS, rights, structure access
     UserVerifier->>DB: Suspend/delete invalid users
 ```
@@ -315,11 +313,12 @@ def save_state(state: dict):
 
 ### Cerema Sync
 
-| Variable             | Description         |
-| -------------------- | ------------------- |
-| `CEREMA_USERNAME`    | Cerema API username |
-| `CEREMA_PASSWORD`    | Cerema API password |
-| `POSTGRESQL_ADDON_*` | Database connection |
+| Variable             | Description                                           |
+| -------------------- | ----------------------------------------------------- |
+| `CEREMA_API`         | DataFoncier API URL (`https://datafoncier.cerema.fr`) |
+| `CEREMA_USERNAME`    | Cerema API username                                   |
+| `CEREMA_PASSWORD`    | Cerema API password                                   |
+| `POSTGRESQL_ADDON_*` | Database connection                                   |
 
 ### DPE Import
 

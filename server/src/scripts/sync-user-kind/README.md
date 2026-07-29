@@ -30,23 +30,12 @@ This script fetches user information from the Portail DF API and updates the loc
 
 ## Authentication
 
-The script supports two authentication versions for the Portail DF API:
-
-### V1 (Legacy - Default)
-
-- **Endpoint**: POST `/api/api-token-auth/`
-- **Response**: `{ "token": "..." }`
-- **Header**: `Authorization: Token <token>`
-- **URL**: `https://portaildf.cerema.fr/api`
-
-### V2 (New DataFoncier API)
+The script uses JWT authentication with the DataFoncier API:
 
 - **Endpoint**: POST `/api/token/`
 - **Response**: `{ "access": "...", "refresh": "..." }`
 - **Header**: `Authorization: Bearer <access>`
-- **URL**: `https://datafoncier.cerema.fr/api`
-
-Use `--auth-version v2` to switch to the new API.
+- **URL**: `$CEREMA_API/api`, with `CEREMA_API=https://datafoncier.cerema.fr`
 
 Credentials must be provided via command-line arguments.
 
@@ -55,30 +44,13 @@ Credentials must be provided via command-line arguments.
 ### Basic Usage
 
 ```bash
+export CEREMA_API="https://datafoncier.cerema.fr"
+
 python sync_user_kind.py \
   --db-url "postgresql://user:pass@localhost:5432/dbname" \
-  --api-url "https://portaildf.cerema.fr/api"
-```
-
-### With V1 Authentication (Legacy - Default)
-
-```bash
-python sync_user_kind.py \
-  --db-url "postgresql://user:pass@localhost:5432/dbname" \
-  --api-url "https://portaildf.cerema.fr/api" \
+  --api-url "$CEREMA_API/api" \
   --username "my_user" \
   --password "my_password"
-```
-
-### With V2 Authentication (New DataFoncier API)
-
-```bash
-python sync_user_kind.py \
-  --db-url "postgresql://user:pass@localhost:5432/dbname" \
-  --api-url "https://datafoncier.cerema.fr/api" \
-  --username "my_user" \
-  --password "my_password" \
-  --auth-version v2
 ```
 
 ### Dry Run (Test Mode)
@@ -88,7 +60,9 @@ Test the script without making database changes:
 ```bash
 python sync_user_kind.py \
   --db-url "postgresql://user:pass@localhost:5432/dbname" \
-  --api-url "https://portaildf.cerema.fr/api" \
+  --api-url "$CEREMA_API/api" \
+  --username "my_user" \
+  --password "my_password" \
   --dry-run
 ```
 
@@ -99,7 +73,9 @@ Process only first 100 users:
 ```bash
 python sync_user_kind.py \
   --db-url "postgresql://user:pass@localhost:5432/dbname" \
-  --api-url "https://portaildf.cerema.fr/api" \
+  --api-url "$CEREMA_API/api" \
+  --username "my_user" \
+  --password "my_password" \
   --limit 100
 ```
 
@@ -108,7 +84,9 @@ python sync_user_kind.py \
 ```bash
 python sync_user_kind.py \
   --db-url "postgresql://user:pass@localhost:5432/dbname" \
-  --api-url "https://portaildf.cerema.fr/api" \
+  --api-url "$CEREMA_API/api" \
+  --username "my_user" \
+  --password "my_password" \
   --verbose
 ```
 
@@ -117,31 +95,32 @@ python sync_user_kind.py \
 ```bash
 python sync_user_kind.py \
   --db-url "postgresql://user:pass@localhost:5432/dbname" \
-  --api-url "https://portaildf.cerema.fr/api" \
+  --api-url "$CEREMA_API/api" \
+  --username "my_user" \
+  --password "my_password" \
   --debug
 ```
 
 ## Command-Line Arguments
 
-| Argument          | Required | Default | Description                                       |
-| ----------------- | -------- | ------- | ------------------------------------------------- |
-| `--db-url`        | Yes      | -       | PostgreSQL connection URI                         |
-| `--api-url`       | Yes      | -       | Portail DF API base URL                           |
-| `--username`      | Yes      | -       | API username for authentication                   |
-| `--password`      | Yes      | -       | API password for authentication                   |
-| `--auth-version`  | No       | `v1`    | Auth version: `v1` (legacy) or `v2` (DataFoncier) |
-| `--dry-run`       | No       | `false` | Simulation mode (no DB changes)                   |
-| `--limit`         | No       | -       | Limit number of users to process                  |
-| `--batch-size`    | No       | `1000`  | Batch size for DB updates                         |
-| `--num-workers`   | No       | `4`     | Number of parallel workers                        |
-| `--verbose`, `-v` | No       | `false` | Verbose output                                    |
-| `--debug`         | No       | `false` | Debug logging                                     |
+| Argument          | Required | Default | Description                      |
+| ----------------- | -------- | ------- | -------------------------------- |
+| `--db-url`        | Yes      | -       | PostgreSQL connection URI        |
+| `--api-url`       | Yes      | -       | DataFoncier API base URL         |
+| `--username`      | Yes      | -       | API username for authentication  |
+| `--password`      | Yes      | -       | API password for authentication  |
+| `--dry-run`       | No       | `false` | Simulation mode (no DB changes)  |
+| `--limit`         | No       | -       | Limit number of users to process |
+| `--batch-size`    | No       | `1000`  | Batch size for DB updates        |
+| `--num-workers`   | No       | `4`     | Number of parallel workers       |
+| `--verbose`, `-v` | No       | `false` | Verbose output                   |
+| `--debug`         | No       | `false` | Debug logging                    |
 
 ## How It Works
 
-1. **Authenticate**: Obtains a token from `/api-token-auth/` using username/password
+1. **Authenticate**: Obtains JWT access and refresh tokens from `/api/token/` using username/password
 2. **Fetch Users**: Retrieves all users with email addresses from local database
-3. **API Lookup**: For each user, queries Portail DF API: `/utilisateurs?email=<email>` with `Authorization: Token <token>` header
+3. **API Lookup**: For each user, queries Portail DF API: `/utilisateurs?email=<email>` with `Authorization: Bearer <access>` header
 4. **Determine Kind**: Applies mapping rules based on `exterieur` and `gestionnaire` flags
 5. **Batch Update**: Updates database in batches with parallel workers
 6. **Summary**: Displays statistics about processed users
@@ -165,7 +144,7 @@ python sync_user_kind.py \
 ================================================================================
 USER KIND SYNCHRONIZATION
 ================================================================================
-API URL: https://portaildf.cerema.fr/api
+API URL: https://datafoncier.cerema.fr/api
 Dry run: False
 
 📋 Found 1,234 users to sync

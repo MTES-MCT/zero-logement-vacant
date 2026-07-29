@@ -23,8 +23,8 @@ pip install requests click
 # Required: API Bearer Token
 export CEREMA_BEARER_TOKEN="your_api_token_here"
 
-# Optional: Custom API base URL
-export CEREMA_BASE_URL="https://portaildf.cerema.fr/api"
+# Canonical DataFoncier API URL
+export CEREMA_API="https://datafoncier.cerema.fr"
 ```
 
 ### Command Line Options
@@ -51,7 +51,7 @@ export CEREMA_BASE_URL="https://portaildf.cerema.fr/api"
 export CEREMA_BEARER_TOKEN="your_token_here"
 
 # Run the script (scrapes both structures and users)
-python cerema-scraper.py
+python cerema-scraper.py --base-url "$CEREMA_API/api"
 ```
 
 Execution takes several minutes depending on the number of structures and users.
@@ -291,4 +291,4 @@ The script automatically constructs the following endpoints:
 - **Structures**: `{base_url}/structures`
 - **Users**: `{base_url}/utilisateurs`
 
-Default base URL: `https://portaildf.cerema.fr/api`
+Default base URL: `https://datafoncier.cerema.fr/api`

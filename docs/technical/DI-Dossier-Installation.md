@@ -583,6 +583,7 @@ clever env set SENTRY_DSN=<dsn-sentry>
 clever env set CC_PYTHON_VERSION=3.11
 
 # API Cerema (synchronisation des périmètres)
+clever env set CEREMA_API=https://datafoncier.cerema.fr
 clever env set CEREMA_USERNAME=<username>
 clever env set CEREMA_PASSWORD=<password>
 ```
@@ -716,15 +717,19 @@ curl -X GET "https://api.brevo.com/v3/account" \
 
 1. Obtenir les identifiants API Cerema
 2. Configurer les variables :
+   - `CEREMA_API=https://datafoncier.cerema.fr`
    - `CEREMA_USERNAME`
    - `CEREMA_PASSWORD`
 
 **Tester l'authentification :**
 
 ```bash
-curl -X POST https://portaildf.cerema.fr/api/api-token-auth/ \
-  -d "username=$CEREMA_USERNAME" \
-  -d "password=$CEREMA_PASSWORD"
+curl -X POST "$CEREMA_API/api/token/" \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"$CEREMA_USERNAME\",\"password\":\"$CEREMA_PASSWORD\"}"
+
+# Réponse : {"access": "eyJ...", "refresh": "eyJ..."}
+# Utilisation : Authorization: Bearer <access>
 ```
 
 ### 6.5 BAN (Base Adresse Nationale)

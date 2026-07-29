@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import { logger } from '~/infra/logger';
 
-import { createAuthProvider, AuthResult } from './ceremaAuthProvider';
+import { authenticate, type CeremaAuth } from './ceremaAuthProvider';
 import {
   CeremaGroup,
   CeremaPerimeter,
@@ -37,9 +37,9 @@ function hasGroupLovacAccess(group: CeremaGroup): boolean {
   return group.niveau_acces === 'lovac' || group.lovac === true;
 }
 
-function authHeaders(auth: AuthResult) {
+function authHeaders(auth: CeremaAuth) {
   return {
-    Authorization: `${auth.authPrefix} ${auth.token}`,
+    Authorization: auth.authorization,
     'Content-Type': 'application/json'
   };
 }
@@ -48,7 +48,7 @@ function authHeaders(auth: AuthResult) {
  * Make an authenticated API call to Portail DF
  */
 async function fetchPortailDF<T>(
-  auth: AuthResult,
+  auth: CeremaAuth,
   endpoint: string
 ): Promise<T | null> {
   try {
@@ -63,11 +63,9 @@ async function fetchPortailDF<T>(
 }
 
 export class CeremaService implements ConsultUserService {
-  private authProvider = createAuthProvider();
-
   async consultUsers(email: string): Promise<CeremaUser[]> {
     try {
-      const auth = await this.authProvider.authenticate();
+      const auth = await authenticate();
 
       const { data: userContent } = await axios.get<{
         results: Array<{

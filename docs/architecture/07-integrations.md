@@ -58,50 +58,47 @@ flowchart TB
 
 **Purpose:** User and establishment synchronization
 
-| Aspect        | Details                          |
-| ------------- | -------------------------------- |
-| **Type**      | REST API                         |
-| **Auth**      | Username/Password → Bearer Token |
-| **Frequency** | Every 30 minutes (cron)          |
-| **Direction** | Pull                             |
+| Aspect        | Details                                                |
+| ------------- | ------------------------------------------------------ |
+| **Type**      | REST API                                               |
+| **Base URL**  | `CEREMA_API=https://datafoncier.cerema.fr`             |
+| **Auth**      | Username/Password → JWT access/refresh → Bearer access |
+| **Frequency** | Login/account creation; manual audit scripts           |
+| **Direction** | Pull                                                   |
 
 #### Endpoints
 
-| Endpoint               | Method | Description                      |
-| ---------------------- | ------ | -------------------------------- |
-| `/api/api-token-auth/` | POST   | Get authentication token         |
-| `/api/structures`      | GET    | List structures (establishments) |
-| `/api/utilisateurs`    | GET    | List users                       |
-| `/api/groupes`         | GET    | List groups                      |
-| `/api/perimetres`      | GET    | List perimeters                  |
+| Endpoint            | Method | Description                       |
+| ------------------- | ------ | --------------------------------- |
+| `/api/token/`       | POST   | Get JWT access and refresh tokens |
+| `/api/structures`   | GET    | List structures (establishments)  |
+| `/api/utilisateurs` | GET    | List users                        |
+| `/api/groupes`      | GET    | List groups                       |
+| `/api/perimetres`   | GET    | List perimeters                   |
 
 #### Data Flow
 
 ```mermaid
 sequenceDiagram
-    participant Cron
-    participant Script as cerema-sync.sh
+    participant ZLV as ZLV backend
     participant Cerema as Cerema API
     participant DB as PostgreSQL
 
-    Cron->>Script: Execute (*/30 * * * *)
-    Script->>Cerema: POST /api/api-token-auth/
-    Cerema-->>Script: Bearer token
+    ZLV->>Cerema: POST /api/token/ (JSON credentials)
+    Cerema-->>ZLV: access + refresh JWT
 
-    Script->>Cerema: GET /api/structures
-    Script->>Cerema: GET /api/utilisateurs
-    Cerema-->>Script: JSON data
+    ZLV->>Cerema: GET /api/utilisateurs (Bearer access)
+    ZLV->>Cerema: GET structures/groups/perimeters (Bearer access)
+    Cerema-->>ZLV: JSON data
 
-    Script->>DB: Compare with local data
-    Script->>DB: Suspend/delete invalid records
-    Script->>DB: Update user access rights
+    ZLV->>DB: Update user access rights and perimeters
 ```
 
 #### Error Handling
 
-- Token refresh on 401
-- Exponential backoff on rate limits
-- State file for resume on failure
+- A fresh access token is requested before each rights lookup
+- Authentication and API failures are logged
+- Manual scraper state files support resuming interrupted audits
 
 ---
 

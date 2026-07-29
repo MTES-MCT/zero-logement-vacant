@@ -46,7 +46,7 @@ def clean_url(url: str) -> str:
 class LovacUsersExporter:
     """Export users with LOVAC access from Portail DF."""
 
-    def __init__(self, token: str, base_url: str = "https://portaildf.cerema.fr/api"):
+    def __init__(self, token: str, base_url: str = "https://datafoncier.cerema.fr/api"):
         self.token = token
         self.base_url = base_url.rstrip("/")
         self.session = requests.Session()
@@ -268,7 +268,7 @@ def main():
     )
     parser.add_argument(
         "--base-url",
-        default="https://portaildf.cerema.fr/api",
+        default="https://datafoncier.cerema.fr/api",
         help="API base URL",
     )
 

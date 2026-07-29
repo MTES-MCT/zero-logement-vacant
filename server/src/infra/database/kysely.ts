@@ -18,9 +18,12 @@ import config from '~/infra/database/knexfile';
 // by -1 in UTC+1 servers (CET). A plain string avoids all timezone arithmetic.
 pg.types.setTypeParser(pg.types.builtins.DATE, (val) => val);
 
-const pool = new pg.Pool({
+export const pool = new pg.Pool({
   connectionString: config.connection as string,
-  max: config.pool?.max
+  max: config.pool?.max,
+  // Mirror Knex's acquireConnectionTimeout so a saturated pool rejects checkouts
+  // after the same deadline instead of leaving requests pending indefinitely.
+  connectionTimeoutMillis: config.acquireConnectionTimeout
 });
 
 export const kysely = new Kysely<DB>({

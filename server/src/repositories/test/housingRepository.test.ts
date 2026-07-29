@@ -1999,6 +1999,51 @@ describe('Housing repository', () => {
             return housing.source !== 'datafoncier-manual';
           });
         });
+
+        // The two special exclusions (null and datafoncier-manual) combine with
+        // AND, matching the pre-Kysely Knex behaviour: a housing is kept only if
+        // it has data file years AND is not datafoncier-manual. A
+        // datafoncier-manual housing with non-empty data file years must still be
+        // excluded — it must not slip through via the "has data file years" arm.
+        it('should combine null and datafoncier-manual exclusions with AND', async () => {
+          const manualWithYears: HousingApi = {
+            ...genHousingApi(),
+            source: 'datafoncier-manual',
+            dataFileYears: ['ff-2024']
+          };
+          const lovacWithYears: HousingApi = {
+            ...genHousingApi(),
+            source: 'lovac',
+            dataFileYears: ['lovac-2024']
+          };
+          const lovacWithoutYears: HousingApi = {
+            ...genHousingApi(),
+            source: 'lovac',
+            dataFileYears: []
+          };
+          await Housing().insert(
+            [manualWithYears, lovacWithYears, lovacWithoutYears].map(
+              formatHousingRecordApi
+            )
+          );
+
+          const actual = await housingRepository.find({
+            filters: {
+              dataFileYearsExcluded: [null, 'datafoncier-manual']
+            }
+          });
+
+          const ids = actual.map((housing) => housing.id);
+          expect(ids).not.toContain(manualWithYears.id);
+          expect(ids).not.toContain(lovacWithoutYears.id);
+          expect(ids).toContain(lovacWithYears.id);
+          expect(actual).toSatisfyAll<HousingApi>((housing) => {
+            return (
+              housing.dataFileYears.length > 0 &&
+              housing.source !== 'datafoncier-manual'
+            );
+          });
+        });
       });
 
       describe('by status', () => {

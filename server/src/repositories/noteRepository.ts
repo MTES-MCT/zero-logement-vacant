@@ -1,5 +1,7 @@
+import { Array } from 'effect';
 import type { Insertable, Selectable } from 'kysely';
 import { sql } from 'kysely';
+import pMap from 'p-map';
 
 import db from '~/infra/database';
 import type { DB } from '~/infra/database/db';
@@ -11,6 +13,12 @@ import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { fromUserDBO, UserDBO } from '~/repositories/userRepository';
 
 const logger = createLogger('noteRepository');
+
+// Matches Knex's batchInsert default chunk size, replicated manually to keep the
+// bulk inserts under Postgres's 65535 bind-parameter limit (9 params per note in
+// `notes`, 3 per row in `housing_notes`). The bulk-update path creates one note
+// per selected housing with no pagination, so the list can span many batches.
+const INSERT_BATCH_SIZE = 1000;
 
 export const NOTES_TABLE = 'notes';
 export const OWNER_NOTES_TABLE = 'owner_notes';
@@ -37,11 +45,17 @@ async function createManyByHousing(
 
   logger.debug('Inserting housing notes...', { notes: housingNotes.length });
   await withinKyselyTransaction(async (trx) => {
-    await trx.insertInto('notes').values(housingNotes.map(toNoteDBO)).execute();
-    await trx
-      .insertInto('housingNotes')
-      .values(housingNotes.map(toHousingNoteDBO))
-      .execute();
+    await pMap(
+      Array.chunksOf(housingNotes, INSERT_BATCH_SIZE),
+      async (batch) => {
+        await trx.insertInto('notes').values(batch.map(toNoteDBO)).execute();
+        await trx
+          .insertInto('housingNotes')
+          .values(batch.map(toHousingNoteDBO))
+          .execute();
+      },
+      { concurrency: 1 }
+    );
   });
 }
 

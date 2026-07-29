@@ -1462,10 +1462,14 @@ function applyHousingFilters(
   // dataFileYearsExcluded
   if (filters.dataFileYearsExcluded?.length) {
     q = q.where((eb: any) => {
-      const arms: any[] = [];
+      // The two special exclusions (null, datafoncier-manual) combine with AND,
+      // while the concrete-year exclusion is OR-ed with that group — matching the
+      // pre-Kysely Knex chaining (`.whereNotNull(...).where(...)` then
+      // `.orWhereRaw(...)`).
+      const specialArms: any[] = [];
       if (filters.dataFileYearsExcluded?.includes(null)) {
         // AND of not-null + cardinality>0 (translated as a single AND expression arm)
-        arms.push(
+        specialArms.push(
           eb.and([
             eb('data_file_years', 'is not', null),
             sql`cardinality(data_file_years) > 0`
@@ -1473,22 +1477,26 @@ function applyHousingFilters(
         );
       }
       if (filters.dataFileYearsExcluded?.includes('datafoncier-manual')) {
-        arms.push(
+        specialArms.push(
           eb.or([
             eb('fast_housing.data_source', 'is', null),
             eb('fast_housing.data_source', '!=', 'datafoncier-manual')
           ])
         );
       }
+      const orArms: any[] = [];
+      if (specialArms.length) {
+        orArms.push(eb.and(specialArms));
+      }
       const dataFileYears = filters.dataFileYearsExcluded?.filter(
         (v): v is DataFileYear => isNotNull(v) && v !== 'datafoncier-manual'
       );
       if (dataFileYears?.length) {
-        arms.push(
+        orArms.push(
           sql`not(data_file_years && ${sql.val(dataFileYears)}::text[])`
         );
       }
-      return eb.or(arms);
+      return eb.or(orArms);
     });
   }
 

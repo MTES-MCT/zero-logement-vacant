@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { NotePayloadDTO } from '@zerologementvacant/models';
 
+import db from '~/infra/database';
 import { kysely } from '~/infra/database/kysely';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import {
@@ -9,7 +10,8 @@ import {
 } from '~/repositories/establishmentRepository';
 import {
   formatHousingRecordApi,
-  Housing
+  Housing,
+  housingTable
 } from '~/repositories/housingRepository';
 import noteRepository, {
   HousingNotes,
@@ -75,6 +77,36 @@ describe('Note repository', () => {
         .first();
       expect(actual).toBeDefined();
     });
+  });
+
+  describe('createManyByHousing', () => {
+    // Exercises the chunked insert across a batch boundary. The real-world bug
+    // this guards against (a single unchunked INSERT exceeding Postgres's 65535
+    // bind-parameter limit around ~7,282 notes at 9 params each) only reproduces
+    // at a scale unfit for a test suite; this proves the chunking itself is
+    // correct — no row dropped or duplicated at the INSERT_BATCH_SIZE seam.
+    it('should insert every note when the list spans multiple batches', async () => {
+      const housings = faker.helpers.multiple(() => genHousingApi(), {
+        count: 1200
+      });
+      await db.batchInsert(
+        housingTable,
+        housings.map(formatHousingRecordApi),
+        500
+      );
+      const notes = housings.map((housing) => genHousingNoteApi(user, housing));
+
+      await noteRepository.createManyByHousing(notes);
+
+      const noteIds = notes.map((note) => note.id);
+      const insertedNotes = await Notes().whereIn('id', noteIds);
+      expect(insertedNotes).toBeArrayOfSize(notes.length);
+      const insertedHousingNotes = await HousingNotes().whereIn(
+        'note_id',
+        noteIds
+      );
+      expect(insertedHousingNotes).toBeArrayOfSize(notes.length);
+    }, 30_000);
   });
 
   describe('findByHousing', () => {

@@ -857,9 +857,9 @@ def run_scraper(config: Config, data_types: list):
 )
 @click.option(
     '--base-url', '-u',
-    default='https://datafoncier.cerema.fr/api',
+    default='https://portaildf.cerema.fr/api',
     envvar='CEREMA_BASE_URL',
-    help='Base API URL (default: https://datafoncier.cerema.fr/api)'
+    help='Base API URL (default: https://portaildf.cerema.fr/api)'
 )
 @click.option(
     '--structures-output',

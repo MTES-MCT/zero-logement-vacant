@@ -11,7 +11,7 @@ Configure in Clever Cloud dashboard → "Environment variables" tab:
 CC_PYTHON_VERSION=3.11
 
 # Cerema API Authentication
-CEREMA_API=https://datafoncier.cerema.fr
+CEREMA_API=https://portaildf.cerema.fr
 CEREMA_USERNAME=your_cerema_username
 CEREMA_PASSWORD=your_cerema_password
 

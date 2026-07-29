@@ -50,7 +50,7 @@ def test_jwt_authentication_is_used_for_group_and_perimeter_requests(
     )
 
     post.assert_called_once_with(
-        "https://datafoncier.cerema.fr/api/token/",
+        "https://portaildf.cerema.fr/api/token/",
         json={"username": "zlv-user", "password": "zlv-password"},
         timeout=60,
     )
@@ -60,12 +60,12 @@ def test_jwt_authentication_is_used_for_group_and_perimeter_requests(
     }
     assert get.call_args_list == [
         call(
-            "https://datafoncier.cerema.fr/api/groupes/42/",
+            "https://portaildf.cerema.fr/api/groupes/42/",
             headers=bearer_headers,
             timeout=30,
         ),
         call(
-            "https://datafoncier.cerema.fr/api/perimetres/7/",
+            "https://portaildf.cerema.fr/api/perimetres/7/",
             headers=bearer_headers,
             timeout=30,
         ),

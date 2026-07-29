@@ -35,7 +35,7 @@ The script uses JWT authentication with the DataFoncier API:
 - **Endpoint**: POST `/api/token/`
 - **Response**: `{ "access": "...", "refresh": "..." }`
 - **Header**: `Authorization: Bearer <access>`
-- **URL**: `$CEREMA_API/api`, with `CEREMA_API=https://datafoncier.cerema.fr`
+- **URL**: `$CEREMA_API/api`, with `CEREMA_API=https://portaildf.cerema.fr`
 
 Credentials must be provided via command-line arguments.
 
@@ -44,7 +44,7 @@ Credentials must be provided via command-line arguments.
 ### Basic Usage
 
 ```bash
-export CEREMA_API="https://datafoncier.cerema.fr"
+export CEREMA_API="https://portaildf.cerema.fr"
 
 python sync_user_kind.py \
   --db-url "postgresql://user:pass@localhost:5432/dbname" \
@@ -144,7 +144,7 @@ python sync_user_kind.py \
 ================================================================================
 USER KIND SYNCHRONIZATION
 ================================================================================
-API URL: https://datafoncier.cerema.fr/api
+API URL: https://portaildf.cerema.fr/api
 Dry run: False
 
 📋 Found 1,234 users to sync

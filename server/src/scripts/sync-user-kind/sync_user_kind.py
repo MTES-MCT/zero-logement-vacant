@@ -456,7 +456,7 @@ def main():
     parser.add_argument(
         "--api-url",
         required=True,
-        help="Portail DF API base URL (e.g., https://datafoncier.cerema.fr/api)",
+        help="Portail DF API base URL (e.g., https://portaildf.cerema.fr/api)",
     )
     parser.add_argument(
         "--username",

@@ -61,7 +61,7 @@ flowchart TB
 | Aspect        | Details                                                |
 | ------------- | ------------------------------------------------------ |
 | **Type**      | REST API                                               |
-| **Base URL**  | `CEREMA_API=https://datafoncier.cerema.fr`             |
+| **Base URL**  | `CEREMA_API=https://portaildf.cerema.fr`               |
 | **Auth**      | Username/Password → JWT access/refresh → Bearer access |
 | **Frequency** | Login/account creation; manual audit scripts           |
 | **Direction** | Pull                                                   |

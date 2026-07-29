@@ -54,7 +54,7 @@ The following environment variables must be configured on Clever Cloud:
 
 #### For Cerema API
 
-- `CEREMA_API`: Cerema DataFoncier API URL (`https://datafoncier.cerema.fr`)
+- `CEREMA_API`: Cerema Portail DF API URL (`https://portaildf.cerema.fr`)
 - `CEREMA_USERNAME`: Username for Cerema DF Portal API
 - `CEREMA_PASSWORD`: Password for Cerema DF Portal API
 

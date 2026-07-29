@@ -26,7 +26,7 @@ from datetime import datetime
 from typing import Optional, Dict, Set, List
 
 # Configuration
-API_BASE_URL = "https://datafoncier.cerema.fr/api"
+API_BASE_URL = "https://portaildf.cerema.fr/api"
 DELAY_BETWEEN_REQUESTS = 0.3  # seconds
 MAX_RETRIES = 3
 

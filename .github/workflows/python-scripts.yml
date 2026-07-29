@@ -45,7 +45,12 @@ jobs:
 
       - name: Test Portail DF JWT authentication
         run: |
-          pip install -r server/src/scripts/perimeters-portaildf/requirements.txt tqdm
+          python -m pip install --only-binary :all: \
+            "click==8.1.8" \
+            "psycopg2-binary==2.9.12" \
+            "python-dateutil==2.9.0.post0" \
+            "requests==2.32.5" \
+            "tqdm==4.70.0"
           pytest \
             server/src/scripts/perimeters-portaildf/test_fetch_groups_perimeters.py \
             server/src/scripts/sync-user-kind/test_sync_user_kind.py \

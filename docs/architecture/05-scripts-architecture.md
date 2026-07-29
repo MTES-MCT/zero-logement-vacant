@@ -313,12 +313,12 @@ def save_state(state: dict):
 
 ### Cerema Sync
 
-| Variable             | Description                                           |
-| -------------------- | ----------------------------------------------------- |
-| `CEREMA_API`         | DataFoncier API URL (`https://datafoncier.cerema.fr`) |
-| `CEREMA_USERNAME`    | Cerema API username                                   |
-| `CEREMA_PASSWORD`    | Cerema API password                                   |
-| `POSTGRESQL_ADDON_*` | Database connection                                   |
+| Variable             | Description                                        |
+| -------------------- | -------------------------------------------------- |
+| `CEREMA_API`         | Portail DF API URL (`https://portaildf.cerema.fr`) |
+| `CEREMA_USERNAME`    | Cerema API username                                |
+| `CEREMA_PASSWORD`    | Cerema API password                                |
+| `POSTGRESQL_ADDON_*` | Database connection                                |
 
 ### DPE Import
 

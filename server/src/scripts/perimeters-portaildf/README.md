@@ -40,7 +40,7 @@ graph TD
 pip install requests click psycopg2-binary python-dateutil
 
 # Set up Cerema API credentials and canonical API URL
-export CEREMA_API="https://datafoncier.cerema.fr"
+export CEREMA_API="https://portaildf.cerema.fr"
 export CEREMA_USERNAME="your_cerema_username"
 export CEREMA_PASSWORD="your_cerema_password"
 
@@ -49,6 +49,7 @@ export CEREMA_BEARER_TOKEN="$(curl -sS -X POST "$CEREMA_API/api/token/" \
   -H "Content-Type: application/json" \
   -d "{\"username\":\"$CEREMA_USERNAME\",\"password\":\"$CEREMA_PASSWORD\"}" \
   | python -c 'import json, sys; print(json.load(sys.stdin)["access"])')"
+export CEREMA_BASE_URL="$CEREMA_API/api"
 
 # Set up database credentials (Clever Cloud naming convention)
 export POSTGRESQL_ADDON_HOST="localhost"
@@ -62,14 +63,14 @@ export POSTGRESQL_ADDON_PASSWORD="your_password"
 
 L'API Portail DF utilise des jetons JWT :
 
-| Endpoint           | Response                                | Header                           | URL                             |
-| ------------------ | --------------------------------------- | -------------------------------- | ------------------------------- |
-| `POST /api/token/` | `{ "access": "...", "refresh": "..." }` | `Authorization: Bearer <access>` | `https://datafoncier.cerema.fr` |
+| Endpoint           | Response                                | Header                           | URL                           |
+| ------------------ | --------------------------------------- | -------------------------------- | ----------------------------- |
+| `POST /api/token/` | `{ "access": "...", "refresh": "..." }` | `Authorization: Bearer <access>` | `https://portaildf.cerema.fr` |
 
 #### Configuration (variables d'environnement)
 
 ```bash
-export CEREMA_API=https://datafoncier.cerema.fr
+export CEREMA_API=https://portaildf.cerema.fr
 export CEREMA_USERNAME=your_cerema_username
 export CEREMA_PASSWORD=your_cerema_password
 ```

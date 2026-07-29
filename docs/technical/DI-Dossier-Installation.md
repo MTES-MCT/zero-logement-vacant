@@ -579,11 +579,11 @@ clever env set S3_BUCKET=zlv-production
 # Monitoring (Sentry)
 clever env set SENTRY_DSN=<dsn-sentry>
 
-# Python pour les scripts cron
+# Python pour les scripts opérationnels
 clever env set CC_PYTHON_VERSION=3.11
 
-# API Cerema (synchronisation des périmètres)
-clever env set CEREMA_API=https://datafoncier.cerema.fr
+# API Cerema (contrôle des droits utilisateurs)
+clever env set CEREMA_API=https://portaildf.cerema.fr
 clever env set CEREMA_USERNAME=<username>
 clever env set CEREMA_PASSWORD=<password>
 ```
@@ -605,16 +605,16 @@ clevercloud/
 #### Fichier cron.json (tâches planifiées)
 
 ```json
-[
-  "*/30 * * * * $ROOT/server/src/scripts/perimeters-portaildf/cerema-sync.sh",
-  "0 3 1 * * $ROOT/server/src/scripts/logs/export-monthly-logs.sh"
-]
+["0 3 1 * * $ROOT/server/src/scripts/logs/export-monthly-logs.sh"]
 ```
 
 **Explication de la syntaxe :**
 
-- `*/30 * * * *` = toutes les 30 minutes
 - `0 3 1 * *` = le 1er du mois à 3h du matin
+
+Il n'existe plus de tâche planifiée pour la synchronisation Cerema. Le contrôle
+des droits est effectué par l'application lors de la connexion ou de la création
+du compte ; les scripts Portail DF restent disponibles pour les audits manuels.
 
 #### Script post_build.sh
 
@@ -717,7 +717,7 @@ curl -X GET "https://api.brevo.com/v3/account" \
 
 1. Obtenir les identifiants API Cerema
 2. Configurer les variables :
-   - `CEREMA_API=https://datafoncier.cerema.fr`
+   - `CEREMA_API=https://portaildf.cerema.fr`
    - `CEREMA_USERNAME`
    - `CEREMA_PASSWORD`
 

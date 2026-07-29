@@ -1,19 +1,12 @@
 import fs from 'fs';
 
-import axios from 'axios';
 import { parse as csvParse } from 'csv-parse';
 
-import userRepository from '~/repositories/userRepository';
-import {
-  authenticate,
-  type CeremaAuth
-} from '~/services/ceremaService/ceremaAuthProvider';
+import { authenticate } from '~/services/ceremaService/ceremaAuthProvider';
+
+import { verifyUsers } from './verification';
 
 const CSV_INPUT_PATH = 'users.csv';
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 async function readEmailsFromCSV(): Promise<string[]> {
   return new Promise((resolve, reject) => {
@@ -31,70 +24,6 @@ async function readEmailsFromCSV(): Promise<string[]> {
       .on('end', () => resolve(emails))
       .on('error', reject);
   });
-}
-
-async function checkEmailWithRetry(email: string, auth: CeremaAuth) {
-  const { default: pRetry } = await import('p-retry');
-  return pRetry(
-    async () => {
-      const response = await axios.get(
-        `${auth.apiUrl}/api/utilisateurs?email=${encodeURIComponent(email)}`,
-        {
-          headers: { Authorization: auth.authorization },
-          timeout: 5000
-        }
-      );
-      return response.data;
-    },
-    {
-      retries: 3,
-      minTimeout: 500,
-      maxTimeout: 2000,
-      factor: 2
-    }
-  );
-}
-
-async function verifyUsers(auth: CeremaAuth, emails: string[]) {
-  for (const email of emails) {
-    try {
-      const data = await checkEmailWithRetry(email, auth);
-
-      if (data.results.length === 0) {
-        console.log(`Utilisateur non trouvé pour l'email : ${email}`);
-        const user = await userRepository.getByEmail(email);
-        if (user) {
-          await userRepository.remove(user.id);
-          console.log(`Utilisateur local supprimé : ${email} (ID: ${user.id})`);
-        } else {
-          console.log(`Utilisateur local introuvable : ${email}`);
-        }
-      } else {
-        console.log(`Utilisateur trouvé pour l'email : ${email}`);
-        const user = await userRepository.getByEmail(email);
-        if (user) {
-          await userRepository.remove(user.id);
-          console.log(`Utilisateur local supprimé : ${email} (ID: ${user.id})`);
-        } else {
-          console.log(`Utilisateur local introuvable : ${email}`);
-        }
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error(
-          `Échec après plusieurs tentatives pour l'email ${email} :`,
-          error.message
-        );
-      } else {
-        console.error(
-          `Échec après plusieurs tentatives pour l'email ${email} :`,
-          error
-        );
-      }
-    }
-
-    await sleep(200);
-  }
 }
 
 (async () => {

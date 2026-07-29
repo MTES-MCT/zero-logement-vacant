@@ -573,12 +573,11 @@ sequenceDiagram
 
 ## 7.3 Types de tâches
 
-| Tâche                  | Description                       | Durée typique |
-| ---------------------- | --------------------------------- | ------------- |
-| Export de données      | Génération de fichiers Excel/CSV  | 1-5 minutes   |
-| Envoi de campagne      | Envoi d'emails groupés            | 5-30 minutes  |
-| Import LOVAC           | Intégration des nouvelles données | 30-60 minutes |
-| Synchronisation Cerema | Mise à jour des périmètres        | 10-20 minutes |
+| Tâche             | Description                       | Durée typique |
+| ----------------- | --------------------------------- | ------------- |
+| Export de données | Génération de fichiers Excel/CSV  | 1-5 minutes   |
+| Envoi de campagne | Envoi d'emails groupés            | 5-30 minutes  |
+| Import LOVAC      | Intégration des nouvelles données | 30-60 minutes |
 
 ---
 

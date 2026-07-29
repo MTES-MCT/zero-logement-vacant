@@ -986,7 +986,7 @@ Pour tester manuellement un script :
 
 ```bash
 clever ssh
-/app/server/src/scripts/perimeters-portaildf/cerema-sync.sh
+/app/server/src/scripts/logs/export-monthly-logs.sh
 ```
 
 #### Python non trouvé (pour les scripts)

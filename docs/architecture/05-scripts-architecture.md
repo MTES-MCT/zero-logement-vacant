@@ -19,7 +19,7 @@ flowchart TB
     end
 
     subgraph Sync["Synchronization Scripts"]
-        Cerema[cerema-sync]
+        Cerema[Portail DF manual audits]
         UserKind[sync-user-kind]
     end
 

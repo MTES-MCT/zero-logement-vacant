@@ -1,6 +1,6 @@
 # Infrastructure & Deployment Architecture
 
-> **Last Updated:** 2026-02-19
+> **Last Updated:** 2026-07-29
 
 ## Overview
 
@@ -54,7 +54,7 @@ flowchart TB
     Queue --> PostgreSQL
     Queue --> Cellar
 
-    Cerema -->|Cron| Backend
+    Backend -->|JWT rights check on login| Cerema
 
     PostgreSQL --> Dagster
     Dagster --> MotherDuck
@@ -86,11 +86,11 @@ clevercloud/
 ### Cron Jobs
 
 ```json
-[
-  "*/30 * * * * $ROOT/server/src/scripts/perimeters-portaildf/cerema-sync.sh",
-  "0 3 1 * * $ROOT/server/src/scripts/logs/export-monthly-logs.sh"
-]
+["0 3 1 * * $ROOT/server/src/scripts/logs/export-monthly-logs.sh"]
 ```
+
+Cerema rights are checked by the application during login and account creation,
+not by a scheduled task. The Portail DF scripts are reserved for manual audits.
 
 ### Environment Variables
 

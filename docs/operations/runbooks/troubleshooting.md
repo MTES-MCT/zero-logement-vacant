@@ -313,42 +313,51 @@ clever logs | grep -i "failed\|error"
 
 ---
 
-## 5. Cron Job Issues
+## 5. Portail DF Rights Check Issues
 
-### 5.1 Cerema Sync Not Running
+### 5.1 Rights Check Not Running
 
 **Diagnosis:**
 
 ```bash
-# Check cron configuration
-cat clevercloud/cron.json
-
-# Check recent executions
-clever logs | grep cerema
-
-# Check state files
-ls -la server/src/scripts/perimeters-portaildf/01-cerema-scraper/api_*_state.json
+# Check application logs: rights are checked during login/account creation
+clever logs | grep -i "cerema\|portail df"
 ```
 
 **Solutions:**
 
-| Cause                | Solution                    |
-| -------------------- | --------------------------- |
-| Cron not registered  | Redeploy to register crons  |
-| Auth failure         | Check Cerema credentials    |
-| Script error         | Run manually to debug       |
-| State file corrupted | Delete state files, restart |
+| Cause                 | Solution                                                   |
+| --------------------- | ---------------------------------------------------------- |
+| Incorrect API URL     | Set `CEREMA_API=https://portaildf.cerema.fr`               |
+| Authentication failed | Check or rotate the Cerema credentials                     |
+| Integration disabled  | Check `CEREMA_ENABLED` in the Clever Cloud dashboard       |
+| Manual audit failed   | Follow `server/src/scripts/perimeters-portaildf/README.md` |
 
 ---
 
-### 5.2 Manual Cron Execution
+### 5.2 Manual JWT Authentication Check
 
 ```bash
-# Run cerema sync manually
-cd server/src/scripts/perimeters-portaildf
-export CEREMA_USERNAME="..."
-export CEREMA_PASSWORD="..."
-./cerema-sync.sh
+# Uses CEREMA_API, CEREMA_USERNAME and CEREMA_PASSWORD from the environment.
+# The access token is validated but never printed.
+python3 - <<'PY'
+import os
+import requests
+
+base_url = os.environ["CEREMA_API"].rstrip("/")
+response = requests.post(
+    f"{base_url}/api/token/",
+    json={
+        "username": os.environ["CEREMA_USERNAME"],
+        "password": os.environ["CEREMA_PASSWORD"],
+    },
+    timeout=60,
+)
+response.raise_for_status()
+if not response.json().get("access"):
+    raise RuntimeError("Portail DF response has no access token")
+print("Portail DF JWT authentication: OK")
+PY
 ```
 
 ---

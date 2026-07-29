@@ -111,13 +111,13 @@ flowchart TB
 
     Services --> BAN
     Services --> Brevo
+    Services --> Cerema
 
     PostgreSQL --> Dagster
     Dagster --> dbt
     dbt --> DuckDB
     DuckDB --> Metabase
 
-    Cerema -.->|Cron sync| PostgreSQL
 ```
 
 ## Technology Stack Summary
@@ -209,9 +209,8 @@ flowchart LR
     DGFIP --> Scripts
     Scripts --> PG
 
-    Cerema -->|Cron 30min| PG
-
     PG <--> App
+    App -->|JWT rights check on login| Cerema
 
     PG --> Dagster
     Dagster --> dbt

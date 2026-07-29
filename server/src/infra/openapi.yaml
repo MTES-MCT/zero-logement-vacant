@@ -1959,8 +1959,13 @@ paths:
             type: array
             items:
               type: string
+              minLength: 1
               maxLength: 50
-          description: Filtrer par nature administrative issue du référentiel Gold, avec repli sur le type historique si elle est absente
+            example: [CA, CC, CU, METRO, EPT]
+          description: >-
+            Filtrer par code administratif brut issu du référentiel Gold.
+            Le vocabulaire est extensible ; les codes d'intercommunalité
+            actuellement utilisés sont CA, CC, CU, METRO et EPT.
       responses:
         '200':
           description: Liste des établissements

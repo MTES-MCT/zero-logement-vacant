@@ -7,7 +7,11 @@ export type EstablishmentFiltersDTO = Partial<
   name?: EstablishmentDTO['name'];
   kind?: EstablishmentDTO['kind'][];
   /**
-   * Filter by the administrative kind imported from the Gold source.
+   * Filter by the raw administrative kind imported from the Gold source.
+   *
+   * This vocabulary is intentionally open because Gold administrative-service
+   * codes can evolve. Values are limited to 50 characters by the import and
+   * database column.
    */
   kindAdmin?: string[];
   siren?: EstablishmentDTO['siren'][];

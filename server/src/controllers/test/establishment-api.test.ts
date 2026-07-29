@@ -116,7 +116,9 @@ describe('Establishment API', () => {
 
     it('should filter establishments by administrative kind', async () => {
       const [metropolis, otherIntercommunality] = await Promise.all([
-        factories.establishment.create({ geoCodes: ['06004', '06012', '06088'] }),
+        factories.establishment.create({
+          geoCodes: ['06004', '06012', '06088']
+        }),
         factories.establishment.create({
           geoCodes: ['06004', '06012'],
           kind: 'METRO'
@@ -147,7 +149,7 @@ describe('Establishment API', () => {
       expect(ids).not.toContain(otherIntercommunality.id);
     });
 
-    it('should fall back to legacy kind when administrative kind is missing', async () => {
+    it('should not mix legacy and administrative kinds', async () => {
       const legacyIntercommunality = await factories.establishment.create({
         geoCodes: ['06004', '06012'],
         kind: 'CA'
@@ -160,7 +162,7 @@ describe('Establishment API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(
         body.map((establishment: EstablishmentApi) => establishment.id)
-      ).toContain(legacyIntercommunality.id);
+      ).not.toContain(legacyIntercommunality.id);
     });
 
     it('should search establishments by query', async () => {

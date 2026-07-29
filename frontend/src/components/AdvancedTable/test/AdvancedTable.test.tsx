@@ -31,6 +31,38 @@ describe('AdvancedTable', () => {
     ).toBeInTheDocument();
   });
 
+  it('should visibly label the results-per-page selector', async () => {
+    render(<AdvancedTable columns={columns} data={buildRows(3)} />);
+
+    await screen.findByRole('table');
+    expect(
+      screen.getByRole('combobox', { name: 'Résultats par page' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Résultats par page')).toBeVisible();
+  });
+
+  it('should not expose row-selection state when selection is disabled', async () => {
+    render(<AdvancedTable columns={columns} data={buildRows(2)} />);
+
+    const table = await screen.findByRole('table');
+    const bodyRows = within(table).getAllByRole('row').slice(1);
+    bodyRows.forEach((row) => {
+      expect(row).not.toHaveAttribute('aria-selected');
+    });
+  });
+
+  it('should render every row when pagination is disabled', async () => {
+    render(
+      <AdvancedTable columns={columns} data={buildRows(75)} paginate={false} />
+    );
+
+    const table = await screen.findByRole('table');
+    expect(within(table).getAllByRole('row')).toHaveLength(76);
+    expect(
+      screen.queryByRole('navigation', { name: 'Pagination' })
+    ).not.toBeInTheDocument();
+  });
+
   it('should use a custom default page size and per-page options', async () => {
     render(
       <AdvancedTable

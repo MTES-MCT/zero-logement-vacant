@@ -156,7 +156,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
     ...props,
     data: props.data ?? [],
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel: paginate ? getPaginationRowModel() : undefined,
     // Sort
     enableSorting: props.enableSorting ?? false,
     getSortedRowModel: getSortedRowModel(),
@@ -303,7 +303,11 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                   {rows.map((row, i) => (
                     <tr
                       key={i}
-                      aria-selected={all !== row.getIsSelected()}
+                      aria-selected={
+                        enableSelection
+                          ? all !== row.getIsSelected()
+                          : undefined
+                      }
                       ref={rowRefs[row.id]}
                       style={
                         props.tableProps?.fixedRowHeight
@@ -374,7 +378,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
             </LabelNext>
           ) : (
             <SelectNext
-              label={null}
+              label="Résultats par page"
               options={perPageOptions.map((option) => ({
                 label: `${option} résultats par page`,
                 value: String(option)

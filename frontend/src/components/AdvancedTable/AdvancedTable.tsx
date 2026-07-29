@@ -17,7 +17,14 @@ import {
   type TableOptions
 } from '@tanstack/react-table';
 import classNames from 'classnames';
-import { createRef, memo, useEffect, useState, type MouseEvent } from 'react';
+import {
+  createRef,
+  memo,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent
+} from 'react';
 import { match } from 'ts-pattern';
 
 import SingleCheckbox from '~/components/_app/AppCheckbox/SingleCheckbox';
@@ -179,8 +186,29 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
       });
     }
   });
+  const paginationRef = useRef<HTMLDivElement>(null);
+  const pageToFocusRef = useRef<number | null>(null);
+  const currentPage = table.getState().pagination.pageIndex + 1;
   const headers = table.getLeafHeaders();
   const rows = table.getRowModel().rows;
+
+  useEffect(() => {
+    if (
+      props.isLoading ||
+      pageToFocusRef.current === null ||
+      pageToFocusRef.current !== currentPage
+    ) {
+      return;
+    }
+
+    const currentPageLink = paginationRef.current?.querySelector<HTMLElement>(
+      '[aria-current="true"]'
+    );
+    if (currentPageLink) {
+      pageToFocusRef.current = null;
+      currentPageLink.focus();
+    }
+  }, [currentPage, props.isLoading]);
 
   const rowRefs: Record<string, React.RefObject<HTMLTableRowElement>> = {};
   rows.forEach((row) => {
@@ -364,7 +392,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
         </div>
       </div>
 
-      {paginate ? (
+      {paginate && table.getPageCount() > 0 ? (
         <PaginationFooter
           direction="row"
           spacing="1rem"
@@ -396,12 +424,16 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
           )}
 
           <TablePagination
+            ref={paginationRef}
             count={table.getPageCount()}
-            defaultPage={table.getState().pagination.pageIndex + 1}
+            defaultPage={currentPage}
             getPageLinkProps={(page: number) => ({
               to: '#',
               onClick: (event: MouseEvent) => {
                 event.preventDefault();
+                if (page !== currentPage) {
+                  pageToFocusRef.current = page;
+                }
                 table.setPageIndex(page - 1);
               }
             })}

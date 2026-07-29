@@ -397,9 +397,10 @@ describe('AnalysisCard', () => {
       within(table).queryByRole('cell', { name: 'Structure 51' })
     ).not.toBeInTheDocument();
 
-    await user.click(
-      within(pagination).getByRole('link', { name: 'Page suivante' })
-    );
+    const nextPageLink = within(pagination).getByRole('link', {
+      name: 'Page suivante'
+    });
+    await user.click(nextPageLink);
 
     expect(
       within(table).getByRole('cell', { name: 'Structure 51' })
@@ -407,10 +408,9 @@ describe('AnalysisCard', () => {
     expect(
       within(table).queryByRole('cell', { name: 'Structure 1' })
     ).not.toBeInTheDocument();
-    expect(within(pagination).getByTitle('Page 2')).toHaveAttribute(
-      'aria-current',
-      'true'
-    );
+    const currentPageLink = within(pagination).getByTitle('Page 2');
+    expect(currentPageLink).toHaveAttribute('aria-current', 'true');
+    expect(currentPageLink).toHaveFocus();
   });
 
   it('formats numeric cells with fr-FR locale and applies suffix', async () => {

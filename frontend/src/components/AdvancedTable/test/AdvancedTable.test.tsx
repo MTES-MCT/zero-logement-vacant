@@ -51,6 +51,30 @@ describe('AdvancedTable', () => {
     });
   });
 
+  it('should hide pagination controls when there are no results', async () => {
+    render(<AdvancedTable columns={columns} data={[]} />);
+
+    await screen.findByRole('table');
+    expect(
+      screen.queryByRole('navigation', { name: 'Pagination' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('combobox', { name: 'Résultats par page' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('should show pagination controls when there is one result', async () => {
+    render(<AdvancedTable columns={columns} data={buildRows(1)} />);
+
+    await screen.findByRole('table');
+    expect(
+      screen.getByRole('navigation', { name: 'Pagination' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('combobox', { name: 'Résultats par page' })
+    ).toBeInTheDocument();
+  });
+
   it('should render every row when pagination is disabled', async () => {
     render(
       <AdvancedTable columns={columns} data={buildRows(75)} paginate={false} />

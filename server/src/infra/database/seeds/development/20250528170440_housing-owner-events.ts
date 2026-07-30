@@ -10,8 +10,8 @@ import {
   HOUSING_OWNER_EVENTS_TABLE
 } from '~/repositories/eventRepository';
 import {
-  HousingOwnerDBO,
-  HousingOwners
+  housingOwnersTable,
+  HousingOwnerDBO
 } from '~/repositories/housingOwnerRepository';
 import { genEventApi } from '~/test/testFixtures';
 
@@ -25,7 +25,7 @@ export async function seed(knex: Knex): Promise<void> {
   const housingOwners: ReadonlyArray<HousingOwnerDBO> =
     await batchedWhereIn<HousingOwnerDBO>(
       knex,
-      (k) => HousingOwners(k),
+      (k) => k<HousingOwnerDBO>(housingOwnersTable),
       ['housing_geo_code', 'housing_id'],
       housingKeys
     );

@@ -1,8 +1,15 @@
 import { Knex } from 'knex';
 
-import { Establishments } from '~/repositories/establishmentRepository';
-import { Housing } from '~/repositories/housingRepository';
-import { fromUserDBO, Users } from '~/repositories/userRepository';
+import {
+  EstablishmentDBO,
+  establishmentsTable
+} from '~/repositories/establishmentRepository';
+import { HousingDBO, housingTable } from '~/repositories/housingRepository';
+import {
+  fromUserDBO,
+  USERS_TABLE,
+  UserDBO
+} from '~/repositories/userRepository';
 
 export const LIMIT = Number.MAX_SAFE_INTEGER;
 export const BATCH_SIZE = 500;
@@ -31,7 +38,7 @@ export async function batchedWhereIn<T>(
 }
 
 export async function getAdmin(knex: Knex) {
-  const admin = await Users(knex)
+  const admin = await knex<UserDBO>(USERS_TABLE)
     .where({ email: 'admin@zerologementvacant.beta.gouv.fr' })
     .first()
     .then((admin) => (admin ? fromUserDBO(admin) : null));
@@ -42,11 +49,13 @@ export async function getAdmin(knex: Knex) {
 }
 
 export async function getHousings(knex: Knex) {
-  const establishments = await Establishments(knex).where({ available: true });
+  const establishments = await knex<EstablishmentDBO>(
+    establishmentsTable
+  ).where({ available: true });
   const geoCodes = establishments
     .map((establishment) => establishment.localities_geo_code)
     .flat();
-  const housings = await Housing(knex)
+  const housings = await knex<HousingDBO>(housingTable)
     .whereIn('geo_code', geoCodes)
     .limit(LIMIT);
   const housingKeys = housings.map((housing): [string, string] => [

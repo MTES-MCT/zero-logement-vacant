@@ -58,6 +58,7 @@ function AnalysisCard(props: Readonly<Props>) {
     return (
       <Skeleton
         data-testid="card-skeleton"
+        animation={false}
         variant="rectangular"
         width="100%"
         height="4rem"
@@ -68,8 +69,9 @@ function AnalysisCard(props: Readonly<Props>) {
   if (isError) {
     return (
       <Alert
+        as="h2"
         severity="error"
-        title="Impossible de charger ce graphique"
+        title={`Impossible de charger « ${card.title} »`}
         description=""
       />
     );
@@ -86,7 +88,7 @@ function AnalysisCard(props: Readonly<Props>) {
   return (
     <CardBox>
       <Stack component="header">
-        <Typography variant="h5" component="h3">
+        <Typography variant="h5" component="h2">
           {card.title}
         </Typography>
         {card.description !== null && (

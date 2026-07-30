@@ -183,14 +183,14 @@ export const configSchema = z.object({
   ]),
   metabase: z.object({
     domain: z.url().nullable().default('http://localhost:4000'),
-    token: z.string().default('example-token'),
     apiToken: z.string().default('example-api-token'),
     cacheTtlMs: z.coerce
       .number()
       .int()
       .min(0)
       .default(60 * 60 * 1000),
-    cacheMaxEntries: z.coerce.number().int().min(1).default(10_000)
+    cacheMaxEntries: z.coerce.number().int().min(1).default(10_000),
+    maxConcurrentQueries: z.coerce.number().int().min(1).default(2)
   }),
   rateLimit: z.object({
     max: z.coerce.number().int().default(10_000)
@@ -343,10 +343,10 @@ const config = configSchema.parse({
   },
   metabase: {
     domain: env('METABASE_DOMAIN'),
-    token: env('METABASE_TOKEN'),
     apiToken: env('METABASE_API_TOKEN'),
     cacheTtlMs: env('METABASE_CACHE_TTL_MS'),
-    cacheMaxEntries: env('METABASE_CACHE_MAX_ENTRIES')
+    cacheMaxEntries: env('METABASE_CACHE_MAX_ENTRIES'),
+    maxConcurrentQueries: env('METABASE_MAX_CONCURRENT_QUERIES')
   },
   rateLimit: {
     max: env('RATE_LIMIT_MAX')
@@ -376,9 +376,9 @@ const config = configSchema.parse({
 export default config as Omit<Config, 'metabase'> & {
   metabase: {
     domain: string;
-    token: string;
     apiToken: string;
     cacheTtlMs: number;
     cacheMaxEntries: number;
+    maxConcurrentQueries: number;
   };
 };

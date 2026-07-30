@@ -58,7 +58,6 @@ module "api" {
   }
   metabase = {
     api_token = var.metabase.api_token
-    token     = var.metabase.token
   }
   posthog = {
     api_key = var.posthog.api_key

@@ -1,9 +1,12 @@
 import type { CardType, TableColumnMeta } from '@zerologementvacant/models';
 import axios from 'axios';
 
+import BadGatewayError from '~/errors/badGatewayError';
+import GatewayTimeoutError from '~/errors/gatewayTimeoutError';
 import config from '~/infra/config';
 
 import { createCachedMetabaseService } from './metabase-cache';
+import { createConcurrencyLimitedMetabaseService } from './metabase-concurrency';
 import {
   findDashcardRef,
   normalizeBaseType,
@@ -84,9 +87,23 @@ class MetabaseAPI implements MetabaseService {
     });
   }
 
+  private async request<T>(request: () => Promise<T>): Promise<T> {
+    try {
+      return await request();
+    } catch (error) {
+      if (!axios.isAxiosError(error)) {
+        throw error;
+      }
+      if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+        throw new GatewayTimeoutError('Metabase query timed out');
+      }
+      throw new BadGatewayError('Metabase request failed');
+    }
+  }
+
   async fetchDashboardRaw(id: number): Promise<MetabaseDashboardRaw> {
-    const { data } = await this.http.get<MetabaseDashboardRaw>(
-      `/api/dashboard/${id}`
+    const { data } = await this.request(() =>
+      this.http.get<MetabaseDashboardRaw>(`/api/dashboard/${id}`)
     );
     return data;
   }
@@ -118,9 +135,11 @@ class MetabaseAPI implements MetabaseService {
     decimals: number,
     tableColumns: ReadonlyArray<TableColumnRef> | null
   ): Promise<CardValue> {
-    const { data } = await this.http.post<MetabaseQueryResult>(
-      `/api/dashboard/${dashboardId}/dashcard/${dashcardId}/card/${cardId}/query`,
-      { parameters }
+    const { data } = await this.request(() =>
+      this.http.post<MetabaseQueryResult>(
+        `/api/dashboard/${dashboardId}/dashcard/${dashcardId}/card/${cardId}/query`,
+        { parameters }
+      )
     );
 
     if (cardType === 'pie-chart') {
@@ -219,8 +238,15 @@ const baseMetabaseAPI = createMetabaseAPI({
   domain: config.metabase.domain,
   apiToken: config.metabase.apiToken
 });
+const concurrencyLimitedMetabaseAPI = createConcurrencyLimitedMetabaseService(
+  baseMetabaseAPI,
+  { maxConcurrency: config.metabase.maxConcurrentQueries }
+);
 
-export const metabaseAPI = createCachedMetabaseService(baseMetabaseAPI, {
-  ttlMs: config.metabase.cacheTtlMs,
-  max: config.metabase.cacheMaxEntries
-});
+export const metabaseAPI = createCachedMetabaseService(
+  concurrencyLimitedMetabaseAPI,
+  {
+    ttlMs: config.metabase.cacheTtlMs,
+    max: config.metabase.cacheMaxEntries
+  }
+);

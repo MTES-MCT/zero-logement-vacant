@@ -779,7 +779,7 @@ describe('Dashboard API', () => {
   });
 
   describe('GET /dashboards/:id', () => {
-    it('returns DashboardDTO with url and cards', async () => {
+    it('returns dashboard cards without the legacy embed URL', async () => {
       nock(METABASE_URL)
         .get('/api/dashboard/13')
         .reply(200, mockMetabaseDashboard);
@@ -791,7 +791,7 @@ describe('Dashboard API', () => {
       expect(response.status).toBe(constants.HTTP_STATUS_OK);
       const body = response.body as DashboardDTO;
       expect(body.id).toBe(13);
-      expect(body.url).toMatch(/embed\/dashboard/);
+      expect(body).not.toHaveProperty('url');
       expect('cards' in body).toBe(true);
       if ('cards' in body) {
         expect(body.cards).toHaveLength(1);
@@ -1094,6 +1094,48 @@ describe('Dashboard API', () => {
         id: 929,
         type: 'flat-number',
         data: 51884
+      });
+    });
+
+    it('returns 504 when a Metabase card query times out', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/929/card/771/query')
+        .replyWithError(
+          Object.assign(new Error('timeout of 10000ms exceeded'), {
+            code: 'ECONNABORTED'
+          })
+        );
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/929')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_GATEWAY_TIMEOUT);
+      expect(response.body).toMatchObject({
+        name: 'GatewayTimeoutError',
+        message: 'Metabase query timed out'
+      });
+    });
+
+    it('returns 502 when Metabase rejects a card query', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/929/card/771/query')
+        .reply(503, { message: 'Service unavailable' });
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/929')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_BAD_GATEWAY);
+      expect(response.body).toMatchObject({
+        name: 'BadGatewayError',
+        message: 'Metabase request failed'
       });
     });
 

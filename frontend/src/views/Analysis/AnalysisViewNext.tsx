@@ -5,11 +5,12 @@ import Container from '@mui/material/Container';
 import Skeleton from '@mui/material/Skeleton';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import type { DashboardCard, Resource } from '@zerologementvacant/models';
+import type { DashboardCard, Resource, Tab } from '@zerologementvacant/models';
+import { useState } from 'react';
 
 import AnalysisCard from '~/components/Analysis/AnalysisCard';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
-import { useFindOneDashboardNextQuery } from '~/services/dashboard.service';
+import { useFindOneDashboardQuery } from '~/services/dashboard.service';
 
 interface Props {
   id: Resource;
@@ -64,6 +65,38 @@ function CardGridContent({
   );
 }
 
+interface DashboardTabsProps {
+  dashboard: { id: number; tabs: ReadonlyArray<Tab> };
+  label: string;
+}
+
+function DashboardTabs({ dashboard, label }: Readonly<DashboardTabsProps>) {
+  const [selectedTabId, setSelectedTabId] = useState(
+    String(dashboard.tabs[0]?.id)
+  );
+  const selectedTab =
+    dashboard.tabs.find((tab) => String(tab.id) === selectedTabId) ??
+    dashboard.tabs[0];
+
+  if (!selectedTab) {
+    return null;
+  }
+
+  return (
+    <Tabs
+      label={label}
+      tabs={dashboard.tabs.map((tab) => ({
+        tabId: String(tab.id),
+        label: tab.title
+      }))}
+      selectedTabId={String(selectedTab.id)}
+      onTabChange={setSelectedTabId}
+    >
+      <CardGridContent cards={selectedTab.cards} dashboardId={dashboard.id} />
+    </Tabs>
+  );
+}
+
 function AnalysisViewNext({
   id,
   title = 'Analyse du parc vacant',
@@ -74,7 +107,7 @@ function AnalysisViewNext({
     data: dashboard,
     isLoading,
     isError
-  } = useFindOneDashboardNextQuery({ id });
+  } = useFindOneDashboardQuery({ id });
 
   return (
     <Container maxWidth={false} sx={{ py: '2rem' }}>
@@ -92,6 +125,7 @@ function AnalysisViewNext({
       {isLoading && (
         <Skeleton
           data-testid="dashboard-skeleton"
+          animation={false}
           variant="rectangular"
           width="100%"
           height="20rem"
@@ -99,6 +133,7 @@ function AnalysisViewNext({
       )}
       {isError && (
         <Alert
+          as="h2"
           severity="error"
           title="Impossible de charger le tableau de bord"
           description=""
@@ -106,13 +141,10 @@ function AnalysisViewNext({
       )}
       {dashboard &&
         ('tabs' in dashboard ? (
-          <Tabs
-            tabs={dashboard.tabs.map((tab) => ({
-              label: tab.title,
-              content: (
-                <CardGridContent cards={tab.cards} dashboardId={dashboard.id} />
-              )
-            }))}
+          <DashboardTabs
+            key={dashboard.id}
+            dashboard={dashboard}
+            label={title}
           />
         ) : (
           <CardGridContent cards={dashboard.cards} dashboardId={dashboard.id} />

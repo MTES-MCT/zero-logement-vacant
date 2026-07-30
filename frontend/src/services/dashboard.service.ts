@@ -21,14 +21,8 @@ export const dashboardApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
     findOneDashboard: builder.query<DashboardDTO, FindOneOptions>({
       query: (opts) => `dashboards/${opts.id}`,
-      providesTags: (_result, _error, arg) => [{ type: 'Stats', id: arg.id }]
-    }),
-    findOneDashboardNext: builder.query<DashboardDTO, FindOneOptions>({
-      query: (opts) => `dashboards/${opts.id}`,
       keepUnusedDataFor: ONE_HOUR_SECONDS,
-      providesTags: (_result, _error, arg) => [
-        { type: 'Stats', id: `next-${arg.id}` }
-      ]
+      providesTags: (_result, _error, arg) => [{ type: 'Stats', id: arg.id }]
     }),
     findOneCard: builder.query<CardDataDTO, FindOneCardOptions>({
       query: (opts) => `dashboards/${opts.did}/cards/${opts.cid}`,
@@ -40,8 +34,4 @@ export const dashboardApi = zlvApi.injectEndpoints({
   })
 });
 
-export const {
-  useFindOneDashboardQuery,
-  useFindOneDashboardNextQuery,
-  useFindOneCardQuery
-} = dashboardApi;
+export const { useFindOneDashboardQuery, useFindOneCardQuery } = dashboardApi;

@@ -17,8 +17,11 @@ import {
   banAddressesTable,
   formatAddressApi
 } from '~/repositories/banAddressesRepository';
-import { Buildings } from '~/repositories/buildingRepository';
-import { Establishments } from '~/repositories/establishmentRepository';
+import { BUILDING_TABLE, BuildingDBO } from '~/repositories/buildingRepository';
+import {
+  EstablishmentDBO,
+  establishmentsTable
+} from '~/repositories/establishmentRepository';
 import {
   formatHousingOwnerApi,
   housingOwnersTable
@@ -27,7 +30,11 @@ import {
   formatHousingRecordApi,
   housingTable
 } from '~/repositories/housingRepository';
-import { Owners, parseOwnerApi } from '~/repositories/ownerRepository';
+import {
+  OwnerDBO,
+  ownerTable,
+  parseOwnerApi
+} from '~/repositories/ownerRepository';
 import { createBanAPI } from '~/services/ban/ban-api';
 import { genHousingApi, genHousingOwnerApi } from '~/test/testFixtures';
 
@@ -36,9 +43,9 @@ export async function seed(knex: Knex): Promise<void> {
   const ban = createBanAPI();
 
   const [establishments, buildings, owners] = await Promise.all([
-    Establishments(knex).where({ available: true }),
-    Buildings(knex).limit(1000),
-    Owners(knex)
+    knex<EstablishmentDBO>(establishmentsTable).where({ available: true }),
+    knex<BuildingDBO>(BUILDING_TABLE).limit(1000),
+    knex<OwnerDBO>(ownerTable)
       .select()
       .then((owners) => owners.map(parseOwnerApi))
   ]);

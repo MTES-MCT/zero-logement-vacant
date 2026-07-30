@@ -6,13 +6,10 @@ import request from 'supertest';
 
 import config from '~/infra/config';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { UserApi } from '~/models/UserApi';
+import { factories } from '~/test/factories';
 
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '../../repositories/establishmentRepository';
-import { toUserDBO, Users } from '../../repositories/userRepository';
-import { genEstablishmentApi, genUserApi } from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
 
 // EICAR test file - standard antivirus test string
@@ -21,17 +18,13 @@ const EICAR_TEST_FILE =
 
 describe('File API', () => {
   let url: string;
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
     url = await createServer().testing();
-  });
-
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
-
-  beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('POST /files', () => {

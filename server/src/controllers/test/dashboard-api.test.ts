@@ -7,18 +7,15 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import config from '~/infra/config';
 import { createServer } from '~/infra/server';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { UserApi } from '~/models/UserApi';
 import { metabaseAPI } from '~/services/metabase/metabase-api';
+import { factories } from '~/test/factories';
 
-import { genEstablishmentApi, genUserApi } from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
 
-const establishment = genEstablishmentApi();
-const user = genUserApi(establishment.id);
+let establishment: EstablishmentApi;
+let user: UserApi;
 
 const METABASE_URL = config.metabase.domain;
 
@@ -767,8 +764,8 @@ describe('Dashboard API', () => {
 
   beforeAll(async () => {
     url = await createServer().testing();
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   afterEach(() => {

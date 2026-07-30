@@ -3,60 +3,44 @@ import { constants } from 'http2';
 import { faker } from '@faker-js/faker/locale/fr';
 import { fc, test } from '@fast-check/vitest';
 import { NoteDTO, NotePayloadDTO, UserRole } from '@zerologementvacant/models';
+import type { Selectable } from 'kysely';
 import request from 'supertest';
 
+import type { DB } from '~/infra/database/db';
 import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { HousingApi } from '~/models/HousingApi';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
 import { UserApi } from '~/models/UserApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import {
-  HousingNotes,
-  NoteRecordDBO,
-  Notes,
-  toHousingNoteDBO,
-  toNoteDBO
-} from '~/repositories/noteRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import {
-  genEstablishmentApi,
-  genHousingApi,
-  genHousingNoteApi,
-  genUserApi,
-  oneOf
-} from '~/test/testFixtures';
+import { toHousingNoteDBO, toNoteDBO } from '~/repositories/noteRepository';
+import { factories } from '~/test/factories';
+import { genHousingNoteApi } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Note API', () => {
   let url: string;
+  let establishment: EstablishmentApi;
+  let user: UserApi;
+  let visitor: UserApi;
+  let admin: UserApi;
+  let housing: HousingApi;
 
   beforeAll(async () => {
     url = await createServer().testing();
-  });
-
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
-  const visitor: UserApi = {
-    ...genUserApi(establishment.id),
-    role: UserRole.VISITOR
-  };
-  const admin: UserApi = {
-    ...genUserApi(establishment.id),
-    role: UserRole.ADMIN
-  };
-  const housing = genHousingApi(oneOf(establishment.geoCodes));
-
-  beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert([user, visitor, admin].map(toUserDBO));
-    await Housing().insert(formatHousingRecordApi(housing));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
+    visitor = await factories.user.create({
+      establishmentId: establishment.id,
+      role: UserRole.VISITOR
+    });
+    admin = await factories.user.create({
+      establishmentId: establishment.id,
+      role: UserRole.ADMIN
+    });
+    housing = await factories.housing.create({
+      geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+    });
   });
 
   describe('GET /housing/:id/notes', () => {
@@ -160,15 +144,19 @@ describe('Note API', () => {
         createdAt: expect.any(String),
         updatedAt: null
       });
-      const actualNote = await Notes().where({ id: body.id }).first();
+      const actualNote = await kysely
+        .selectFrom('notes')
+        .selectAll('notes')
+        .where('id', '=', body.id)
+        .executeTakeFirst();
       expect(actualNote).toBeDefined();
-      const actualHousingNote = await HousingNotes()
-        .where({
-          note_id: body.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        })
-        .first();
+      const actualHousingNote = await kysely
+        .selectFrom('housingNotes')
+        .selectAll('housingNotes')
+        .where('noteId', '=', body.id)
+        .where('housingId', '=', housing.id)
+        .where('housingGeoCode', '=', housing.geoCode)
+        .executeTakeFirst();
       expect(actualHousingNote).toBeDefined();
     });
   });
@@ -176,9 +164,10 @@ describe('Note API', () => {
   describe('PUT /notes/:id', () => {
     const testRoute = (noteId: string) => `/notes/${noteId}`;
 
-    const note = genHousingNoteApi(user, housing);
+    let note: HousingNoteApi;
 
     beforeAll(async () => {
+      note = genHousingNoteApi(user, housing);
       await kysely.insertInto('notes').values(toNoteDBO(note)).execute();
     });
 
@@ -200,8 +189,9 @@ describe('Note API', () => {
     });
 
     it('should be forbidden for another user than the creator', async () => {
-      const anotherUser = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(anotherUser));
+      const anotherUser = await factories.user.create({
+        establishmentId: establishment.id
+      });
 
       const { status } = await request(url)
         .put(testRoute(note.id))
@@ -258,11 +248,15 @@ describe('Note API', () => {
         content: payload.content,
         updatedAt: expect.any(String)
       });
-      const actual = await Notes().where({ id: note.id }).first();
-      expect(actual).toMatchObject<Partial<NoteRecordDBO>>({
+      const actual = await kysely
+        .selectFrom('notes')
+        .selectAll('notes')
+        .where('id', '=', note.id)
+        .executeTakeFirst();
+      expect(actual).toMatchObject<Partial<Selectable<DB['notes']>>>({
         id: note.id,
         content: payload.content,
-        updated_at: expect.any(Date)
+        updatedAt: expect.any(Date)
       });
     });
   });
@@ -296,8 +290,9 @@ describe('Note API', () => {
     });
 
     it('should be forbidden for another user than the creator', async () => {
-      const anotherUser = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(anotherUser));
+      const anotherUser = await factories.user.create({
+        establishmentId: establishment.id
+      });
 
       const { status } = await request(url)
         .delete(testRoute(note.id))
@@ -336,18 +331,22 @@ describe('Note API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-      const actualNote = await Notes().where({ id: note.id }).first();
-      expect(actualNote).toMatchObject<Partial<NoteRecordDBO>>({
+      const actualNote = await kysely
+        .selectFrom('notes')
+        .selectAll('notes')
+        .where('id', '=', note.id)
+        .executeTakeFirst();
+      expect(actualNote).toMatchObject<Partial<Selectable<DB['notes']>>>({
         id: note.id,
-        deleted_at: expect.any(Date)
+        deletedAt: expect.any(Date)
       });
-      const actualHousingNote = await HousingNotes()
-        .where({
-          note_id: note.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        })
-        .first();
+      const actualHousingNote = await kysely
+        .selectFrom('housingNotes')
+        .selectAll('housingNotes')
+        .where('noteId', '=', note.id)
+        .where('housingId', '=', housing.id)
+        .where('housingGeoCode', '=', housing.geoCode)
+        .executeTakeFirst();
       expect(actualHousingNote).toBeDefined();
     });
   });

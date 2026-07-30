@@ -1,5 +1,7 @@
 import { LocalityKind, TaxKind } from '@zerologementvacant/models';
-import type { Selectable } from 'kysely';
+import { Record } from 'effect';
+import { snakeToCamel } from 'effect/String';
+import type { Insertable, Selectable } from 'kysely';
 import { sql } from 'kysely';
 
 import db from '~/infra/database';
@@ -109,6 +111,15 @@ export const formatLocalityApi = (locality: LocalityApi): LocalityDBO => ({
   tax_kind: locality.taxKind,
   tax_rate: locality.taxRate
 });
+
+export function toLocalityInsert(
+  locality: LocalityApi
+): Insertable<DB['localities']> {
+  return Record.mapKeys(
+    formatLocalityApi(locality) as unknown as Record<string, unknown>,
+    snakeToCamel
+  ) as Insertable<DB['localities']>;
+}
 
 function parseLocalityRow(row: Selectable<DB['localities']>): LocalityApi {
   return {

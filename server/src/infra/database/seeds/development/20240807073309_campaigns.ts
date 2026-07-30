@@ -5,31 +5,44 @@ import type { Knex } from 'knex';
 
 import {
   CampaignHousingDBO,
-  CampaignsHousing,
   campaignsHousingTable
 } from '~/repositories/campaignHousingRepository';
 import {
   CampaignDBO,
-  Campaigns,
   campaignsTable,
   formatCampaignApi
 } from '~/repositories/campaignRepository';
-import { Establishments } from '~/repositories/establishmentRepository';
-import { Groups, parseGroupApi } from '~/repositories/groupRepository';
-import { Housing } from '~/repositories/housingRepository';
-import { fromUserDBO, Users } from '~/repositories/userRepository';
+import {
+  EstablishmentDBO,
+  establishmentsTable
+} from '~/repositories/establishmentRepository';
+import {
+  GroupDBO,
+  GROUPS_TABLE,
+  parseGroupApi
+} from '~/repositories/groupRepository';
+import { HousingDBO, housingTable } from '~/repositories/housingRepository';
+import {
+  fromUserDBO,
+  USERS_TABLE,
+  UserDBO
+} from '~/repositories/userRepository';
 import { genCampaignApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
   console.time('20240807073309_campaigns');
-  await CampaignsHousing(knex).delete();
-  await Campaigns(knex).delete();
+  await knex<CampaignHousingDBO>(campaignsHousingTable).delete();
+  await knex<CampaignDBO>(campaignsTable).delete();
 
-  const establishments = await Establishments(knex).where({ available: true });
+  const establishments = await knex<EstablishmentDBO>(
+    establishmentsTable
+  ).where({ available: true });
   await async.forEachSeries(establishments, async (establishment) => {
     const [users, groups] = await Promise.all([
-      Users(knex).where({ establishment_id: establishment.id }),
-      Groups(knex).where({ establishment_id: establishment.id })
+      knex<UserDBO>(USERS_TABLE).where({ establishment_id: establishment.id }),
+      knex<GroupDBO>(GROUPS_TABLE).where({
+        establishment_id: establishment.id
+      })
     ]);
 
     const campaigns = pipe(
@@ -55,7 +68,7 @@ export async function seed(knex: Knex): Promise<void> {
     );
 
     await async.forEachSeries(campaigns, async (campaign) => {
-      const housings = await Housing(knex)
+      const housings = await knex<HousingDBO>(housingTable)
         .whereIn('geo_code', establishment.localities_geo_code)
         .limit(faker.number.int({ min: 1, max: 1000 }));
       const campaignHousings = housings.map<CampaignHousingDBO>((housing) => ({

@@ -4,15 +4,17 @@ import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
 
 import { PRECISION_TREE_VALUES, PrecisionApi } from '~/models/PrecisionApi';
-import { Establishments } from '~/repositories/establishmentRepository';
-import { Housing } from '~/repositories/housingRepository';
+import {
+  EstablishmentDBO,
+  establishmentsTable
+} from '~/repositories/establishmentRepository';
+import { HousingDBO, housingTable } from '~/repositories/housingRepository';
 import {
   HOUSING_PRECISION_TABLE,
   HousingPrecisionDBO,
-  Precisions
+  PRECISION_TABLE,
+  PrecisionDBO
 } from '~/repositories/precisionRepository';
-
-const PRECISION_TABLE = 'precisions';
 
 export async function seed(knex: Knex): Promise<void> {
   console.time('20250113145122_precisions');
@@ -32,14 +34,16 @@ export async function seed(knex: Knex): Promise<void> {
       .flatMap((_) => _)
       .toArray();
   console.log(`Inserting ${precisions.length} precisions...`);
-  await Precisions(knex).insert(precisions);
+  await knex<PrecisionDBO>(PRECISION_TABLE).insert(precisions);
 
   // Attach precisions to some housings
-  const establishments = await Establishments(knex).where({ available: true });
+  const establishments = await knex<EstablishmentDBO>(
+    establishmentsTable
+  ).where({ available: true });
   const geoCodes: ReadonlyArray<string> = establishments.flatMap(
     (establishment) => establishment.localities_geo_code
   );
-  const housings = await Housing(knex)
+  const housings = await knex<HousingDBO>(housingTable)
     .whereIn('geo_code', geoCodes)
     .limit(2_000);
   const housingPrecisions: ReadonlyArray<HousingPrecisionDBO> = housings

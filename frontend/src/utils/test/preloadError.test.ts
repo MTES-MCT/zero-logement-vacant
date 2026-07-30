@@ -1,0 +1,188 @@
+import { registerPreloadErrorRecovery } from '../preloadError';
+
+describe('Preload error recovery', () => {
+  let unregister: (() => void) | undefined;
+
+  afterEach(() => {
+    unregister?.();
+    unregister = undefined;
+    sessionStorage.clear();
+    document.getElementById('vite-preload-error-recovery')?.remove();
+  });
+
+  it('should offer recovery only once when a stale dynamic import fails', () => {
+    const reload = vi.fn();
+    const showRecovery = vi.fn();
+    unregister = registerPreloadErrorRecovery({
+      reload,
+      showRecovery,
+      now: () => 100_000
+    });
+    const firstEvent = new Event('vite:preloadError', { cancelable: true });
+    const secondEvent = new Event('vite:preloadError', { cancelable: true });
+
+    window.dispatchEvent(firstEvent);
+    window.dispatchEvent(secondEvent);
+
+    expect(firstEvent.defaultPrevented).toBeFalse();
+    expect(secondEvent.defaultPrevented).toBeFalse();
+    expect(showRecovery).toHaveBeenCalledOnce();
+    expect(reload).not.toHaveBeenCalled();
+
+    showRecovery.mock.calls[0]?.[0]();
+
+    expect(reload).toHaveBeenCalledOnce();
+  });
+
+  it('should expose the normal error after a recovery attempt within the cooldown', () => {
+    const firstShowRecovery = vi.fn();
+    unregister = registerPreloadErrorRecovery({
+      showRecovery: firstShowRecovery,
+      now: () => 100_000
+    });
+    window.dispatchEvent(new Event('vite:preloadError', { cancelable: true }));
+    unregister();
+
+    const secondShowRecovery = vi.fn();
+    unregister = registerPreloadErrorRecovery({
+      showRecovery: secondShowRecovery,
+      now: () => 100_000
+    });
+    const secondEvent = new Event('vite:preloadError', { cancelable: true });
+    window.dispatchEvent(secondEvent);
+
+    expect(firstShowRecovery).toHaveBeenCalledOnce();
+    expect(secondShowRecovery).not.toHaveBeenCalled();
+    expect(secondEvent.defaultPrevented).toBeFalse();
+  });
+
+  it('should allow a new recovery attempt after the cooldown', () => {
+    const reload = vi.fn();
+    const firstShowRecovery = vi.fn();
+    let currentTime = 100_000;
+    unregister = registerPreloadErrorRecovery({
+      reload,
+      showRecovery: firstShowRecovery,
+      now: () => currentTime
+    });
+    const firstEvent = new Event('vite:preloadError', { cancelable: true });
+    window.dispatchEvent(firstEvent);
+    unregister();
+
+    currentTime += 60_001;
+    const secondShowRecovery = vi.fn();
+    unregister = registerPreloadErrorRecovery({
+      reload,
+      showRecovery: secondShowRecovery,
+      now: () => currentTime
+    });
+    const secondEvent = new Event('vite:preloadError', { cancelable: true });
+    window.dispatchEvent(secondEvent);
+
+    expect(secondEvent.defaultPrevented).toBeFalse();
+    expect(firstShowRecovery).toHaveBeenCalledOnce();
+    expect(secondShowRecovery).toHaveBeenCalledOnce();
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it('should keep the error visible if the reload guard cannot be persisted', () => {
+    const reload = vi.fn();
+    unregister = registerPreloadErrorRecovery({
+      reload,
+      getStorage: () => {
+        throw new DOMException('Storage is unavailable');
+      }
+    });
+    const event = new Event('vite:preloadError', { cancelable: true });
+
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBeFalse();
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it('should keep the error visible if the reload guard cannot be written', () => {
+    const reload = vi.fn();
+    const showRecovery = vi.fn();
+    unregister = registerPreloadErrorRecovery({
+      reload,
+      showRecovery,
+      getStorage: () => ({
+        getItem: () => null,
+        setItem: () => {
+          throw new DOMException('Storage is read-only');
+        }
+      })
+    });
+    const event = new Event('vite:preloadError', { cancelable: true });
+
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBeFalse();
+    expect(showRecovery).not.toHaveBeenCalled();
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it('should recover when the stored reload timestamp is corrupted', () => {
+    const reload = vi.fn();
+    const showRecovery = vi.fn();
+    sessionStorage.setItem('zlv:preload-error-reload-at', '100000-corrupted');
+    unregister = registerPreloadErrorRecovery({
+      reload,
+      showRecovery,
+      now: () => 100_000
+    });
+    const event = new Event('vite:preloadError', { cancelable: true });
+
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBeFalse();
+    expect(showRecovery).toHaveBeenCalledOnce();
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it('should recover when the stored reload timestamp is in the future', () => {
+    const reload = vi.fn();
+    const showRecovery = vi.fn();
+    sessionStorage.setItem('zlv:preload-error-reload-at', '200000');
+    unregister = registerPreloadErrorRecovery({
+      reload,
+      showRecovery,
+      now: () => 100_000
+    });
+    const event = new Event('vite:preloadError', { cancelable: true });
+
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBeFalse();
+    expect(showRecovery).toHaveBeenCalledOnce();
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it('should show an accessible reload action and wait for its activation', () => {
+    const reload = vi.fn();
+    unregister = registerPreloadErrorRecovery({
+      reload,
+      now: () => 100_000
+    });
+    const event = new Event('vite:preloadError', { cancelable: true });
+
+    window.dispatchEvent(event);
+
+    const alert = document.querySelector('[role="alert"]');
+    const button = alert?.querySelector('button');
+    expect(alert).toHaveAccessibleName('L’application a été mise à jour');
+    expect(alert).toHaveTextContent('L’application a été mise à jour');
+    expect(alert).toHaveTextContent(
+      'Rechargez la page pour continuer. Vous retrouverez la page en cours.'
+    );
+    expect(button).toHaveAccessibleName('Recharger l’application');
+    expect(button).toHaveFocus();
+    expect(alert?.querySelector('h1, h2, h3, h4, h5, h6')).toBeNull();
+    expect(reload).not.toHaveBeenCalled();
+
+    button?.click();
+
+    expect(reload).toHaveBeenCalledOnce();
+  });
+});

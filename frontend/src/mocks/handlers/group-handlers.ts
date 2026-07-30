@@ -8,6 +8,7 @@ import { http, HttpResponse, RequestHandler } from 'msw';
 
 import config from '../../utils/config';
 import data from './data';
+import { filterByHousingIds } from './housing-handlers';
 
 type GroupParams = {
   id: string;
@@ -25,11 +26,18 @@ export const groupHandlers: RequestHandler[] = [
   // Create a group
   http.post<Record<string, never>, GroupPayloadDTO, GroupDTO>(
     `${config.apiEndpoint}/groups`,
-    () => {
+    async ({ request }) => {
       const creator = faker.helpers.arrayElement(data.users);
-      // TODO: use request payload
-      const housings = faker.helpers.arrayElements(data.housings);
-      const group = genGroupDTO(creator, housings);
+      const payload = await request.json();
+      const housings = filterByHousingIds({
+        all: payload.housing.all,
+        housingIds: payload.housing.ids
+      })(data.housings);
+      const group: GroupDTO = {
+        ...genGroupDTO(creator, housings),
+        title: payload.title,
+        description: payload.description
+      };
       data.groups.push(group);
       data.groupHousings.set(group.id, housings);
 

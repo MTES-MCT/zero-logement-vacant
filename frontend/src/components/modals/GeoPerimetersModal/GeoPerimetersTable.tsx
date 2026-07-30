@@ -110,6 +110,8 @@ function GeoPerimetersTable(props: GeoPerimetersTableProps) {
         }
         selection={selection.selected}
         onSelectionChange={selection.setSelected}
+        caption="Vos périmètres géographiques"
+        tableProps={{ noCaption: true }}
       />
     </>
   );

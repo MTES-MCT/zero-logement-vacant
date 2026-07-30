@@ -2606,10 +2606,12 @@ describe('Housing repository', () => {
 
       describe('by beneficiary count', () => {
         const geoCode = oneOf(establishment.geoCodes);
+        let housingIds: string[];
 
         beforeEach(async () => {
           const housingWith2 = genHousingApi(geoCode);
           const housingWith1 = genHousingApi(geoCode);
+          housingIds = [housingWith2.id, housingWith1.id];
           const owners = faker.helpers.multiple(() => genOwnerApi(), {
             count: 3
           });
@@ -2627,6 +2629,7 @@ describe('Housing repository', () => {
           const result = await housingRepository.count({
             establishmentIds: [establishment.id],
             beneficiaryCounts: ['2'],
+            housingIds,
             localities: [geoCode]
           });
 

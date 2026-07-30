@@ -17,11 +17,18 @@ export function useNotification(props: NotificationProps) {
   const toastId: string = props.toastId;
 
   useEffect(() => {
+    // react-toastify defaults every toast to `role="alert"` (assertive), which
+    // interrupts screen readers. Per RGAA 7.5 / WCAG 4.1.3, only errors warrant
+    // that urgency; loading and success are polite status messages, so they use
+    // `role="status"` (`aria-live="polite"`).
     if (props.isLoading) {
       const loading = props.message?.loading || 'Sauvegarde...';
+      // Loading and success are non-critical: announce them politely (role
+      // "status" → aria-live polite). Errors keep the assertive "alert" role.
       toast(loading, {
         autoClose: false,
         isLoading: true,
+        role: 'status',
         toastId
       });
     } else if (props.isError) {
@@ -30,6 +37,7 @@ export function useNotification(props: NotificationProps) {
         autoClose: props.autoClose ?? null,
         isLoading: false,
         render: error,
+        role: 'alert',
         type: 'error',
         toastId
       });
@@ -39,6 +47,7 @@ export function useNotification(props: NotificationProps) {
         autoClose: props.autoClose ?? null,
         isLoading: false,
         render: success,
+        role: 'status',
         type: 'success',
         toastId
       });

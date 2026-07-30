@@ -106,6 +106,7 @@ function OwnerSearchTable(props: OwnerSearchTableProps) {
         }
         state={props.pagination ? { pagination: props.pagination } : undefined}
         onPaginationChange={props.onPaginationChange}
+        caption="Résultats de la recherche de propriétaires"
         tableProps={{
           className: 'fr-my-0',
           noCaption: true

@@ -169,6 +169,7 @@ function HousingOwnerTable(props: HousingOwnerTableProps) {
         state={{
           columnVisibility: showColumns
         }}
+        caption={props.title}
         tableProps={{
           className: 'fr-my-0',
           noCaption: true

@@ -56,3 +56,11 @@ yarn workspace @zerologementvacant/front-e2e-pw exec playwright show-trace path/
   session cookie, and protected routes redirect again.
 - `tests/suspended-user.spec.ts` — a suspended user sees the
   SuspendedUserModal.
+- `tests/save-campaign.spec.ts` — "Enregistrer une campagne" two-step modal
+  on the campaigns list, against a pre-existing eligible group; redirect to
+  the new campaign's page; step 2 reopens after cancelling and re-selecting
+  the same group.
+- `tests/group-to-campaign.spec.ts` — full journey from the housing list:
+  select all housings, create a group, then create a campaign from it via
+  either the group's own page or the campaigns list, with and without a
+  sending date — each path redirects to the new campaign's page.

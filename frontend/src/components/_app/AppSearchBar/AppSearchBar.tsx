@@ -8,6 +8,11 @@ export interface AppSearchBarProps {
   initialQuery?: string;
   placeholder?: string;
   size?: 'md' | 'xl';
+  /**
+   * Allow submitting an empty query. Off by default; enable it when an empty
+   * submit is a meaningful action (e.g. resetting a filter to "show all").
+   */
+  allowEmptySearch?: boolean;
   onSearch(text: string): void;
   onKeySearch?(text: string): Promise<void>;
 }
@@ -18,7 +23,7 @@ function AppSearchBar(props: AppSearchBarProps) {
 
   return (
     <SearchBar
-      allowEmptySearch={false}
+      allowEmptySearch={props.allowEmptySearch ?? false}
       big={props.size === 'xl'}
       className={props.className}
       clearInputOnSearch

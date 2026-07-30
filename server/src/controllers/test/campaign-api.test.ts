@@ -8,6 +8,7 @@ import {
   CampaignUpdatePayload,
   HOUSING_STATUS_VALUES,
   HousingStatus,
+  UserRole,
   type CampaignCreationPayload,
   type UserDTO
 } from '@zerologementvacant/models';
@@ -20,6 +21,7 @@ import { createServer } from '~/infra/server';
 import { CampaignEventApi } from '~/models/EventApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
+import { UserApi } from '~/models/UserApi';
 import {
   CampaignHousingDBO,
   CampaignsHousing,
@@ -427,6 +429,27 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NOT_FOUND);
+    });
+
+    it('should be forbidden for a visitor', async () => {
+      const visitor: UserApi = {
+        ...genUserApi(establishment.id),
+        role: UserRole.VISITOR
+      };
+      await Users().insert(toUserDBO(visitor));
+      const payload: CampaignCreationPayload = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        sentAt: null
+      };
+
+      const { status } = await request(url)
+        .post(testRoute(group.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(visitor));
+
+      expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
     });
 
     it('should create the campaign', async () => {

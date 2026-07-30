@@ -21,6 +21,9 @@ const CampaignRecipientsNext = lazy(
   () => import('~/components/Campaign/CampaignRecipients')
 );
 const DraftForm = lazy(() => import('~/components/Draft/DraftForm'));
+const CampaignDocumentsTabLazy = lazy(
+  () => import('~/components/Campaign/CampaignDocumentsTab')
+);
 import { useHousingFilters } from '~/hooks/HousingFiltersContext';
 import { useGetCampaignDraftQuery } from '~/hooks/useGetCampaignDraftQuery';
 import { useNotification } from '~/hooks/useNotification';
@@ -190,6 +193,10 @@ function CampaignView() {
                       draft={getCampaignDraftQuery.data}
                     />
                   ) : null
+              },
+              {
+                label: 'Documents',
+                content: <CampaignDocumentsTabLazy campaign={campaign} />
               }
             ]}
           />

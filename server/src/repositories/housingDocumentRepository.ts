@@ -48,38 +48,45 @@ async function link(document: HousingDocumentApi): Promise<void> {
 
 async function linkMany(
   housingDocuments: ReadonlyArray<HousingDocumentDBO>
-): Promise<void> {
+): Promise<HousingDocumentDBO[]> {
   if (housingDocuments.length === 0) {
     logger.debug('No housing documents to link. Skipping...');
-    return;
+    return [];
   }
 
   logger.debug('Linking documents to housings...', {
     housingDocuments
   });
 
+  let inserted: HousingDocumentDBO[] = [];
   await withinTransaction(async (transaction) => {
-    await HousingDocuments(transaction)
+    inserted = await HousingDocuments(transaction)
       .insert(housingDocuments)
       .onConflict(['document_id', 'housing_geo_code', 'housing_id'])
-      .ignore();
+      .ignore()
+      .returning(['document_id', 'housing_geo_code', 'housing_id']);
   });
+  return inserted;
 }
 
 async function unlink(link: {
   documentId: string;
   housingId: string;
   housingGeoCode: string;
-}): Promise<void> {
+}): Promise<number> {
   logger.debug('Unlinking document from housing...', link);
 
-  await HousingDocuments()
-    .where({
-      document_id: link.documentId,
-      housing_geo_code: link.housingGeoCode,
-      housing_id: link.housingId
-    })
-    .delete();
+  let deletedCount = 0;
+  await withinTransaction(async (transaction) => {
+    deletedCount = await HousingDocuments(transaction)
+      .where({
+        document_id: link.documentId,
+        housing_geo_code: link.housingGeoCode,
+        housing_id: link.housingId
+      })
+      .delete();
+  });
+  return deletedCount;
 }
 
 async function unlinkMany(params: { documentIds: string[] }): Promise<void> {

@@ -2,12 +2,13 @@ import http from 'node:http';
 import util from 'node:util';
 
 import {
-  healthcheck,
   brevoCheck,
+  healthcheck,
   postgresCheck,
   s3Check
 } from '@zerologementvacant/healthcheck';
 import { toNodeHandler } from 'better-auth/node';
+import compression from 'compression';
 import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
@@ -114,6 +115,7 @@ export function createServer(): Server {
       }
     })
   );
+  app.use(compression());
 
   app.use(
     cors({

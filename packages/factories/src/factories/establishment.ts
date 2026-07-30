@@ -17,7 +17,10 @@ export function createEstablishmentFactory(adapter: PersistenceAdapter) {
       id: faker.string.uuid(),
       name,
       shortName: name,
-      siren: faker.string.numeric(9),
+      // No leading zeros: a SIREN is a 9-digit number, and the `establishments`
+      // table stores it numerically — a leading zero would be lost on the
+      // round-trip and break siren matching (e.g. cerema authorization).
+      siren: faker.string.numeric({ length: 9, allowLeadingZeros: false }),
       available: true,
       geoCodes: faker.helpers.multiple(genGeoCode, {
         count: { min: 1, max: 10 }

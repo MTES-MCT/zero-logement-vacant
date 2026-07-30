@@ -61,25 +61,14 @@ import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
 import request from 'supertest';
 
-import db from '~/infra/database';
 import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { SALT_LENGTH, UserApi } from '~/models/UserApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { UsersEstablishments } from '~/repositories/user-establishment-repository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
-import {
-  genEstablishmentApi,
-  genResetLinkApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { factories } from '~/test/factories';
+import { genResetLinkApi } from '~/test/testFixtures';
 
-const AUTH_USERS_TABLE = 'auth_users';
-const ACCOUNT_TABLE = 'account';
 const TEST_2FA_CODE = '123456';
 
 function getCookies(response: request.Response): string[] {
@@ -98,8 +87,8 @@ async function seedBackfilledUser(opts: {
   suspendedAt?: string | null;
   suspendedCause?: string | null;
 }): Promise<UserApi> {
-  const user: UserApi = {
-    ...genUserApi(opts.establishmentId),
+  const user = await factories.user.create({
+    establishmentId: opts.establishmentId,
     email: opts.email,
     password: bcrypt.hashSync(opts.plaintextPassword, SALT_LENGTH),
     role: opts.role ?? UserRole.USUAL,
@@ -108,47 +97,55 @@ async function seedBackfilledUser(opts: {
     deletedAt: opts.deletedAt ?? null,
     suspendedAt: opts.suspendedAt ?? null,
     suspendedCause: opts.suspendedCause ?? null
-  };
-  await Users().insert(toUserDBO(user));
+  });
 
   // Mirror backfill-auth-users: same id, full_name from first+last, scrypt-
   // free `account` row holding the bcrypt hash so the verifier hook routes
   // through bcrypt at sign-in time.
-  await db(AUTH_USERS_TABLE).insert({
-    id: user.id,
-    name: [user.firstName, user.lastName].filter(Boolean).join(' '),
-    email: user.email.toLowerCase(),
-    email_verified: true
-  });
-  await db(ACCOUNT_TABLE).insert({
-    id: randomUUID(),
-    account_id: user.email,
-    provider_id: 'credential',
-    user_id: user.id,
-    password: user.password
-  });
+  await kysely
+    .insertInto('authUsers')
+    .values({
+      id: user.id,
+      name: [user.firstName, user.lastName].filter(Boolean).join(' '),
+      email: user.email.toLowerCase(),
+      emailVerified: true
+    })
+    .execute();
+  await kysely
+    .insertInto('account')
+    .values({
+      id: randomUUID(),
+      accountId: user.email,
+      providerId: 'credential',
+      userId: user.id,
+      password: user.password
+    })
+    .execute();
 
   return user;
 }
 
 async function deleteBackfilledUser(userId: string): Promise<void> {
-  await db('session').where({ user_id: userId }).delete();
-  await db(ACCOUNT_TABLE).where({ user_id: userId }).delete();
-  await db(AUTH_USERS_TABLE).where({ id: userId }).delete();
-  await Users().where('id', userId).delete();
+  await kysely.deleteFrom('session').where('userId', '=', userId).execute();
+  await kysely.deleteFrom('account').where('userId', '=', userId).execute();
+  await kysely.deleteFrom('authUsers').where('id', '=', userId).execute();
+  await kysely.deleteFrom('users').where('id', '=', userId).execute();
 }
 
 describe('better-auth sign-in (integration)', () => {
   let url: string;
-  const establishment = genEstablishmentApi();
+  let establishment: EstablishmentApi;
 
   beforeAll(async () => {
     url = await createServer().testing();
-    await Establishments().insert(formatEstablishmentApi(establishment));
+    establishment = await factories.establishment.create();
   });
 
   afterAll(async () => {
-    await Establishments().where('id', establishment.id).delete();
+    await kysely
+      .deleteFrom('establishments')
+      .where('id', '=', establishment.id)
+      .execute();
   });
 
   it('sets an HttpOnly cookie on successful sign-in', async () => {
@@ -198,11 +195,15 @@ describe('better-auth sign-in (integration)', () => {
       expect(signInResponse.status).toBe(200);
 
       const suspendedAt = new Date('2026-07-13T10:00:00.000Z');
-      await Users().where({ id: user.id }).update({
-        first_name: 'Profil métier',
-        suspended_at: suspendedAt,
-        suspended_cause: 'Accès métier suspendu'
-      });
+      await kysely
+        .updateTable('users')
+        .set({
+          firstName: 'Profil métier',
+          suspendedAt: suspendedAt,
+          suspendedCause: 'Accès métier suspendu'
+        })
+        .where('id', '=', user.id)
+        .execute();
 
       const sessionResponse = await request(url)
         .get('/auth/get-session')
@@ -236,7 +237,13 @@ describe('better-auth sign-in (integration)', () => {
         .send({ email, password });
       expect(signInResponse.status).toBe(200);
       const cookies = getCookies(signInResponse);
-      expect(await db('session').where({ user_id: user.id })).toHaveLength(1);
+      expect(
+        await kysely
+          .selectFrom('session')
+          .selectAll('session')
+          .where('userId', '=', user.id)
+          .execute()
+      ).toHaveLength(1);
 
       const resetResponse = await request(url)
         .post('/account/reset-password')
@@ -246,7 +253,13 @@ describe('better-auth sign-in (integration)', () => {
         });
       expect(resetResponse.status).toBe(200);
 
-      expect(await db('session').where({ user_id: user.id })).toHaveLength(0);
+      expect(
+        await kysely
+          .selectFrom('session')
+          .selectAll('session')
+          .where('userId', '=', user.id)
+          .execute()
+      ).toHaveLength(0);
       const formerSession = await request(url)
         .get('/auth/get-session')
         .set('Cookie', cookies);
@@ -412,9 +425,13 @@ describe('better-auth sign-in (integration)', () => {
         getCookies(response).some((c) => c.includes('zlv.session_token'))
       ).toBe(false);
 
-      const updatedUser = await Users().where({ id: user.id }).first();
-      expect(updatedUser?.two_factor_code).toEqual(expect.any(String));
-      expect(updatedUser?.two_factor_code_generated_at).toBeInstanceOf(Date);
+      const updatedUser = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      expect(updatedUser?.twoFactorCode).toEqual(expect.any(String));
+      expect(updatedUser?.twoFactorCodeGeneratedAt).toBeInstanceOf(Date);
     } finally {
       await deleteBackfilledUser(user.id);
     }
@@ -436,8 +453,12 @@ describe('better-auth sign-in (integration)', () => {
         .send({ email, password });
 
       expect(response.status).toBe(400);
-      const unchangedUser = await Users().where({ id: user.id }).first();
-      expect(unchangedUser?.two_factor_code).toBeNull();
+      const unchangedUser = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      expect(unchangedUser?.twoFactorCode).toBeNull();
     } finally {
       await deleteBackfilledUser(user.id);
     }
@@ -454,11 +475,13 @@ describe('better-auth sign-in (integration)', () => {
     });
 
     try {
-      await Users()
-        .where({ id: user.id })
-        .update({
+      await kysely
+        .updateTable('users')
+        .set({
           password: bcrypt.hashSync('different-password', SALT_LENGTH)
-        });
+        })
+        .where('id', '=', user.id)
+        .execute();
 
       const response = await request(url).post('/auth/admin/sign-in').send({
         email,
@@ -649,10 +672,14 @@ describe('better-auth sign-in (integration)', () => {
         }
       });
 
-      const updatedUser = await Users().where({ id: user.id }).first();
-      expect(updatedUser?.two_factor_code).toBeNull();
-      expect(updatedUser?.two_factor_code_generated_at).toBeNull();
-      expect(updatedUser?.last_authenticated_at).toBeInstanceOf(Date);
+      const updatedUser = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      expect(updatedUser?.twoFactorCode).toBeNull();
+      expect(updatedUser?.twoFactorCodeGeneratedAt).toBeNull();
+      expect(updatedUser?.lastAuthenticatedAt).toBeInstanceOf(Date);
     } finally {
       await deleteBackfilledUser(user.id);
     }
@@ -687,9 +714,13 @@ describe('better-auth sign-in (integration)', () => {
         expect(response.status).toBe(401);
       }
 
-      const lockedUser = await Users().where({ id: user.id }).first();
-      expect(lockedUser?.two_factor_failed_attempts).toBe(3);
-      expect(lockedUser?.two_factor_locked_until).toBeInstanceOf(Date);
+      const lockedUser = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      expect(lockedUser?.twoFactorFailedAttempts).toBe(3);
+      expect(lockedUser?.twoFactorLockedUntil).toBeInstanceOf(Date);
 
       const resend = await request(url).post('/auth/admin/sign-in').send({
         email,
@@ -698,10 +729,14 @@ describe('better-auth sign-in (integration)', () => {
       });
 
       expect(resend.status).toBe(401);
-      const stillLockedUser = await Users().where({ id: user.id }).first();
-      expect(stillLockedUser?.two_factor_failed_attempts).toBe(3);
-      expect(stillLockedUser?.two_factor_locked_until).toEqual(
-        lockedUser?.two_factor_locked_until
+      const stillLockedUser = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      expect(stillLockedUser?.twoFactorFailedAttempts).toBe(3);
+      expect(stillLockedUser?.twoFactorLockedUntil).toEqual(
+        lockedUser?.twoFactorLockedUntil
       );
     } finally {
       await deleteBackfilledUser(user.id);
@@ -739,9 +774,13 @@ describe('better-auth sign-in (integration)', () => {
         401, 401, 401
       ]);
 
-      const lockedUser = await Users().where({ id: user.id }).first();
-      expect(lockedUser?.two_factor_failed_attempts).toBe(3);
-      expect(lockedUser?.two_factor_locked_until).toBeInstanceOf(Date);
+      const lockedUser = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      expect(lockedUser?.twoFactorFailedAttempts).toBe(3);
+      expect(lockedUser?.twoFactorLockedUntil).toBeInstanceOf(Date);
     } finally {
       await deleteBackfilledUser(user.id);
     }
@@ -775,9 +814,13 @@ describe('better-auth sign-in (integration)', () => {
           });
         expect(response.status).toBe(401);
 
-        const pendingUser = await Users().where({ id: user.id }).first();
-        expect(pendingUser?.two_factor_failed_attempts).toBe(failedAttempts);
-        expect(pendingUser?.two_factor_locked_until).toBeNull();
+        const pendingUser = await kysely
+          .selectFrom('users')
+          .selectAll('users')
+          .where('id', '=', user.id)
+          .executeTakeFirst();
+        expect(pendingUser?.twoFactorFailedAttempts).toBe(failedAttempts);
+        expect(pendingUser?.twoFactorLockedUntil).toBeNull();
       }
 
       const thresholdFailure = await request(url)
@@ -789,9 +832,13 @@ describe('better-auth sign-in (integration)', () => {
         });
       expect(thresholdFailure.status).toBe(401);
 
-      const lockedUser = await Users().where({ id: user.id }).first();
-      expect(lockedUser?.two_factor_failed_attempts).toBe(3);
-      expect(lockedUser?.two_factor_locked_until).toBeInstanceOf(Date);
+      const lockedUser = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      expect(lockedUser?.twoFactorFailedAttempts).toBe(3);
+      expect(lockedUser?.twoFactorLockedUntil).toBeInstanceOf(Date);
 
       const validCodeWhileLocked = await request(url)
         .post('/auth/admin/verify-2fa')
@@ -821,7 +868,11 @@ describe('better-auth sign-in (integration)', () => {
       code: 'EMAIL_PASSWORD_SIGN_UP_DISABLED'
     });
 
-    const authUser = await db(AUTH_USERS_TABLE).where({ email }).first();
+    const authUser = await kysely
+      .selectFrom('authUsers')
+      .selectAll('authUsers')
+      .where('email', '=', email)
+      .executeTakeFirst();
     expect(authUser).toBeUndefined();
   });
 
@@ -922,22 +973,24 @@ describe('better-auth sign-in (integration)', () => {
   it('rejects direct establishment changes while allowing the authorized account endpoint', async () => {
     const email = 'protected-establishment-switch@zlv.fr';
     const password = 'not-a-real-password';
-    const targetEstablishment = genEstablishmentApi();
+    const targetEstablishment = await factories.establishment.create();
     const user = await seedBackfilledUser({
       email,
       plaintextPassword: password,
       establishmentId: establishment.id
     });
 
-    await Establishments().insert(formatEstablishmentApi(targetEstablishment));
-    await UsersEstablishments().insert({
-      user_id: user.id,
-      establishment_id: targetEstablishment.id,
-      establishment_siren: targetEstablishment.siren,
-      has_commitment: true,
-      created_at: new Date(),
-      updated_at: new Date()
-    });
+    await kysely
+      .insertInto('usersEstablishments')
+      .values({
+        userId: user.id,
+        establishmentId: targetEstablishment.id,
+        establishmentSiren: targetEstablishment.siren,
+        hasCommitment: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .execute();
     const consultUsers = vi
       .spyOn(ceremaService, 'consultUsers')
       .mockResolvedValue([
@@ -969,27 +1022,37 @@ describe('better-auth sign-in (integration)', () => {
         .send({ activeEstablishmentId: targetEstablishment.id });
 
       expect(directUpdateResponse.status).toBeGreaterThanOrEqual(400);
-      const unchangedSession = await db('session')
-        .where({ user_id: user.id })
-        .first();
-      expect(unchangedSession.active_establishment_id).toBe(establishment.id);
+      const unchangedSession = await kysely
+        .selectFrom('session')
+        .selectAll('session')
+        .where('userId', '=', user.id)
+        .executeTakeFirst();
+      expect(unchangedSession?.activeEstablishmentId).toBe(establishment.id);
 
       const authorizedUpdateResponse = await request(url)
         .post(`/account/establishments/${targetEstablishment.id}`)
         .set('Cookie', cookies);
 
       expect(authorizedUpdateResponse.status).toBe(200);
-      const updatedSession = await db('session')
-        .where({ user_id: user.id })
-        .first();
-      expect(updatedSession.active_establishment_id).toBe(
+      const updatedSession = await kysely
+        .selectFrom('session')
+        .selectAll('session')
+        .where('userId', '=', user.id)
+        .executeTakeFirst();
+      expect(updatedSession?.activeEstablishmentId).toBe(
         targetEstablishment.id
       );
     } finally {
       consultUsers.mockRestore();
-      await UsersEstablishments().where({ user_id: user.id }).delete();
+      await kysely
+        .deleteFrom('usersEstablishments')
+        .where('userId', '=', user.id)
+        .execute();
       await deleteBackfilledUser(user.id);
-      await Establishments().where('id', targetEstablishment.id).delete();
+      await kysely
+        .deleteFrom('establishments')
+        .where('id', '=', targetEstablishment.id)
+        .execute();
     }
   });
 
@@ -1010,15 +1073,21 @@ describe('better-auth sign-in (integration)', () => {
 
       expect(response.status).toBe(200);
 
-      const legacyUser = await db('users').where({ id: user.id }).first();
-      expect(legacyUser.kind).toBe('gestionnaire');
-      expect(legacyUser.last_authenticated_at).toBeInstanceOf(Date);
+      const legacyUser = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      expect(legacyUser?.kind).toBe('gestionnaire');
+      expect(legacyUser?.lastAuthenticatedAt).toBeInstanceOf(Date);
 
-      const authUser = await db(AUTH_USERS_TABLE)
-        .where({ id: user.id })
-        .first();
+      const authUser = await kysely
+        .selectFrom('authUsers')
+        .selectAll('authUsers')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
       expect(authUser).not.toHaveProperty('kind');
-      expect(authUser).not.toHaveProperty('last_authenticated_at');
+      expect(authUser).not.toHaveProperty('lastAuthenticatedAt');
     } finally {
       await deleteBackfilledUser(user.id);
     }

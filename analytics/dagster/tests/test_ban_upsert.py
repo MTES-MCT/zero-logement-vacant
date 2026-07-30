@@ -1,4 +1,5 @@
 """Unit tests for BAN upsert helpers — no DB required."""
+
 import pandas as pd
 import pytest
 
@@ -15,6 +16,7 @@ def _api_row(owner_id, status, **overrides):
         "result_street": "Rue de Paris",
         "result_postcode": "75001",
         "result_city": "Paris",
+        "result_citycode": "75056",
         "result_score": 0.97,
         "result_id": "ban_xyz",
         "latitude": 48.86,
@@ -51,6 +53,7 @@ class TestPrepareValid:
         assert row["street"] == "Rue de Paris"
         assert row["postal_code"] == "75001"
         assert row["city"] == "Paris"
+        assert row["city_code"] == "75056"
         assert row["score"] == 0.97
         assert row["ban_id"] == "ban_xyz"
         assert row["address_kind"] == "Housing"
@@ -95,7 +98,15 @@ class TestPrepareNotFound:
         df = pd.DataFrame([_api_row("a", "not-found")])
         out = prepare_not_found(df, "Owner")
         row = out.iloc[0]
-        for col in ("house_number", "street", "postal_code", "city", "latitude", "longitude"):
+        for col in (
+            "house_number",
+            "street",
+            "postal_code",
+            "city",
+            "city_code",
+            "latitude",
+            "longitude",
+        ):
             assert row[col] == "NULL"
 
     def test_schema_columns(self):

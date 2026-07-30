@@ -48,7 +48,12 @@ Remplacer `lovac-2026` par le millésime courant.
 # 11. Snapshot après droits de propriété
 ./stats/snapshot.sh housing-owners post "$DATABASE_URL"
 
-# 12. Voir les deltas dans le terminal
+# 12. Post-process localisation propriétaire-logement via Dagster
+# Voir analytics/dagster/LOVAC_POST_IMPORT.md
+# Lancer d'abord lovac_post_import_enrichment en dry-run sur un périmètre ciblé,
+# puis en écriture après validation des compteurs.
+
+# 13. Voir les deltas dans le terminal
 for suffix in metrics types sources; do
   ./stats/diff.sh snapshot-owners-${suffix}-pre.json snapshot-owners-${suffix}-post.json
 done
@@ -59,7 +64,7 @@ for suffix in metrics rank; do
   ./stats/diff.sh snapshot-housing-owners-${suffix}-pre.json snapshot-housing-owners-${suffix}-post.json
 done
 
-# 13. Publier le rapport sur Notion (dans une session Claude Code)
+# 14. Publier le rapport sur Notion (dans une session Claude Code)
 # /publish-lovac-report lovac-2026
 ```
 

@@ -166,22 +166,27 @@ python import_dpe.py --year 2024 --workers 6 --dry-run
 - Progress tracking with tqdm
 - Retry logic for connection errors
 
-### Owner-Housing Distances (`owner-housing-distances/`)
+### Owner-Housing Distances
 
 Calculates geographic distance between owners and their housing.
 
+The importable implementation lives in
+`analytics/dagster/src/owner_housing_locations`. The historical files under
+`server/src/scripts/owner-housing-distances` are CLI compatibility adapters.
+
 ```python
 # Output classifications
+0. Same BAN address
 1. Same postal code
 2. Same department
 3. Same region
 4. Owner in mainland France
 5. Owner overseas (DOM-TOM)
 6. Foreign country detected
-7. Other French cases
+7. Missing or unclassified information
 
 # Performance
-- 6 parallel workers, up to 20
+- 1 worker by default; increase only after a scoped pilot
 - 50k pairs per batch
 - synchronous_commit=off for speed
 ```

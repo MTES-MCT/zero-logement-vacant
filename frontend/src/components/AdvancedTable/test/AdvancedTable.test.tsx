@@ -31,14 +31,15 @@ describe('AdvancedTable', () => {
     ).toBeInTheDocument();
   });
 
-  it('should visibly label the results-per-page selector', async () => {
+  it('should label the results-per-page selector without visible text', async () => {
     render(<AdvancedTable columns={columns} data={buildRows(3)} />);
 
     await screen.findByRole('table');
-    expect(
-      screen.getByRole('combobox', { name: 'Résultats par page' })
-    ).toBeInTheDocument();
-    expect(screen.getByText('Résultats par page')).toBeVisible();
+    const selector = screen.getByRole('combobox', {
+      name: 'Résultats par page'
+    });
+    expect(selector).toHaveAttribute('title', 'Résultats par page');
+    expect(screen.queryByText('Résultats par page')).not.toBeInTheDocument();
   });
 
   it('should not expose row-selection state when selection is disabled', async () => {
@@ -81,6 +82,23 @@ describe('AdvancedTable', () => {
     );
 
     const table = await screen.findByRole('table');
+    expect(within(table).getAllByRole('row')).toHaveLength(76);
+    expect(
+      screen.queryByRole('navigation', { name: 'Pagination' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('should render every row after pagination is disabled', async () => {
+    const { rerender } = render(
+      <AdvancedTable columns={columns} data={buildRows(75)} />
+    );
+    const table = await screen.findByRole('table');
+    expect(within(table).getAllByRole('row')).toHaveLength(51);
+
+    rerender(
+      <AdvancedTable columns={columns} data={buildRows(75)} paginate={false} />
+    );
+
     expect(within(table).getAllByRole('row')).toHaveLength(76);
     expect(
       screen.queryByRole('navigation', { name: 'Pagination' })

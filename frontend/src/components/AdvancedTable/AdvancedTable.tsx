@@ -163,7 +163,8 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
     ...props,
     data: props.data ?? [],
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: paginate ? getPaginationRowModel() : undefined,
+    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: paginate ? props.manualPagination : true,
     // Sort
     enableSorting: props.enableSorting ?? false,
     getSortedRowModel: getSortedRowModel(),
@@ -406,12 +407,14 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
             </LabelNext>
           ) : (
             <SelectNext
-              label="Résultats par page"
+              label={null}
               options={perPageOptions.map((option) => ({
                 label: `${option} résultats par page`,
                 value: String(option)
               }))}
               nativeSelectProps={{
+                'aria-label': 'Résultats par page',
+                title: 'Résultats par page',
                 value: String(table.getState().pagination.pageSize),
                 onChange: (event) => {
                   const value = Number(event.target.value);

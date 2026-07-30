@@ -1,17 +1,19 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
+import { kysely } from '~/infra/database/kysely';
+import { BuildingApi } from '~/models/BuildingApi';
 import buildingRepository, {
-  Buildings,
-  formatBuildingApi
+  toBuildingInsert
 } from '~/repositories/buildingRepository';
+import { factories } from '~/test/factories';
 import { genBuildingApi } from '~/test/testFixtures';
 
 describe('Building repository', () => {
   describe('find', () => {
-    const buildings = faker.helpers.multiple(genBuildingApi);
+    let buildings: ReadonlyArray<BuildingApi>;
 
     beforeAll(async () => {
-      await Buildings().insert(buildings.map(formatBuildingApi));
+      buildings = await factories.building.createList(3);
     });
 
     it('should return buildings', async () => {
@@ -35,10 +37,10 @@ describe('Building repository', () => {
   });
 
   describe('get', () => {
-    const building = genBuildingApi();
+    let building: BuildingApi;
 
     beforeAll(async () => {
-      await Buildings().insert(formatBuildingApi(building));
+      building = await factories.building.create();
     });
 
     it('should return null if the building is missing', async () => {
@@ -60,28 +62,40 @@ describe('Building repository', () => {
 
       await buildingRepository.save(building);
 
-      const actual = await Buildings().where({ id: building.id }).first();
+      const actual = await kysely
+        .selectFrom('buildings')
+        .selectAll('buildings')
+        .where('id', '=', building.id)
+        .executeTakeFirst();
       expect(actual).toBeDefined();
     });
 
     it('should update a building if it exists', async () => {
-      const building = genBuildingApi();
-      await Buildings().insert(formatBuildingApi(building));
+      const building = await factories.building.create();
 
       await buildingRepository.save({
         ...building,
         housingCount: 10
       });
 
-      const actual = await Buildings().where({ id: building.id }).first();
-      expect(actual?.housing_count).toBe(10);
+      const actual = await kysely
+        .selectFrom('buildings')
+        .selectAll('buildings')
+        .where('id', '=', building.id)
+        .executeTakeFirst();
+      expect(actual?.housingCount).toBe(10);
     });
 
     it('should update only the chosen properties', async () => {
-      const building = genBuildingApi({
-        hasEnergyConsumption: true
-      });
-      await Buildings().insert(formatBuildingApi(building));
+      // factories.building relies on the shared @zerologementvacant/factories
+      // generator, which does not expose a knob to force a non-null `rnb` —
+      // so this case keeps genBuildingApi()'s `hasEnergyConsumption` option
+      // and inserts it directly via toBuildingInsert.
+      const building = genBuildingApi({ hasEnergyConsumption: true });
+      await kysely
+        .insertInto('buildings')
+        .values(toBuildingInsert(building))
+        .execute();
       expect(building.rnb).not.toBeNull();
 
       await buildingRepository.save(
@@ -96,9 +110,13 @@ describe('Building repository', () => {
         }
       );
 
-      const actual = await Buildings().where({ id: building.id }).first();
-      expect(actual?.housing_count).toBe(10);
-      expect(actual?.rnb_id).toBe(building.rnb!.id);
+      const actual = await kysely
+        .selectFrom('buildings')
+        .selectAll('buildings')
+        .where('id', '=', building.id)
+        .executeTakeFirst();
+      expect(actual?.housingCount).toBe(10);
+      expect(actual?.rnbId).toBe(building.rnb!.id);
     });
   });
 });

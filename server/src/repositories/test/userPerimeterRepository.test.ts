@@ -1,20 +1,13 @@
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
+import { factories } from '~/test/factories';
 
 describe('User perimeter repository', () => {
   it('stores one perimeter per user and establishment', async () => {
-    const establishment = genEstablishmentApi();
-    const anotherEstablishment = genEstablishmentApi();
-    const user = genUserApi(establishment.id);
-    await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi)
-    );
-    await Users().insert(toUserDBO(user));
+    const establishment = await factories.establishment.create();
+    const anotherEstablishment = await factories.establishment.create();
+    const user = await factories.user.create({
+      establishmentId: establishment.id
+    });
 
     await userPerimeterRepository.upsert({
       userId: user.id,

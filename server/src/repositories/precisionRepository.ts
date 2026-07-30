@@ -150,7 +150,7 @@ export function formatPrecisionHousingApi(housing: HousingApi) {
   });
 }
 
-function toHousingPrecisionInsert(
+export function toHousingPrecisionInsert(
   housing: HousingApi
 ): (precision: PrecisionApi) => Insertable<DB['housingPrecisions']> {
   return (precision) => ({

@@ -1,47 +1,48 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
+import { kysely } from '~/infra/database/kysely';
 import { DraftApi } from '~/models/DraftApi';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { SenderApi } from '~/models/SenderApi';
+import { UserApi } from '~/models/UserApi';
+import { toDocumentInsert } from '~/repositories/documentRepository';
+import { toSenderInsert } from '~/repositories/senderRepository';
 import { factories } from '~/test/factories';
-import {
-  genDocumentApi,
-  genDraftApi,
-  genEstablishmentApi,
-  genSenderApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { genDocumentApi, genDraftApi, genSenderApi } from '~/test/testFixtures';
 
-import { CampaignsDrafts } from '../campaignDraftRepository';
-import { Documents, toDocumentDBO } from '../documentRepository';
-import draftRepository, { Drafts, formatDraftApi } from '../draftRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '../establishmentRepository';
-import { formatSenderApi, Senders } from '../senderRepository';
-import { toUserDBO, Users } from '../userRepository';
+import draftRepository, { toDraftInsert } from '../draftRepository';
 
 describe('Draft repository', () => {
-  const establishment = genEstablishmentApi();
-  const anotherEstablishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let anotherEstablishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi)
-    );
-    await Users().insert(toUserDBO(user));
+    [establishment, anotherEstablishment] = await Promise.all([
+      factories.establishment.create(),
+      factories.establishment.create()
+    ]);
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('find', () => {
-    const sender: SenderApi = genSenderApi(establishment);
-    const drafts: DraftApi[] = Array.from({ length: 5 }, () =>
-      genDraftApi(establishment, sender)
-    );
+    let sender: SenderApi;
+    let drafts: DraftApi[];
 
     beforeAll(async () => {
-      await Senders().insert(formatSenderApi(sender));
-      await Drafts().insert(drafts.map(formatDraftApi));
+      sender = genSenderApi(establishment);
+      drafts = Array.from({ length: 5 }, () =>
+        genDraftApi(establishment, sender)
+      );
+
+      await kysely
+        .insertInto('senders')
+        .values(toSenderInsert(sender))
+        .execute();
+      await kysely
+        .insertInto('drafts')
+        .values(drafts.map(toDraftInsert))
+        .execute();
     });
 
     it('should list drafts', async () => {
@@ -55,10 +56,10 @@ describe('Draft repository', () => {
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await CampaignsDrafts().insert({
-        campaign_id: campaign.id,
-        draft_id: firstDraft.id
-      });
+      await kysely
+        .insertInto('campaignsDrafts')
+        .values({ campaignId: campaign.id, draftId: firstDraft.id })
+        .execute();
 
       const actual = await draftRepository.find({
         filters: {
@@ -72,12 +73,18 @@ describe('Draft repository', () => {
   });
 
   describe('findOne', () => {
-    const sender = genSenderApi(establishment);
-    const draft = genDraftApi(establishment, sender);
+    let sender: SenderApi;
+    let draft: DraftApi;
 
     beforeAll(async () => {
-      await Senders().insert(formatSenderApi(sender));
-      await Drafts().insert(formatDraftApi(draft));
+      sender = genSenderApi(establishment);
+      draft = genDraftApi(establishment, sender);
+
+      await kysely
+        .insertInto('senders')
+        .values(toSenderInsert(sender))
+        .execute();
+      await kysely.insertInto('drafts').values(toDraftInsert(draft)).execute();
     });
 
     it('should return null if the draft is missing', async () => {
@@ -112,7 +119,10 @@ describe('Draft repository', () => {
         establishmentId: establishment.id,
         creator: user
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const documentSender = genSenderApi(establishment);
       documentSender.signatories[0] = {
@@ -122,10 +132,16 @@ describe('Draft repository', () => {
         file: null,
         document
       };
-      await Senders().insert(formatSenderApi(documentSender));
+      await kysely
+        .insertInto('senders')
+        .values(toSenderInsert(documentSender))
+        .execute();
 
       const documentDraft = genDraftApi(establishment, documentSender);
-      await Drafts().insert(formatDraftApi(documentDraft));
+      await kysely
+        .insertInto('drafts')
+        .values(toDraftInsert(documentDraft))
+        .execute();
 
       const actual = await draftRepository.findOne({
         id: documentDraft.id,
@@ -152,19 +168,29 @@ describe('Draft repository', () => {
     it('should create a draft that does not exist', async () => {
       const sender = genSenderApi(establishment);
       const draft = genDraftApi(establishment, sender);
-      await Senders().insert(formatSenderApi(sender));
+      await kysely
+        .insertInto('senders')
+        .values(toSenderInsert(sender))
+        .execute();
 
       await draftRepository.save(draft);
 
-      const actual = await Drafts().where({ id: draft.id }).first();
-      expect(actual).toStrictEqual(formatDraftApi(draft));
+      const actual = await kysely
+        .selectFrom('drafts')
+        .selectAll('drafts')
+        .where('id', '=', draft.id)
+        .executeTakeFirst();
+      expect(actual).toMatchObject(toDraftInsert(draft));
     });
 
     it('should update a draft if it exists', async () => {
       const sender = genSenderApi(establishment);
       const draft = genDraftApi(establishment, sender);
-      await Senders().insert(formatSenderApi(sender));
-      await Drafts().insert(formatDraftApi(draft));
+      await kysely
+        .insertInto('senders')
+        .values(toSenderInsert(sender))
+        .execute();
+      await kysely.insertInto('drafts').values(toDraftInsert(draft)).execute();
       const payload = genDraftApi(establishment, sender);
       const updated: DraftApi = {
         ...draft,
@@ -177,8 +203,12 @@ describe('Draft repository', () => {
 
       await draftRepository.save(updated);
 
-      const actual = await Drafts().where({ id: draft.id }).first();
-      expect(actual).toStrictEqual(formatDraftApi(updated));
+      const actual = await kysely
+        .selectFrom('drafts')
+        .selectAll('drafts')
+        .where('id', '=', draft.id)
+        .executeTakeFirst();
+      expect(actual).toMatchObject(toDraftInsert(updated));
     });
   });
 });

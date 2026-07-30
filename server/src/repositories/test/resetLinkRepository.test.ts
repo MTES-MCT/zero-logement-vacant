@@ -2,13 +2,9 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { describe, it, expect, beforeAll } from 'vitest';
 
 import { kysely } from '~/infra/database/kysely';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
+import { UserApi } from '~/models/UserApi';
 import resetLinkRepository from '~/repositories/resetLinkRepository';
-import { Users, toUserDBO } from '~/repositories/userRepository';
-import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
+import { factories } from '~/test/factories';
 
 function genResetLinkApi(userId: string) {
   return {
@@ -21,12 +17,11 @@ function genResetLinkApi(userId: string) {
 }
 
 describe('resetLinkRepository', () => {
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    const establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('insert', () => {

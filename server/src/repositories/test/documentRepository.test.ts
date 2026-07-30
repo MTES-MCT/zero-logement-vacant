@@ -1,29 +1,24 @@
 import { v4 as uuidv4 } from 'uuid';
 import { describe, it, expect, beforeAll } from 'vitest';
 
+import { kysely } from '~/infra/database/kysely';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { UserApi } from '~/models/UserApi';
 import documentRepository, {
-  Documents,
   fromDocumentDBO,
-  toDocumentDBO
+  toDocumentDBO,
+  toDocumentInsert
 } from '~/repositories/documentRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { Users, toUserDBO } from '~/repositories/userRepository';
-import {
-  genDocumentApi,
-  genEstablishmentApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { factories } from '~/test/factories';
+import { genDocumentApi } from '~/test/testFixtures';
 
 describe('documentRepository', () => {
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('insert', () => {
@@ -35,12 +30,16 @@ describe('documentRepository', () => {
 
       await documentRepository.insert(document);
 
-      const actual = await Documents().where('id', document.id).first();
+      const actual = await kysely
+        .selectFrom('documents')
+        .selectAll('documents')
+        .where('id', '=', document.id)
+        .executeTakeFirst();
       expect(actual).toMatchObject({
         id: document.id,
         filename: document.filename,
-        s3_key: document.s3Key,
-        establishment_id: document.establishmentId
+        s3Key: document.s3Key,
+        establishmentId: document.establishmentId
       });
     });
   });
@@ -54,10 +53,15 @@ describe('documentRepository', () => {
 
       await documentRepository.insertMany(documents);
 
-      const actual = await Documents().whereIn(
-        'id',
-        documents.map((document) => document.id)
-      );
+      const actual = await kysely
+        .selectFrom('documents')
+        .selectAll('documents')
+        .where(
+          'id',
+          'in',
+          documents.map((document) => document.id)
+        )
+        .execute();
 
       expect(actual).toHaveLength(2);
     });
@@ -73,7 +77,10 @@ describe('documentRepository', () => {
         createdBy: user.id,
         creator: user
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const actual = await documentRepository.findOne(document.id);
 
@@ -92,8 +99,7 @@ describe('documentRepository', () => {
     });
 
     it('should filter by establishmentId', async () => {
-      const establishment2 = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment2));
+      const establishment2 = await factories.establishment.create();
 
       const doc1 = genDocumentApi({
         createdBy: user.id,
@@ -106,7 +112,10 @@ describe('documentRepository', () => {
         establishmentId: establishment2.id
       });
 
-      await Documents().insert([doc1, doc2].map(toDocumentDBO));
+      await kysely
+        .insertInto('documents')
+        .values([doc1, doc2].map(toDocumentInsert))
+        .execute();
 
       const actual = await documentRepository.findOne(doc1.id, {
         filters: { establishmentIds: [establishment2.id] }
@@ -117,7 +126,10 @@ describe('documentRepository', () => {
 
     it('should return a soft-deleted document when deleted: true', async () => {
       const document = genDocumentApi({ createdBy: user.id, creator: user });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
       await documentRepository.remove(document.id);
 
       const actual = await documentRepository.findOne(document.id, {
@@ -130,7 +142,10 @@ describe('documentRepository', () => {
 
     it('should return null for a non-deleted document when deleted: true', async () => {
       const document = genDocumentApi({ createdBy: user.id, creator: user });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const actual = await documentRepository.findOne(document.id, {
         filters: { deleted: true }
@@ -141,7 +156,10 @@ describe('documentRepository', () => {
 
     it('should return null for a soft-deleted document when deleted: false', async () => {
       const document = genDocumentApi({ createdBy: user.id, creator: user });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
       await documentRepository.remove(document.id);
 
       const actual = await documentRepository.findOne(document.id, {
@@ -153,7 +171,10 @@ describe('documentRepository', () => {
 
     it('should return a live document when deleted: false', async () => {
       const document = genDocumentApi({ createdBy: user.id, creator: user });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const actual = await documentRepository.findOne(document.id, {
         filters: { deleted: false }
@@ -170,7 +191,10 @@ describe('documentRepository', () => {
         genDocumentApi({ createdBy: user.id, creator: user }),
         genDocumentApi({ createdBy: user.id, creator: user })
       ];
-      await Documents().insert(documents.map(toDocumentDBO));
+      await kysely
+        .insertInto('documents')
+        .values(documents.map(toDocumentInsert))
+        .execute();
 
       const actual = await documentRepository.find({
         filters: {
@@ -201,7 +225,10 @@ describe('documentRepository', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const actual = await documentRepository.find({
         filters: { establishmentIds: [establishment.id] }
@@ -211,10 +238,10 @@ describe('documentRepository', () => {
     });
 
     it('should only return documents belonging to the specified establishment', async () => {
-      const establishment2 = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment2));
-      const user2 = genUserApi(establishment2.id);
-      await Users().insert(toUserDBO(user2));
+      const establishment2 = await factories.establishment.create();
+      const user2 = await factories.user.create({
+        establishmentId: establishment2.id
+      });
 
       const doc1 = genDocumentApi({
         createdBy: user.id,
@@ -226,7 +253,10 @@ describe('documentRepository', () => {
         creator: user2,
         establishmentId: establishment2.id
       });
-      await Documents().insert([doc1, doc2].map(toDocumentDBO));
+      await kysely
+        .insertInto('documents')
+        .values([doc1, doc2].map(toDocumentInsert))
+        .execute();
 
       const actual = await documentRepository.find({
         filters: { establishmentIds: [establishment.id] }
@@ -247,9 +277,10 @@ describe('documentRepository', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(
-        [liveDocument, deletedDocument].map(toDocumentDBO)
-      );
+      await kysely
+        .insertInto('documents')
+        .values([liveDocument, deletedDocument].map(toDocumentInsert))
+        .execute();
       await documentRepository.remove(deletedDocument.id);
 
       const actual = await documentRepository.find({
@@ -267,12 +298,19 @@ describe('documentRepository', () => {
         createdBy: user.id,
         creator: user
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const updated = { ...document, filename: 'updated.pdf' };
       await documentRepository.update(updated);
 
-      const actual = await Documents().where('id', document.id).first();
+      const actual = await kysely
+        .selectFrom('documents')
+        .selectAll('documents')
+        .where('id', '=', document.id)
+        .executeTakeFirst();
       expect(actual?.filename).toBe('updated.pdf');
     });
   });
@@ -283,12 +321,19 @@ describe('documentRepository', () => {
         createdBy: user.id,
         creator: user
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       await documentRepository.remove(document.id);
 
-      const actual = await Documents().where('id', document.id).first();
-      expect(actual?.deleted_at).not.toBeNull();
+      const actual = await kysely
+        .selectFrom('documents')
+        .selectAll('documents')
+        .where('id', '=', document.id)
+        .executeTakeFirst();
+      expect(actual?.deletedAt).not.toBeNull();
     });
   });
 

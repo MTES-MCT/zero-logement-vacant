@@ -217,7 +217,7 @@ export function toCampaignDocumentDBO(
   };
 }
 
-function toCampaignDocumentInsert(
+export function toCampaignDocumentInsert(
   document: CampaignDocumentApi
 ): Insertable<DB['documentsCampaigns']> {
   return {

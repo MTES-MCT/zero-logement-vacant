@@ -1,49 +1,47 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import userEstablishmentRepository, {
-  UsersEstablishments
-} from '~/repositories/user-establishment-repository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
+import { kysely } from '~/infra/database/kysely';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { UserApi } from '~/models/UserApi';
+import userEstablishmentRepository from '~/repositories/user-establishment-repository';
+import { factories } from '~/test/factories';
 
 describe('user-establishment-repository', () => {
-  const establishment = genEstablishmentApi();
-  const otherEstablishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let otherEstablishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(
-      [establishment, otherEstablishment].map(formatEstablishmentApi)
-    );
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    otherEstablishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('getAuthorizedEstablishments', () => {
     it('should return the establishments authorized for a user, oldest first', async () => {
       const older = new Date('2024-01-01');
       const newer = new Date('2024-06-01');
-      await UsersEstablishments().insert([
-        {
-          user_id: user.id,
-          establishment_id: otherEstablishment.id,
-          establishment_siren: otherEstablishment.siren,
-          has_commitment: true,
-          created_at: newer,
-          updated_at: newer
-        },
-        {
-          user_id: user.id,
-          establishment_id: establishment.id,
-          establishment_siren: establishment.siren,
-          has_commitment: false,
-          created_at: older,
-          updated_at: older
-        }
-      ]);
+      await kysely
+        .insertInto('usersEstablishments')
+        .values([
+          {
+            userId: user.id,
+            establishmentId: otherEstablishment.id,
+            establishmentSiren: otherEstablishment.siren,
+            hasCommitment: true,
+            createdAt: newer,
+            updatedAt: newer
+          },
+          {
+            userId: user.id,
+            establishmentId: establishment.id,
+            establishmentSiren: establishment.siren,
+            hasCommitment: false,
+            createdAt: older,
+            updatedAt: older
+          }
+        ])
+        .execute();
 
       const actual =
         await userEstablishmentRepository.getAuthorizedEstablishments(user.id);
@@ -71,16 +69,20 @@ describe('user-establishment-repository', () => {
 
   describe('setAuthorizedEstablishments', () => {
     it('should replace the authorized establishments for a user', async () => {
-      const anotherUser = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(anotherUser));
-      await UsersEstablishments().insert({
-        user_id: anotherUser.id,
-        establishment_id: establishment.id,
-        establishment_siren: establishment.siren,
-        has_commitment: false,
-        created_at: new Date(),
-        updated_at: new Date()
+      const anotherUser = await factories.user.create({
+        establishmentId: establishment.id
       });
+      await kysely
+        .insertInto('usersEstablishments')
+        .values({
+          userId: anotherUser.id,
+          establishmentId: establishment.id,
+          establishmentSiren: establishment.siren,
+          hasCommitment: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .execute();
 
       await userEstablishmentRepository.setAuthorizedEstablishments(
         anotherUser.id,
@@ -93,44 +95,53 @@ describe('user-establishment-repository', () => {
         ]
       );
 
-      const rows = await UsersEstablishments().where({
-        user_id: anotherUser.id
-      });
+      const rows = await kysely
+        .selectFrom('usersEstablishments')
+        .selectAll('usersEstablishments')
+        .where('userId', '=', anotherUser.id)
+        .execute();
       expect(rows).toHaveLength(1);
       expect(rows[0]).toMatchObject({
-        establishment_id: otherEstablishment.id,
-        has_commitment: true
+        establishmentId: otherEstablishment.id,
+        hasCommitment: true
       });
     });
 
     it('should clear all authorized establishments when given an empty array', async () => {
-      const anotherUser = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(anotherUser));
-      await UsersEstablishments().insert({
-        user_id: anotherUser.id,
-        establishment_id: establishment.id,
-        establishment_siren: establishment.siren,
-        has_commitment: false,
-        created_at: new Date(),
-        updated_at: new Date()
+      const anotherUser = await factories.user.create({
+        establishmentId: establishment.id
       });
+      await kysely
+        .insertInto('usersEstablishments')
+        .values({
+          userId: anotherUser.id,
+          establishmentId: establishment.id,
+          establishmentSiren: establishment.siren,
+          hasCommitment: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .execute();
 
       await userEstablishmentRepository.setAuthorizedEstablishments(
         anotherUser.id,
         []
       );
 
-      const rows = await UsersEstablishments().where({
-        user_id: anotherUser.id
-      });
+      const rows = await kysely
+        .selectFrom('usersEstablishments')
+        .selectAll('usersEstablishments')
+        .where('userId', '=', anotherUser.id)
+        .execute();
       expect(rows).toHaveLength(0);
     });
   });
 
   describe('addAuthorizedEstablishment', () => {
     it('should insert a new authorized establishment', async () => {
-      const anotherUser = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(anotherUser));
+      const anotherUser = await factories.user.create({
+        establishmentId: establishment.id
+      });
 
       await userEstablishmentRepository.addAuthorizedEstablishment(
         anotherUser.id,
@@ -141,23 +152,30 @@ describe('user-establishment-repository', () => {
         }
       );
 
-      const row = await UsersEstablishments()
-        .where({ user_id: anotherUser.id, establishment_id: establishment.id })
-        .first();
-      expect(row).toMatchObject({ has_commitment: true });
+      const row = await kysely
+        .selectFrom('usersEstablishments')
+        .selectAll('usersEstablishments')
+        .where('userId', '=', anotherUser.id)
+        .where('establishmentId', '=', establishment.id)
+        .executeTakeFirst();
+      expect(row).toMatchObject({ hasCommitment: true });
     });
 
     it('should update has_commitment on conflict instead of duplicating', async () => {
-      const anotherUser = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(anotherUser));
-      await UsersEstablishments().insert({
-        user_id: anotherUser.id,
-        establishment_id: establishment.id,
-        establishment_siren: establishment.siren,
-        has_commitment: false,
-        created_at: new Date(),
-        updated_at: new Date()
+      const anotherUser = await factories.user.create({
+        establishmentId: establishment.id
       });
+      await kysely
+        .insertInto('usersEstablishments')
+        .values({
+          userId: anotherUser.id,
+          establishmentId: establishment.id,
+          establishmentSiren: establishment.siren,
+          hasCommitment: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .execute();
 
       await userEstablishmentRepository.addAuthorizedEstablishment(
         anotherUser.id,
@@ -168,27 +186,33 @@ describe('user-establishment-repository', () => {
         }
       );
 
-      const rows = await UsersEstablishments().where({
-        user_id: anotherUser.id,
-        establishment_id: establishment.id
-      });
+      const rows = await kysely
+        .selectFrom('usersEstablishments')
+        .selectAll('usersEstablishments')
+        .where('userId', '=', anotherUser.id)
+        .where('establishmentId', '=', establishment.id)
+        .execute();
       expect(rows).toHaveLength(1);
-      expect(rows[0].has_commitment).toBe(true);
+      expect(rows[0].hasCommitment).toBe(true);
     });
   });
 
   describe('hasAccessToEstablishment', () => {
     it('should return true when the user has access', async () => {
-      const anotherUser = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(anotherUser));
-      await UsersEstablishments().insert({
-        user_id: anotherUser.id,
-        establishment_id: establishment.id,
-        establishment_siren: establishment.siren,
-        has_commitment: false,
-        created_at: new Date(),
-        updated_at: new Date()
+      const anotherUser = await factories.user.create({
+        establishmentId: establishment.id
       });
+      await kysely
+        .insertInto('usersEstablishments')
+        .values({
+          userId: anotherUser.id,
+          establishmentId: establishment.id,
+          establishmentSiren: establishment.siren,
+          hasCommitment: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .execute();
 
       const actual = await userEstablishmentRepository.hasAccessToEstablishment(
         anotherUser.id,
@@ -208,26 +232,30 @@ describe('user-establishment-repository', () => {
 
   describe('isMultiStructure', () => {
     it('should return true when the user has more than one committed establishment', async () => {
-      const anotherUser = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(anotherUser));
-      await UsersEstablishments().insert([
-        {
-          user_id: anotherUser.id,
-          establishment_id: establishment.id,
-          establishment_siren: establishment.siren,
-          has_commitment: true,
-          created_at: new Date(),
-          updated_at: new Date()
-        },
-        {
-          user_id: anotherUser.id,
-          establishment_id: otherEstablishment.id,
-          establishment_siren: otherEstablishment.siren,
-          has_commitment: true,
-          created_at: new Date(),
-          updated_at: new Date()
-        }
-      ]);
+      const anotherUser = await factories.user.create({
+        establishmentId: establishment.id
+      });
+      await kysely
+        .insertInto('usersEstablishments')
+        .values([
+          {
+            userId: anotherUser.id,
+            establishmentId: establishment.id,
+            establishmentSiren: establishment.siren,
+            hasCommitment: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          },
+          {
+            userId: anotherUser.id,
+            establishmentId: otherEstablishment.id,
+            establishmentSiren: otherEstablishment.siren,
+            hasCommitment: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        ])
+        .execute();
 
       const actual = await userEstablishmentRepository.isMultiStructure(
         anotherUser.id
@@ -236,16 +264,20 @@ describe('user-establishment-repository', () => {
     });
 
     it('should return false when the user has one or zero committed establishments', async () => {
-      const anotherUser = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(anotherUser));
-      await UsersEstablishments().insert({
-        user_id: anotherUser.id,
-        establishment_id: establishment.id,
-        establishment_siren: establishment.siren,
-        has_commitment: true,
-        created_at: new Date(),
-        updated_at: new Date()
+      const anotherUser = await factories.user.create({
+        establishmentId: establishment.id
       });
+      await kysely
+        .insertInto('usersEstablishments')
+        .values({
+          userId: anotherUser.id,
+          establishmentId: establishment.id,
+          establishmentSiren: establishment.siren,
+          hasCommitment: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .execute();
 
       const actual = await userEstablishmentRepository.isMultiStructure(
         anotherUser.id

@@ -1,32 +1,25 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
+import { kysely } from '~/infra/database/kysely';
 import { CampaignApi } from '~/models/CampaignApi';
 import { CampaignDocumentApi } from '~/models/CampaignDocumentApi';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { UserApi } from '~/models/UserApi';
 import campaignDocumentRepository, {
-  CampaignDocuments,
   toCampaignDocumentDBO,
-  type CampaignDocumentDBO
+  toCampaignDocumentInsert
 } from '~/repositories/campaignDocumentRepository';
-import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { toDocumentInsert } from '~/repositories/documentRepository';
 import { factories } from '~/test/factories';
-import {
-  genCampaignDocumentApi,
-  genEstablishmentApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { genCampaignDocumentApi } from '~/test/testFixtures';
 
 describe('Campaign document repository', () => {
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('link', () => {
@@ -40,17 +33,22 @@ describe('Campaign document repository', () => {
         creator: user,
         campaignId: campaign.id
       });
-      await Documents().insert(toDocumentDBO(campaignDocument));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(campaignDocument))
+        .execute();
 
       await campaignDocumentRepository.link(campaignDocument);
 
-      const actual = await CampaignDocuments()
-        .where('document_id', campaignDocument.id)
-        .first();
+      const actual = await kysely
+        .selectFrom('documentsCampaigns')
+        .selectAll('documentsCampaigns')
+        .where('documentId', '=', campaignDocument.id)
+        .executeTakeFirst();
 
       expect(actual).toMatchObject({
-        document_id: campaignDocument.id,
-        campaign_id: campaign.id
+        documentId: campaignDocument.id,
+        campaignId: campaign.id
       });
     });
 
@@ -64,15 +62,19 @@ describe('Campaign document repository', () => {
         creator: user,
         campaignId: campaign.id
       });
-      await Documents().insert(toDocumentDBO(campaignDocument));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(campaignDocument))
+        .execute();
 
       await campaignDocumentRepository.link(campaignDocument);
       await campaignDocumentRepository.link(campaignDocument);
 
-      const actual = await CampaignDocuments().where(
-        'document_id',
-        campaignDocument.id
-      );
+      const actual = await kysely
+        .selectFrom('documentsCampaigns')
+        .selectAll('documentsCampaigns')
+        .where('documentId', '=', campaignDocument.id)
+        .execute();
       expect(actual).toHaveLength(1);
     });
   });
@@ -87,7 +89,10 @@ describe('Campaign document repository', () => {
         genCampaignDocumentApi({ createdBy: user.id, creator: user }),
         genCampaignDocumentApi({ createdBy: user.id, creator: user })
       ];
-      await Documents().insert(campaignDocuments.map(toDocumentDBO));
+      await kysely
+        .insertInto('documents')
+        .values(campaignDocuments.map(toDocumentInsert))
+        .execute();
 
       const links = campaignDocuments.flatMap((d) =>
         campaigns.map((c) => ({
@@ -97,10 +102,15 @@ describe('Campaign document repository', () => {
       );
       await campaignDocumentRepository.linkMany(links);
 
-      const allLinks = await CampaignDocuments().whereIn(
-        'document_id',
-        campaignDocuments.map((d) => d.id)
-      );
+      const allLinks = await kysely
+        .selectFrom('documentsCampaigns')
+        .selectAll('documentsCampaigns')
+        .where(
+          'documentId',
+          'in',
+          campaignDocuments.map((d) => d.id)
+        )
+        .execute();
 
       expect(allLinks).toHaveLength(4);
     });
@@ -123,23 +133,26 @@ describe('Campaign document repository', () => {
         creator: user,
         campaignId: campaign.id
       });
-      await Documents().insert(toDocumentDBO(campaignDocument));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(campaignDocument))
+        .execute();
 
-      const linkDBO: CampaignDocumentDBO = {
-        document_id: campaignDocument.id,
-        campaign_id: campaign.id
-      };
-      await CampaignDocuments().insert(linkDBO);
+      await kysely
+        .insertInto('documentsCampaigns')
+        .values(toCampaignDocumentInsert(campaignDocument))
+        .execute();
 
       await campaignDocumentRepository.unlink({
         documentId: campaignDocument.id,
         campaignId: campaign.id
       });
 
-      const actual = await CampaignDocuments().where(
-        'document_id',
-        campaignDocument.id
-      );
+      const actual = await kysely
+        .selectFrom('documentsCampaigns')
+        .selectAll('documentsCampaigns')
+        .where('documentId', '=', campaignDocument.id)
+        .execute();
       expect(actual).toHaveLength(0);
     });
   });
@@ -157,8 +170,14 @@ describe('Campaign document repository', () => {
         creator: user,
         campaignId: campaign.id
       });
-      await Documents().insert(toDocumentDBO(document));
-      await CampaignDocuments().insert(toCampaignDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
+      await kysely
+        .insertInto('documentsCampaigns')
+        .values(toCampaignDocumentInsert(document))
+        .execute();
     });
 
     it('should return null if the document is missing', async () => {
@@ -214,21 +233,32 @@ describe('Campaign document repository', () => {
         creator: user,
         campaignId: campaign.id
       });
-      await Documents().insert(toDocumentDBO(document));
-      await CampaignDocuments().insert(toCampaignDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
+      await kysely
+        .insertInto('documentsCampaigns')
+        .values(toCampaignDocumentInsert(document))
+        .execute();
 
       await campaignDocumentRepository.remove(document);
 
-      const actualDocument = await Documents()
-        .where({ id: document.id })
-        .first();
+      const actualDocument = await kysely
+        .selectFrom('documents')
+        .select('deletedAt')
+        .where('id', '=', document.id)
+        .executeTakeFirst();
 
       expect(actualDocument).toBeDefined();
-      expect(actualDocument!.deleted_at).not.toBeNull();
+      expect(actualDocument!.deletedAt).not.toBeNull();
 
-      const actualLink = await CampaignDocuments()
-        .where({ document_id: document.id, campaign_id: campaign.id })
-        .first();
+      const actualLink = await kysely
+        .selectFrom('documentsCampaigns')
+        .selectAll('documentsCampaigns')
+        .where('documentId', '=', document.id)
+        .where('campaignId', '=', campaign.id)
+        .executeTakeFirst();
 
       expect(actualLink).toBeDefined();
     });
@@ -244,7 +274,10 @@ describe('Campaign document repository', () => {
         genCampaignDocumentApi({ createdBy: user.id, creator: user })
       ];
 
-      await Documents().insert(campaignDocuments.map(toDocumentDBO));
+      await kysely
+        .insertInto('documents')
+        .values(campaignDocuments.map(toDocumentInsert))
+        .execute();
 
       const links = campaignDocuments.flatMap((doc) =>
         campaigns.map((c) => ({
@@ -254,20 +287,30 @@ describe('Campaign document repository', () => {
       );
       await campaignDocumentRepository.linkMany(links);
 
-      const linksBefore = await CampaignDocuments().whereIn(
-        'document_id',
-        campaignDocuments.map((doc) => doc.id)
-      );
+      const linksBefore = await kysely
+        .selectFrom('documentsCampaigns')
+        .selectAll('documentsCampaigns')
+        .where(
+          'documentId',
+          'in',
+          campaignDocuments.map((doc) => doc.id)
+        )
+        .execute();
       expect(linksBefore).toHaveLength(4);
 
       await campaignDocumentRepository.unlinkMany({
         documentIds: campaignDocuments.map((doc) => doc.id)
       });
 
-      const linksAfter = await CampaignDocuments().whereIn(
-        'document_id',
-        campaignDocuments.map((doc) => doc.id)
-      );
+      const linksAfter = await kysely
+        .selectFrom('documentsCampaigns')
+        .selectAll('documentsCampaigns')
+        .where(
+          'documentId',
+          'in',
+          campaignDocuments.map((doc) => doc.id)
+        )
+        .execute();
       expect(linksAfter).toBeEmpty();
     });
 
@@ -294,7 +337,10 @@ describe('Campaign document repository', () => {
         })
       ];
 
-      await Documents().insert(documents.map(toDocumentDBO));
+      await kysely
+        .insertInto('documents')
+        .values(documents.map(toDocumentInsert))
+        .execute();
 
       const links = documents.map((doc) => ({
         document_id: doc.id,
@@ -306,11 +352,13 @@ describe('Campaign document repository', () => {
         documentIds: [documents[0].id]
       });
 
-      const remainingLinks = await CampaignDocuments().where({
-        campaign_id: campaign.id
-      });
+      const remainingLinks = await kysely
+        .selectFrom('documentsCampaigns')
+        .selectAll('documentsCampaigns')
+        .where('campaignId', '=', campaign.id)
+        .execute();
       expect(remainingLinks).toHaveLength(1);
-      expect(remainingLinks[0].document_id).toBe(documents[1].id);
+      expect(remainingLinks[0].documentId).toBe(documents[1].id);
     });
   });
 
@@ -339,7 +387,10 @@ describe('Campaign document repository', () => {
       });
       const allDocuments = [...campaignADocuments, campaignBDocument];
 
-      await Documents().insert(allDocuments.map(toDocumentDBO));
+      await kysely
+        .insertInto('documents')
+        .values(allDocuments.map(toDocumentInsert))
+        .execute();
       await campaignDocumentRepository.linkMany(
         allDocuments.map(toCampaignDocumentDBO)
       );
@@ -376,7 +427,10 @@ describe('Campaign document repository', () => {
         })
       ];
 
-      await Documents().insert(documents.map(toDocumentDBO));
+      await kysely
+        .insertInto('documents')
+        .values(documents.map(toDocumentInsert))
+        .execute();
       await campaignDocumentRepository.linkMany(
         documents.map(toCampaignDocumentDBO)
       );
@@ -405,9 +459,10 @@ describe('Campaign document repository', () => {
         campaignId: campaign.id
       });
 
-      await Documents().insert(
-        [activeDocument, deletedDocument].map(toDocumentDBO)
-      );
+      await kysely
+        .insertInto('documents')
+        .values([activeDocument, deletedDocument].map(toDocumentInsert))
+        .execute();
       await campaignDocumentRepository.linkMany(
         [activeDocument, deletedDocument].map(toCampaignDocumentDBO)
       );
@@ -441,7 +496,10 @@ describe('Campaign document repository', () => {
         campaignId: campaign.id
       });
 
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
       await campaignDocumentRepository.linkMany([
         toCampaignDocumentDBO(document)
       ]);

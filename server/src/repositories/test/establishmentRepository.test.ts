@@ -1,31 +1,35 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
+import { kysely } from '~/infra/database/kysely';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { UserApi } from '~/models/UserApi';
+import { factories } from '~/test/factories';
 import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
 
 import establishmentRepository, {
   EstablishmentDBO,
-  Establishments,
   formatEstablishmentApi,
   parseEstablishmentApi
 } from '../establishmentRepository';
-import { Users, toUserDBO } from '../userRepository';
+import { toUserDBO } from '../userRepository';
 
 describe('Establishment repository', () => {
   describe('find', () => {
-    const establishments = faker.helpers.multiple(() => genEstablishmentApi(), {
-      count: { min: 3, max: 5 }
-    });
+    let establishments: EstablishmentApi[];
 
     beforeAll(async () => {
-      await Establishments().insert(establishments.map(formatEstablishmentApi));
+      establishments = await factories.establishment.createList(
+        faker.number.int({ min: 3, max: 5 })
+      );
     });
 
     it('should find all establishments when no filters provided', async () => {
       const actual = await establishmentRepository.find();
 
-      const actualEstablishments = await Establishments().select();
+      const actualEstablishments = await kysely
+        .selectFrom('establishments')
+        .selectAll('establishments')
+        .execute();
       expect(actual).toBeArrayOfSize(actualEstablishments.length);
     });
 
@@ -43,13 +47,7 @@ describe('Establishment repository', () => {
     });
 
     it('should filter establishments by available status', async () => {
-      const unavailableEstablishments = faker.helpers.multiple(
-        () => ({ ...genEstablishmentApi(), available: false }),
-        { count: 2 }
-      );
-      await Establishments().insert(
-        unavailableEstablishments.map(formatEstablishmentApi)
-      );
+      await factories.establishment.createList(2, { available: false });
 
       const actual = await establishmentRepository.find({
         filters: { available: false }
@@ -62,15 +60,11 @@ describe('Establishment repository', () => {
     });
 
     it('should filter establishments by siren', async () => {
-      const establishments = faker.helpers.multiple(
-        () => genEstablishmentApi(),
-        {
-          count: { min: 3, max: 5 }
-        }
+      const sirenEstablishments = await factories.establishment.createList(
+        faker.number.int({ min: 3, max: 5 })
       );
-      await Establishments().insert(establishments.map(formatEstablishmentApi));
 
-      const targetSirens = establishments.slice(0, 2).map((e) => e.siren);
+      const targetSirens = sirenEstablishments.slice(0, 2).map((e) => e.siren);
       const actual = await establishmentRepository.find({
         filters: { siren: targetSirens }
       });
@@ -80,14 +74,11 @@ describe('Establishment repository', () => {
     });
 
     it('should filter establishments by geoCodes', async () => {
-      const establishmentsWithGeoCodes = [
-        { ...genEstablishmentApi(), geoCodes: ['75001', '75002'] },
-        { ...genEstablishmentApi(), geoCodes: ['69001', '69002'] },
-        { ...genEstablishmentApi(), geoCodes: ['13001', '13002'] }
-      ];
-      await Establishments().insert(
-        establishmentsWithGeoCodes.map(formatEstablishmentApi)
-      );
+      await Promise.all([
+        factories.establishment.create({ geoCodes: ['75001', '75002'] }),
+        factories.establishment.create({ geoCodes: ['69001', '69002'] }),
+        factories.establishment.create({ geoCodes: ['13001', '13002'] })
+      ]);
       const targetGeoCodes = ['75001', '69001'];
 
       const actual = await establishmentRepository.find({
@@ -105,11 +96,9 @@ describe('Establishment repository', () => {
     });
 
     it('should return empty array when no establishments match geoCodes', async () => {
-      const establishment = {
-        ...genEstablishmentApi(),
+      await factories.establishment.create({
         geoCodes: ['75001', '75002']
-      };
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      });
 
       const actual = await establishmentRepository.find({
         filters: {
@@ -121,13 +110,11 @@ describe('Establishment repository', () => {
     });
 
     it('should filter establishments related to the given one', async () => {
-      const establishments: ReadonlyArray<EstablishmentApi> = [
-        genEstablishmentApi('75001', '75002'),
-        genEstablishmentApi('75002', '75003'),
-        genEstablishmentApi('69001', '69002')
-      ];
-      await Establishments().insert(establishments.map(formatEstablishmentApi));
-      const related = establishments[0];
+      const [related] = await Promise.all([
+        factories.establishment.create({ geoCodes: ['75001', '75002'] }),
+        factories.establishment.create({ geoCodes: ['75002', '75003'] }),
+        factories.establishment.create({ geoCodes: ['69001', '69002'] })
+      ]);
 
       const actuals = await establishmentRepository.find({
         filters: {
@@ -144,16 +131,16 @@ describe('Establishment repository', () => {
     });
 
     it('should filter active establishments', async () => {
-      const establishments = faker.helpers.multiple(() =>
-        genEstablishmentApi()
+      const activeCandidates = await factories.establishment.createList(
+        faker.number.int({ min: 1, max: 5 })
       );
-      const users = establishments
-        .map((establishment) =>
-          faker.helpers.multiple(() => genUserApi(establishment.id))
+      await Promise.all(
+        activeCandidates.map((establishment) =>
+          factories.user.createList(faker.number.int({ min: 1, max: 3 }), {
+            establishmentId: establishment.id
+          })
         )
-        .flat();
-      await Establishments().insert(establishments.map(formatEstablishmentApi));
-      await Users().insert(users.map(toUserDBO));
+      );
 
       const actual = await establishmentRepository.find({
         filters: {
@@ -170,13 +157,11 @@ describe('Establishment repository', () => {
     });
 
     it('should include users when requested', async () => {
-      const establishment = genEstablishmentApi();
-      const users = faker.helpers.multiple(() => genUserApi(establishment.id), {
-        count: { min: 2, max: 4 }
-      });
-
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(users.map(toUserDBO));
+      const establishment = await factories.establishment.create();
+      const users = await factories.user.createList(
+        faker.number.int({ min: 2, max: 4 }),
+        { establishmentId: establishment.id }
+      );
 
       const actual = await establishmentRepository.find({
         filters: { id: [establishment.id] },
@@ -192,11 +177,8 @@ describe('Establishment repository', () => {
     });
 
     it('should not include users when not requested', async () => {
-      const establishment = genEstablishmentApi();
-      const user = genUserApi(establishment.id);
-
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(toUserDBO(user));
+      const establishment = await factories.establishment.create();
+      await factories.user.create({ establishmentId: establishment.id });
 
       const actual = await establishmentRepository.find({
         filters: { id: [establishment.id] }
@@ -207,8 +189,7 @@ describe('Establishment repository', () => {
     });
 
     it('should filter establishments by kind', async () => {
-      const establishment = { ...genEstablishmentApi(), kind: 'COM' as const };
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      await factories.establishment.create({ kind: 'COM' });
 
       const actual = await establishmentRepository.find({
         filters: { kind: ['COM'] }
@@ -219,11 +200,9 @@ describe('Establishment repository', () => {
     });
 
     it('should filter establishments by query (accent- and case-insensitive)', async () => {
-      const establishment = {
-        ...genEstablishmentApi(),
+      const establishment = await factories.establishment.create({
         name: 'Métropole Étoile'
-      };
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      });
 
       const actual = await establishmentRepository.find({
         filters: { query: 'metropole etoile' }
@@ -234,8 +213,7 @@ describe('Establishment repository', () => {
     });
 
     it('should return no establishments when query does not match', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      const establishment = await factories.establishment.create();
 
       const actual = await establishmentRepository.find({
         filters: { query: 'zzzzzznonexistentzzzzzz' }
@@ -246,11 +224,9 @@ describe('Establishment repository', () => {
     });
 
     it('should filter establishments by normalized name', async () => {
-      const establishment = {
-        ...genEstablishmentApi(),
+      const establishment = await factories.establishment.create({
         name: "Communauté d'Agglomération de Test (CAT)"
-      };
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      });
 
       // The `name` filter normalizes the stored name by dropping apostrophes
       // and any parenthetical suffix, replacing spaces/hyphens with a single
@@ -265,8 +241,7 @@ describe('Establishment repository', () => {
     });
 
     it('should return no establishments when name does not match', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      const establishment = await factories.establishment.create();
 
       const actual = await establishmentRepository.find({
         filters: { name: 'zzzzzznonexistentzzzzzz' }
@@ -279,8 +254,7 @@ describe('Establishment repository', () => {
 
   describe('stream', () => {
     it('should stream all establishments as a web ReadableStream', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      const establishment = await factories.establishment.create();
 
       const results: EstablishmentApi[] = [];
       const reader = establishmentRepository.stream().getReader();
@@ -295,8 +269,7 @@ describe('Establishment repository', () => {
     });
 
     it('should only stream establishments updated after the given date', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      const establishment = await factories.establishment.create();
       const cutoff = new Date(Date.now() + 1000 * 60 * 60);
 
       const results: EstablishmentApi[] = [];
@@ -315,14 +288,15 @@ describe('Establishment repository', () => {
   });
 
   describe('get', () => {
-    const establishment = genEstablishmentApi();
-    const users = faker.helpers.multiple(() => genUserApi(establishment.id), {
-      count: { min: 1, max: 3 }
-    });
+    let establishment: EstablishmentApi;
+    let users: UserApi[];
 
     beforeAll(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(users.map(toUserDBO));
+      establishment = await factories.establishment.create();
+      users = await factories.user.createList(
+        faker.number.int({ min: 1, max: 3 }),
+        { establishmentId: establishment.id }
+      );
     });
 
     it('should get establishment by id', async () => {
@@ -353,11 +327,10 @@ describe('Establishment repository', () => {
     });
 
     it('should not include deleted users', async () => {
-      const deletedUser = {
-        ...genUserApi(establishment.id),
+      await factories.user.create({
+        establishmentId: establishment.id,
         deletedAt: new Date().toJSON()
-      };
-      await Users().insert(toUserDBO(deletedUser));
+      });
 
       const actual = await establishmentRepository.get(establishment.id, {
         includes: ['users']
@@ -371,12 +344,14 @@ describe('Establishment repository', () => {
   });
 
   describe('findOne', () => {
-    const establishment = genEstablishmentApi();
-    const user = genUserApi(establishment.id);
+    let establishment: EstablishmentApi;
+    let user: UserApi;
 
     beforeAll(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(toUserDBO(user));
+      establishment = await factories.establishment.create();
+      user = await factories.user.create({
+        establishmentId: establishment.id
+      });
     });
 
     it('should find establishment by siren', async () => {
@@ -418,10 +393,10 @@ describe('Establishment repository', () => {
   });
 
   describe('update', () => {
-    const establishment = genEstablishmentApi();
+    let establishment: EstablishmentApi;
 
     beforeEach(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      establishment = await factories.establishment.create();
     });
 
     it('should update establishment', async () => {
@@ -429,25 +404,35 @@ describe('Establishment repository', () => {
 
       await establishmentRepository.update(updated);
 
-      const actual = await establishmentRepository.get(establishment.id);
+      const actual = await kysely
+        .selectFrom('establishments')
+        .selectAll('establishments')
+        .where('id', '=', establishment.id)
+        .executeTakeFirst();
 
-      expect(actual!.name).toBe(updated.name);
+      expect(actual?.name).toBe(updated.name);
     });
   });
 
   describe('setAvailable', () => {
-    const establishment = { ...genEstablishmentApi(), available: false };
+    let establishment: EstablishmentApi;
 
     beforeAll(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      establishment = await factories.establishment.create({
+        available: false
+      });
     });
 
     it('should set establishment as available', async () => {
       await establishmentRepository.setAvailable(establishment);
 
-      const actual = await establishmentRepository.get(establishment.id);
+      const actual = await kysely
+        .selectFrom('establishments')
+        .selectAll('establishments')
+        .where('id', '=', establishment.id)
+        .executeTakeFirst();
 
-      expect(actual!.available).toBe(true);
+      expect(actual?.available).toBe(true);
     });
   });
 
@@ -458,12 +443,14 @@ describe('Establishment repository', () => {
 
       await establishmentRepository.save(establishmentDBO);
 
-      const actual = await establishmentRepository.get(establishment.id);
-      expect(actual).toMatchObject<Partial<EstablishmentApi>>({
-        id: establishment.id,
-        name: establishment.name,
-        siren: establishment.siren
-      });
+      const actual = await kysely
+        .selectFrom('establishments')
+        .selectAll('establishments')
+        .where('id', '=', establishment.id)
+        .executeTakeFirst();
+      expect(actual).toBeDefined();
+      expect(actual?.name).toBe(establishment.name);
+      expect(actual?.siren).toBe(Number(establishment.siren));
     });
   });
 

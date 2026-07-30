@@ -1,5 +1,5 @@
 import type { MultiPolygon } from 'geojson';
-import type { Selectable } from 'kysely';
+import type { Insertable, Selectable } from 'kysely';
 import { sql } from 'kysely';
 
 import db from '~/infra/database';
@@ -132,6 +132,22 @@ export const formatGeoPerimeterApi = (
   created_at: perimeter.createdAt,
   created_by: perimeter.createdBy
 });
+
+// Camel-case Insertable mirror of formatGeoPerimeterApi for the Kysely write
+// path (mirrors save()'s inline insert: geom is serialized to GeoJSON text).
+export function toGeoPerimeterInsert(
+  perimeter: GeoPerimeterApi
+): Insertable<DB['geoPerimeters']> {
+  return {
+    id: perimeter.id,
+    establishmentId: perimeter.establishmentId,
+    name: perimeter.name,
+    kind: perimeter.kind,
+    geom: JSON.stringify(perimeter.geometry),
+    createdAt: new Date(perimeter.createdAt),
+    createdBy: perimeter.createdBy
+  };
+}
 
 type GeoPerimeterRow = Selectable<DB['geoPerimeters']> & {
   geomJson?: MultiPolygon;

@@ -2,36 +2,19 @@ import { constants } from 'http2';
 
 import { faker } from '@faker-js/faker/locale/fr';
 import { Precision } from '@zerologementvacant/models';
+import type { Selectable } from 'kysely';
 import request from 'supertest';
 
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { HousingApi } from '~/models/HousingApi';
 import { toPrecisionDTO } from '~/models/PrecisionApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  Events,
-  PRECISION_HOUSING_EVENTS_TABLE
-} from '~/repositories/eventRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import {
-  formatPrecisionHousingApi,
-  HousingPrecisionDBO,
-  HousingPrecisions,
-  PrecisionDBO,
-  Precisions
-} from '~/repositories/precisionRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import {
-  genEstablishmentApi,
-  genHousingApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { UserApi } from '~/models/UserApi';
+import { PrecisionDBO } from '~/repositories/precisionRepository';
+import { factories } from '~/test/factories';
+import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Precision API', () => {
@@ -40,17 +23,26 @@ describe('Precision API', () => {
   beforeAll(async () => {
     url = await createServer().testing();
   });
-  const establishment = genEstablishmentApi('01337');
+
+  let establishment: EstablishmentApi;
+  let user: UserApi;
+  // Not persisted: only used to mint a token for a user outside `establishment`.
   const anotherEstablishment = genEstablishmentApi('42000');
-  const user = genUserApi(establishment.id);
   const anotherUser = genUserApi(anotherEstablishment.id);
 
   let precisions: ReadonlyArray<PrecisionDBO>;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
-    precisions = await Precisions().select();
+    // Scope the establishment to a fixed, partition-valid geo code so every
+    // housing created below can be persisted and stays visible to the user.
+    establishment = await factories.establishment.create({
+      geoCodes: ['01337']
+    });
+    user = await factories.user.create({ establishmentId: establishment.id });
+    precisions = (await kysely
+      .selectFrom('precisions')
+      .selectAll('precisions')
+      .execute()) as PrecisionDBO[];
   });
 
   describe('GET /precisions', () => {
@@ -60,9 +52,12 @@ describe('Precision API', () => {
       const { body, status } = await request(url).get(testRoute);
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const precisions = await Precisions()
-        .select()
-        .then((precisions) => precisions.map(toPrecisionDTO));
+      const precisions = (
+        (await kysely
+          .selectFrom('precisions')
+          .selectAll('precisions')
+          .execute()) as PrecisionDBO[]
+      ).map(toPrecisionDTO);
       expect(body).toIncludeSameMembers(precisions);
     });
   });
@@ -70,22 +65,25 @@ describe('Precision API', () => {
   describe('GET /housing/:id/precisions', () => {
     const testRoute = (id: string) => `/housing/${id}/precisions`;
 
-    const housing = genHousingApi(
-      faker.helpers.arrayElement(establishment.geoCodes)
-    );
+    let housing: HousingApi;
     let housingPrecisions: PrecisionDBO[];
 
     beforeAll(async () => {
-      await Housing().insert(formatHousingRecordApi(housing));
+      housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+      });
       housingPrecisions = faker.helpers.arrayElements(precisions, 3);
 
-      await HousingPrecisions().insert(
-        housingPrecisions.map((precision) => ({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
-          precision_id: precision.id
-        }))
-      );
+      await kysely
+        .insertInto('housingPrecisions')
+        .values(
+          housingPrecisions.map((precision) => ({
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id,
+            precisionId: precision.id
+          }))
+        )
+        .execute();
     });
 
     it('should be forbidden for non-authenticated users', async () => {
@@ -128,14 +126,21 @@ describe('Precision API', () => {
     let payload: ReadonlyArray<Precision['id']>;
 
     beforeEach(async () => {
-      housing = genHousingApi(
-        faker.helpers.arrayElement(establishment.geoCodes)
-      );
-      await Housing().insert(formatHousingRecordApi(housing));
+      housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+      });
       const existingPrecisions = faker.helpers.arrayElements(precisions, 3);
-      await HousingPrecisions().insert(
-        existingPrecisions.map(formatPrecisionHousingApi(housing))
-      );
+      await kysely
+        .insertInto('housingPrecisions')
+        .values(
+          existingPrecisions.map((precision) => ({
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id,
+            precisionId: precision.id,
+            createdAt: new Date()
+          }))
+        )
+        .execute();
 
       payload = faker.helpers
         .arrayElements(precisions, { min: 1, max: 10 })
@@ -179,18 +184,20 @@ describe('Precision API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const actualPrecisions = await HousingPrecisions().where({
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
-      });
+      const actualPrecisions = await kysely
+        .selectFrom('housingPrecisions')
+        .selectAll('housingPrecisions')
+        .where('housingGeoCode', '=', housing.geoCode)
+        .where('housingId', '=', housing.id)
+        .execute();
       expect(actualPrecisions).toHaveLength(payload.length);
-      expect(actualPrecisions).toSatisfyAll<HousingPrecisionDBO>(
-        (actualPrecision) => {
-          return payload.some(
-            (precision) => precision === actualPrecision.precision_id
-          );
-        }
-      );
+      expect(actualPrecisions).toSatisfyAll<
+        Selectable<DB['housingPrecisions']>
+      >((actualPrecision) => {
+        return payload.some(
+          (precision) => precision === actualPrecision.precisionId
+        );
+      });
     });
 
     it('should fully replace the housing precisions', async () => {
@@ -201,18 +208,20 @@ describe('Precision API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const actualPrecisions = await HousingPrecisions().where({
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
-      });
+      const actualPrecisions = await kysely
+        .selectFrom('housingPrecisions')
+        .selectAll('housingPrecisions')
+        .where('housingGeoCode', '=', housing.geoCode)
+        .where('housingId', '=', housing.id)
+        .execute();
       expect(actualPrecisions).toHaveLength(payload.length);
-      expect(actualPrecisions).toSatisfyAll<HousingPrecisionDBO>(
-        (actualPrecision) => {
-          return payload.some(
-            (precision) => precision === actualPrecision.precision_id
-          );
-        }
-      );
+      expect(actualPrecisions).toSatisfyAll<
+        Selectable<DB['housingPrecisions']>
+      >((actualPrecision) => {
+        return payload.some(
+          (precision) => precision === actualPrecision.precisionId
+        );
+      });
     });
 
     it('should empty the housing precisions', async () => {
@@ -223,18 +232,19 @@ describe('Precision API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const actualPrecisions = await HousingPrecisions().where({
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
-      });
+      const actualPrecisions = await kysely
+        .selectFrom('housingPrecisions')
+        .selectAll('housingPrecisions')
+        .where('housingGeoCode', '=', housing.geoCode)
+        .where('housingId', '=', housing.id)
+        .execute();
       expect(actualPrecisions).toHaveLength(0);
     });
 
     it('should create an event when a precision is attached', async () => {
-      const housingWithoutPrecisions = genHousingApi(
-        faker.helpers.arrayElement(establishment.geoCodes)
-      );
-      await Housing().insert(formatHousingRecordApi(housingWithoutPrecisions));
+      const housingWithoutPrecisions = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+      });
 
       const { status } = await request(url)
         .put(testRoute(housingWithoutPrecisions.id))
@@ -243,13 +253,26 @@ describe('Precision API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const events = await Events()
-        .join(PRECISION_HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          type: 'housing:precision-attached',
-          housing_geo_code: housingWithoutPrecisions.geoCode,
-          housing_id: housingWithoutPrecisions.id
-        });
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'precisionHousingEvents',
+          'precisionHousingEvents.eventId',
+          'events.id'
+        )
+        .selectAll('events')
+        .where('events.type', '=', 'housing:precision-attached')
+        .where(
+          'precisionHousingEvents.housingGeoCode',
+          '=',
+          housingWithoutPrecisions.geoCode
+        )
+        .where(
+          'precisionHousingEvents.housingId',
+          '=',
+          housingWithoutPrecisions.id
+        )
+        .execute();
       expect(events.length).toBeGreaterThan(0);
     });
 
@@ -261,13 +284,18 @@ describe('Precision API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const events = await Events()
-        .join(PRECISION_HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          type: 'housing:precision-detached',
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id
-        });
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'precisionHousingEvents',
+          'precisionHousingEvents.eventId',
+          'events.id'
+        )
+        .selectAll('events')
+        .where('events.type', '=', 'housing:precision-detached')
+        .where('precisionHousingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('precisionHousingEvents.housingId', '=', housing.id)
+        .execute();
       expect(events.length).toBeGreaterThan(0);
     });
   });

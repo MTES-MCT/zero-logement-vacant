@@ -14,12 +14,7 @@ import request from 'supertest';
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import type { UserApi } from '~/models/UserApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
+import { factories } from '~/test/factories';
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Establishment API', () => {
@@ -32,12 +27,10 @@ describe('Establishment API', () => {
   describe('GET /establishments', () => {
     const testRoute = '/establishments';
 
-    const establishments: EstablishmentApi[] = Array.from({ length: 10 }).map(
-      () => genEstablishmentApi()
-    );
+    let establishments: EstablishmentApi[];
 
     beforeAll(async () => {
-      await Establishments().insert(establishments.map(formatEstablishmentApi));
+      establishments = await factories.establishment.createList(10);
     });
 
     test.prop<EstablishmentFiltersDTO>({
@@ -144,12 +137,13 @@ describe('Establishment API', () => {
     });
 
     it('should list establishments by related establishment', async () => {
-      const establishments: ReadonlyArray<EstablishmentApi> = [
-        genEstablishmentApi('75001', '75002'),
-        genEstablishmentApi('75002', '75003'),
-        genEstablishmentApi('69001', '69002')
-      ];
-      await Establishments().insert(establishments.map(formatEstablishmentApi));
+      const establishments: ReadonlyArray<EstablishmentApi> = await Promise.all(
+        [
+          factories.establishment.create({ geoCodes: ['75001', '75002'] }),
+          factories.establishment.create({ geoCodes: ['75002', '75003'] }),
+          factories.establishment.create({ geoCodes: ['69001', '69002'] })
+        ]
+      );
 
       const [relatedEstablishment] = establishments;
 
@@ -167,15 +161,15 @@ describe('Establishment API', () => {
     });
 
     describe('Include users', () => {
-      const establishment = genEstablishmentApi();
-      const user: UserApi = {
-        ...genUserApi(establishment.id),
-        role: UserRole.USUAL
-      };
+      let establishment: EstablishmentApi;
+      let user: UserApi;
 
       beforeAll(async () => {
-        await Establishments().insert(formatEstablishmentApi(establishment));
-        await Users().insert(toUserDBO(user));
+        establishment = await factories.establishment.create();
+        user = await factories.user.create({
+          establishmentId: establishment.id,
+          role: UserRole.USUAL
+        });
       });
 
       it('should include users if the user is authenticated', async () => {
@@ -212,8 +206,7 @@ describe('Establishment API', () => {
     });
 
     it('should return the establishment', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      const establishment = await factories.establishment.create();
 
       const { body, status } = await request(url).get(
         testRoute(establishment.id)

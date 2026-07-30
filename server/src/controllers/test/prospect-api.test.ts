@@ -1,48 +1,44 @@
 import { constants } from 'http2';
 
 import { subHours } from 'date-fns';
+import { Record } from 'effect';
+import { snakeToCamel } from 'effect/String';
+import type { Insertable } from 'kysely';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { vi } from 'vitest';
 
+import type { DB } from '~/infra/database/db';
 import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { ProspectApi } from '~/models/ProspectApi';
 import { SIGNUP_LINK_LENGTH, SignupLinkApi } from '~/models/SignupLinkApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  formatProspectApi,
-  Prospects
-} from '~/repositories/prospectRepository';
+import { formatProspectApi } from '~/repositories/prospectRepository';
 import signupLinkRepository from '~/repositories/signupLinkRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
 import ceremaService from '~/services/ceremaService';
+import { factories } from '~/test/factories';
 import {
   genEmail,
-  genEstablishmentApi,
   genProspectApi,
   genSignupLinkApi,
-  genSiren,
-  genUserApi
+  genSiren
 } from '~/test/testFixtures';
 
 describe('Prospect API', () => {
   let url: string;
+  let establishment: EstablishmentApi;
+  let anotherEstablishment: EstablishmentApi;
 
   beforeAll(async () => {
     url = await createServer().testing();
   });
 
-  const establishment = genEstablishmentApi();
-  const anotherEstablishment = genEstablishmentApi();
-
   beforeAll(async () => {
-    await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi)
-    );
+    [establishment, anotherEstablishment] = await Promise.all([
+      factories.establishment.create(),
+      factories.establishment.create()
+    ]);
   });
 
   describe('PUT /signup-links/{link}/prospect', () => {
@@ -73,10 +69,10 @@ describe('Prospect API', () => {
     });
 
     it('should return forbidden when a user already exist', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(user));
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
+      });
       const link = genSignupLinkApi(user.email);
       await kysely.insertInto('signupLinks').values(link).execute();
 
@@ -170,7 +166,15 @@ describe('Prospect API', () => {
 
     it('should update and return the prospect if they already exist', async () => {
       const prospect = genProspectApi(establishment);
-      await Prospects().insert(formatProspectApi(prospect));
+      await kysely
+        .insertInto('prospects')
+        .values(
+          Record.mapKeys(
+            formatProspectApi(prospect) as unknown as Record<string, unknown>,
+            snakeToCamel
+          ) as Insertable<DB['prospects']>
+        )
+        .execute();
       const email = prospect.email;
       const link = genSignupLinkApi(email);
       const siren = establishment.siren;
@@ -275,10 +279,17 @@ describe('Prospect API', () => {
     });
 
     it('should return the prospect otherwise', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      const establishment = await factories.establishment.create();
       const prospect = genProspectApi(establishment);
-      await Prospects().insert(formatProspectApi(prospect));
+      await kysely
+        .insertInto('prospects')
+        .values(
+          Record.mapKeys(
+            formatProspectApi(prospect) as unknown as Record<string, unknown>,
+            snakeToCamel
+          ) as Insertable<DB['prospects']>
+        )
+        .execute();
 
       const { body, status } = await request(url).get(
         testRoute(prospect.email)

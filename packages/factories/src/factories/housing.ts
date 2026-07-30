@@ -19,23 +19,7 @@ import { Factory } from 'fishery';
 import { match, Pattern } from 'ts-pattern';
 
 import type { PersistenceAdapter } from '../persistence-adapter';
-
-function genGeoCode(): string {
-  const geoCode = faker.helpers.arrayElement([
-    faker.location.zipCode(),
-    faker.helpers.arrayElement(['2A', '2B']) +
-      faker.string.numeric({ length: 3 })
-  ]);
-  const needsReroll =
-    geoCode.startsWith('00') ||
-    geoCode.startsWith('20') ||
-    geoCode.startsWith('96') ||
-    geoCode.startsWith('97') ||
-    geoCode.startsWith('98') ||
-    geoCode.startsWith('99') ||
-    geoCode.endsWith('999');
-  return needsReroll ? genGeoCode() : geoCode;
-}
+import { genGeoCode } from './geo-code';
 
 export function createHousingFactory(adapter: PersistenceAdapter) {
   return Factory.define<HousingDTO>(({ params }) => {

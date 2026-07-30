@@ -7,6 +7,7 @@ import {
 import { Factory } from 'fishery';
 
 import type { PersistenceAdapter } from '../persistence-adapter';
+import { genGeoCode } from './geo-code';
 
 export function createEstablishmentFactory(adapter: PersistenceAdapter) {
   return Factory.define<EstablishmentDTO>(({ params }) => {
@@ -18,7 +19,7 @@ export function createEstablishmentFactory(adapter: PersistenceAdapter) {
       shortName: name,
       siren: faker.string.numeric(9),
       available: true,
-      geoCodes: faker.helpers.multiple(() => faker.location.zipCode(), {
+      geoCodes: faker.helpers.multiple(genGeoCode, {
         count: { min: 1, max: 10 }
       }),
       kind: faker.helpers.arrayElement(ESTABLISHMENT_KIND_VALUES),

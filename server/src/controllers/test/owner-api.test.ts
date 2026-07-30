@@ -11,43 +11,23 @@ import {
   OwnerUpdatePayload
 } from '@zerologementvacant/models';
 import { genAddressDTO } from '@zerologementvacant/models/fixtures';
+import type { Selectable } from 'kysely';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { OwnerApi } from '~/models/OwnerApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  EventRecordDBO,
-  Events,
-  EVENTS_TABLE,
-  HOUSING_OWNER_EVENTS_TABLE,
-  OWNER_EVENTS_TABLE
-} from '~/repositories/eventRepository';
-import {
-  formatHousingOwnerApi,
-  formatHousingOwnersApi,
-  HousingOwners
-} from '~/repositories/housingOwnerRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { UserApi } from '~/models/UserApi';
+import { factories } from '~/test/factories';
 import {
   genAddressApi,
-  genEstablishmentApi,
-  genHousingApi,
   genHousingOwnerApi,
-  genOwnerApi,
-  genUserApi,
-  oneOf
+  genOwnerApi
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
@@ -58,12 +38,12 @@ describe('Owner API', () => {
     url = await createServer().testing();
   });
 
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('GET /owners', () => {
@@ -76,27 +56,22 @@ describe('Owner API', () => {
     });
 
     describe('As an authenticated user', () => {
-      const owners: OwnerApi[] = [
-        {
-          ...genOwnerApi(),
-          fullName: 'Jean Valjean',
-          idpersonne: faker.string.alphanumeric(10)
-        },
-        {
-          ...genOwnerApi(),
-          fullName: 'Jean Dupont',
-          idpersonne: faker.string.alphanumeric(10)
-        },
-        {
-          ...genOwnerApi(),
-          fullName: 'Pierre Martin',
-          idpersonne: faker.string.alphanumeric(10)
-        },
-        { ...genOwnerApi(), fullName: 'Marie Curie', idpersonne: null }
-      ];
-
       beforeAll(async () => {
-        await Owners().insert(owners.map(formatOwnerApi));
+        await Promise.all([
+          factories.owner.create({
+            fullName: 'Jean Valjean',
+            idpersonne: faker.string.alphanumeric(10)
+          }),
+          factories.owner.create({
+            fullName: 'Jean Dupont',
+            idpersonne: faker.string.alphanumeric(10)
+          }),
+          factories.owner.create({
+            fullName: 'Pierre Martin',
+            idpersonne: faker.string.alphanumeric(10)
+          }),
+          factories.owner.create({ fullName: 'Marie Curie', idpersonne: null })
+        ]);
       });
 
       test.prop<{ search?: string; page?: number; perPage?: number }>({
@@ -206,13 +181,21 @@ describe('Owner API', () => {
   describe('GET /housings/{id}/owners', () => {
     const testRoute = (id: string) => `/housings/${id}/owners`;
 
-    const housing = genHousingApi(oneOf(establishment.geoCodes));
-    const owners: OwnerApi[] = Array.from({ length: 3 }, () => genOwnerApi());
+    let housing: HousingApi;
+    let owners: ReadonlyArray<OwnerApi>;
 
     beforeAll(async () => {
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Owners().insert(owners.map(formatOwnerApi));
-      await HousingOwners().insert(formatHousingOwnersApi(housing, owners));
+      housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+      });
+      owners = await factories.owner.createList(3);
+      await Promise.all(
+        owners.map((owner, index) =>
+          factories
+            .housingOwner({ housing, owner })
+            .create({ rank: (index + 1) as OwnerRank })
+        )
+      );
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -295,8 +278,7 @@ describe('Owner API', () => {
     let owner: OwnerApi;
 
     beforeEach(async () => {
-      owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
+      owner = await factories.owner.create();
     });
 
     it('should reject if the owner is missing', async () => {
@@ -413,8 +395,7 @@ describe('Owner API', () => {
     });
 
     it('should create an event if the owner has changed', async () => {
-      const original = { ...genOwnerApi(), banAddress: null };
-      await Owners().insert(formatOwnerApi(original));
+      const original = await factories.owner.create({ banAddress: null });
 
       const payload = {
         fullName: 'Jean Dupont',
@@ -432,16 +413,16 @@ describe('Owner API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const event = await Events()
-        .join(OWNER_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          owner_id: original.id,
-          type: 'owner:updated'
-        })
-        .first();
-      expect(event).toMatchObject<Partial<EventRecordDBO<'owner:updated'>>>({
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin('ownerEvents', 'ownerEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('ownerEvents.ownerId', '=', original.id)
+        .where('events.type', '=', 'owner:updated')
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'owner:updated',
-        next_old: {
+        nextOld: {
           name: original.fullName,
           birthdate:
             original.birthDate?.substring(0, 'yyyy-mm-dd'.length) ?? null,
@@ -450,7 +431,7 @@ describe('Owner API', () => {
           address: null,
           additionalAddress: original.additionalAddress
         },
-        next_new: {
+        nextNew: {
           name: payload.fullName,
           birthdate: payload.birthDate.substring(0, 'yyyy-mm-dd'.length),
           phone: payload.phone,
@@ -458,7 +439,7 @@ describe('Owner API', () => {
           address: payload.banAddress.label,
           additionalAddress: payload.additionalAddress
         },
-        created_by: user.id
+        createdBy: user.id
       });
     });
   });
@@ -471,19 +452,17 @@ describe('Owner API', () => {
     let housingOwners: ReadonlyArray<HousingOwnerApi>;
 
     beforeEach(async () => {
-      housing = genHousingApi(
-        faker.helpers.arrayElement(establishment.geoCodes)
-      );
-      await Housing().insert(formatHousingRecordApi(housing));
-      owners = Array.from({ length: 4 }, genOwnerApi);
-      await Owners().insert(owners.map(formatOwnerApi));
-      housingOwners = owners.map((owner, i) => {
-        return {
-          ...genHousingOwnerApi(housing, owner),
-          rank: (i + 1) as OwnerRank
-        };
+      housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
       });
-      await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
+      owners = await factories.owner.createList(4);
+      housingOwners = await Promise.all(
+        owners.map((owner, index) =>
+          factories
+            .housingOwner({ housing, owner })
+            .create({ rank: (index + 1) as OwnerRank })
+        )
+      );
     });
 
     function createHousingOwnerPayload(
@@ -556,8 +535,7 @@ describe('Owner API', () => {
       });
 
       it('should create an event when a housing owner is attached', async () => {
-        const owner = genOwnerApi();
-        await Owners().insert(formatOwnerApi(owner));
+        const owner = await factories.owner.create();
         const payload = housingOwners.concat({
           ...genHousingOwnerApi(housing, owner),
           rank: -2
@@ -568,30 +546,27 @@ describe('Owner API', () => {
           .send(payload)
           .use(tokenProvider(user));
 
-        const event = await Events()
-          .select(`${EVENTS_TABLE}.*`)
-          .join(
-            HOUSING_OWNER_EVENTS_TABLE,
-            `${HOUSING_OWNER_EVENTS_TABLE}.event_id`,
-            `${EVENTS_TABLE}.id`
+        const event = await kysely
+          .selectFrom('events')
+          .innerJoin(
+            'housingOwnerEvents',
+            'housingOwnerEvents.eventId',
+            'events.id'
           )
-          .where({
-            housing_geo_code: housing.geoCode,
-            housing_id: housing.id,
-            owner_id: owner.id,
-            type: 'housing:owner-attached'
-          })
-          .first();
-        expect(event).toMatchObject<
-          Partial<EventRecordDBO<'housing:owner-attached'>>
-        >({
+          .selectAll('events')
+          .where('housingOwnerEvents.housingGeoCode', '=', housing.geoCode)
+          .where('housingOwnerEvents.housingId', '=', housing.id)
+          .where('housingOwnerEvents.ownerId', '=', owner.id)
+          .where('events.type', '=', 'housing:owner-attached')
+          .executeTakeFirst();
+        expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
           type: 'housing:owner-attached',
-          next_old: null,
-          next_new: {
+          nextOld: null,
+          nextNew: {
             name: owner.fullName,
             rank: -2
           },
-          created_by: user.id
+          createdBy: user.id
         });
       });
 
@@ -604,30 +579,27 @@ describe('Owner API', () => {
           .send(payload)
           .use(tokenProvider(user));
 
-        const event = await Events()
-          .select(`${EVENTS_TABLE}.*`)
-          .join(
-            HOUSING_OWNER_EVENTS_TABLE,
-            `${HOUSING_OWNER_EVENTS_TABLE}.event_id`,
-            `${EVENTS_TABLE}.id`
+        const event = await kysely
+          .selectFrom('events')
+          .innerJoin(
+            'housingOwnerEvents',
+            'housingOwnerEvents.eventId',
+            'events.id'
           )
-          .where({
-            housing_geo_code: housing.geoCode,
-            housing_id: housing.id,
-            owner_id: owner.id,
-            type: 'housing:owner-detached'
-          })
-          .first();
-        expect(event).toMatchObject<
-          Partial<EventRecordDBO<'housing:owner-detached'>>
-        >({
+          .selectAll('events')
+          .where('housingOwnerEvents.housingGeoCode', '=', housing.geoCode)
+          .where('housingOwnerEvents.housingId', '=', housing.id)
+          .where('housingOwnerEvents.ownerId', '=', owner.id)
+          .where('events.type', '=', 'housing:owner-detached')
+          .executeTakeFirst();
+        expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
           type: 'housing:owner-detached',
-          next_old: {
+          nextOld: {
             name: owner.fullName,
             rank: owner.rank
           },
-          next_new: null,
-          created_by: user.id
+          nextNew: null,
+          createdBy: user.id
         });
       });
 
@@ -641,29 +613,27 @@ describe('Owner API', () => {
           .send(payload)
           .use(tokenProvider(user));
 
-        const events = await Events()
-          .select(`${EVENTS_TABLE}.*`)
-          .join(
-            HOUSING_OWNER_EVENTS_TABLE,
-            `${HOUSING_OWNER_EVENTS_TABLE}.event_id`,
-            `${EVENTS_TABLE}.id`
+        const events = await kysely
+          .selectFrom('events')
+          .innerJoin(
+            'housingOwnerEvents',
+            'housingOwnerEvents.eventId',
+            'events.id'
           )
-          .where({
-            housing_geo_code: housing.geoCode,
-            housing_id: housing.id,
-            type: 'housing:owner-updated'
-          });
+          .selectAll('events')
+          .where('housingOwnerEvents.housingGeoCode', '=', housing.geoCode)
+          .where('housingOwnerEvents.housingId', '=', housing.id)
+          .where('events.type', '=', 'housing:owner-updated')
+          .execute();
 
         housingOwners.forEach((_, i) => {
-          expect(events).toPartiallyContain<
-            Partial<EventRecordDBO<'housing:owner-updated'>>
-          >({
+          expect(events).toPartiallyContain<Partial<Selectable<DB['events']>>>({
             type: 'housing:owner-updated',
-            next_old: {
+            nextOld: {
               name: housingOwners[i].fullName,
               rank: housingOwners[i].rank
             },
-            next_new: {
+            nextNew: {
               name: payload[payload.length - i - 1].fullName,
               rank: payload[payload.length - i - 1].rank as OwnerRank
             }

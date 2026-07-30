@@ -21,6 +21,7 @@ import {
   OWNER_KIND_LABELS,
   OWNER_KIND_VALUES,
   OwnerAge,
+  OwnerRank,
   OwnershipKind,
   Precision,
   READ_ONLY_OCCUPANCY_VALUES,
@@ -39,6 +40,7 @@ import { flow } from 'effect/Function';
 import fp from 'lodash/fp';
 import { match } from 'ts-pattern';
 
+import { kysely } from '~/infra/database/kysely';
 import { AddressApi } from '~/models/AddressApi';
 import { BuildingApi } from '~/models/BuildingApi';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
@@ -47,26 +49,14 @@ import { HousingApi } from '~/models/HousingApi';
 import { HousingFiltersApi } from '~/models/HousingFiltersApi';
 import { LocalityApi } from '~/models/LocalityApi';
 import { OwnerApi } from '~/models/OwnerApi';
-import {
-  Addresses,
-  formatAddressApi
-} from '~/repositories/banAddressesRepository';
-import {
-  formatGeoPerimeterApi,
-  GeoPerimeters
-} from '~/repositories/geoRepository';
-import {
-  HousingPrecisionDBO,
-  HousingPrecisions,
-  Precisions
-} from '~/repositories/precisionRepository';
+import { toAddressInsert } from '~/repositories/banAddressesRepository';
+import { toGeoPerimeterInsert } from '~/repositories/geoRepository';
 import { factories } from '~/test/factories';
 import {
   genAddressApi,
   genBuildingApi,
   genEstablishmentApi,
   genGeoPerimeterApi,
-  genGroupApi,
   genHousingApi,
   genLocalityApi,
   genOwnerApi,
@@ -75,53 +65,26 @@ import {
   oneOf
 } from '~/test/testFixtures';
 
-import {
-  Buildings,
-  formatBuildingApi,
-  parseBuildingApi,
-  type BuildingDBO
-} from '../buildingRepository';
-import {
-  CampaignsHousing,
-  formatCampaignHousingApi
-} from '../campaignHousingRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '../establishmentRepository';
-import {
-  formatGroupApi,
-  formatGroupHousingApi,
-  Groups,
-  GroupsHousing
-} from '../groupRepository';
-import {
-  formatHousingOwnersApi,
-  HousingOwnerDBO,
-  HousingOwners,
-  relativeLocationFilterToDBO,
-  toRelativeLocationDBO
-} from '../housingOwnerRepository';
+import { toEstablishmentInsert } from '../establishmentRepository';
+import { relativeLocationFilterToDBO } from '../housingOwnerRepository';
 import housingRepository, {
-  formatHousingRecordApi,
-  Housing,
-  ReferenceDataYear
+  ReferenceDataYear,
+  toHousingInsert
 } from '../housingRepository';
-import { formatLocalityApi, Localities } from '../localityRepository';
-import {
-  formatOwnerApi,
-  Owners,
-  refreshMultiOwnerFlags
-} from '../ownerRepository';
-import { toUserDBO, Users } from '../userRepository';
+import { toLocalityInsert } from '../localityRepository';
+import { refreshMultiOwnerFlags } from '../ownerRepository';
+import { toUserInsert } from '../userRepository';
 
 describe('Housing repository', () => {
   const establishment = genEstablishmentApi();
   const user = genUserApi(establishment.id);
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    await kysely
+      .insertInto('establishments')
+      .values(toEstablishmentInsert(establishment))
+      .execute();
+    await kysely.insertInto('users').values(toUserInsert(user)).execute();
   });
 
   describe('find', () => {
@@ -134,8 +97,7 @@ describe('Housing repository', () => {
     });
 
     it('should return housings that have no main owner', async () => {
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create();
 
       const housings = await housingRepository.find({
         filters: {
@@ -165,14 +127,18 @@ describe('Housing repository', () => {
     });
 
     it('should include owner if needed by a filter', async () => {
-      const housings = faker.helpers.multiple(() => genHousingApi());
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      const owners = faker.helpers.multiple(() => genOwnerApi());
-      await Owners().insert(owners.map(formatOwnerApi));
-      const housingOwners = housings.flatMap((housing) =>
-        formatHousingOwnersApi(housing, [faker.helpers.arrayElement(owners)])
+      const housings = await factories.housing.createList(3);
+      const owners = await factories.owner.createList(3);
+      await Promise.all(
+        housings.map((housing) =>
+          factories
+            .housingOwner({
+              housing,
+              owner: faker.helpers.arrayElement(owners)
+            })
+            .create({ rank: 1 })
+        )
       );
-      await HousingOwners().insert(housingOwners);
       const owner = owners[0];
 
       const actual = await housingRepository.find({
@@ -187,14 +153,13 @@ describe('Housing repository', () => {
     });
 
     it('should include owner only once', async () => {
-      const housings = faker.helpers.multiple(() => genHousingApi());
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
-      const housingOwners = housings.flatMap((housing) =>
-        formatHousingOwnersApi(housing, [owner])
+      const housings = await factories.housing.createList(3);
+      const owner = await factories.owner.create();
+      await Promise.all(
+        housings.map((housing) =>
+          factories.housingOwner({ housing, owner }).create({ rank: 1 })
+        )
       );
-      await HousingOwners().insert(housingOwners);
 
       const actual = await housingRepository.find({
         filters: {
@@ -209,23 +174,25 @@ describe('Housing repository', () => {
     });
 
     it('should include precisions on demand', async () => {
-      const precisions: Precision[] = await Precisions().limit(3);
-      const housings: HousingApi[] = faker.helpers.multiple(
-        () => genHousingApi(),
-        { count: 3 }
-      );
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      const housingPrecisions: HousingPrecisionDBO[] = precisions.flatMap(
-        (precision) => {
-          return housings.map((housing) => ({
-            housing_geo_code: housing.geoCode,
-            housing_id: housing.id,
-            precision_id: precision.id,
-            created_at: new Date()
-          }));
-        }
-      );
-      await HousingPrecisions().insert(housingPrecisions);
+      const precisions = (await kysely
+        .selectFrom('precisions')
+        .selectAll('precisions')
+        .limit(3)
+        .execute()) as Precision[];
+      const housings: HousingApi[] = await factories.housing.createList(3);
+      await kysely
+        .insertInto('housingPrecisions')
+        .values(
+          precisions.flatMap((precision) =>
+            housings.map((housing) => ({
+              housingGeoCode: housing.geoCode,
+              housingId: housing.id,
+              precisionId: precision.id,
+              createdAt: new Date()
+            }))
+          )
+        )
+        .execute();
 
       const actual = await housingRepository.find({
         filters: {
@@ -241,15 +208,17 @@ describe('Housing repository', () => {
 
     describe('Filters', () => {
       it('should filter by housing ids', async () => {
-        const houses: HousingApi[] = faker.helpers
-          .multiple(
+        const houses: HousingApi[] = await Promise.all([
+          ...faker.helpers.multiple(
             () =>
-              genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+              factories.housing.create({
+                geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+              }),
             { count: 4 }
-          )
+          ),
           // Should not return this one
-          .concat(genHousingApi());
-        await Housing().insert(houses.map(formatHousingRecordApi));
+          factories.housing.create()
+        ]);
 
         const actual = await housingRepository.find({
           filters: {
@@ -265,13 +234,9 @@ describe('Housing repository', () => {
       });
 
       it('should exclude housing ids', async () => {
-        const housings: HousingApi[] = faker.helpers.multiple(
-          () => genHousingApi(),
-          { count: 4 }
-        );
+        const housings: HousingApi[] = await factories.housing.createList(4);
         const includedHousings = housings.slice(0, 1);
         const excludedHousings = housings.slice(1);
-        await Housing().insert(housings.map(formatHousingRecordApi));
 
         const actual = await housingRepository.find({
           filters: {
@@ -307,22 +272,26 @@ describe('Housing repository', () => {
             kind: 'METRO'
           };
 
-          await Establishments().insert(
-            formatEstablishmentApi(intercommunality)
-          );
-          const housings: HousingApi[] = [
+          await kysely
+            .insertInto('establishments')
+            .values(toEstablishmentInsert(intercommunality))
+            .execute();
+          const housings: HousingApi[] = await Promise.all([
             ...faker.helpers.multiple(
-              () => genHousingApi(faker.helpers.arrayElement(geoCodes)),
+              () =>
+                factories.housing.create({
+                  geoCode: faker.helpers.arrayElement(geoCodes)
+                }),
               { count: 3 }
             ),
-            ...faker.helpers.multiple(() => genHousingApi(), { count: 3 })
-          ];
-          await Housing().insert(housings.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
-          await Owners().insert(formatOwnerApi(owner));
-          await HousingOwners().insert(
-            housings.flatMap((housing) =>
-              formatHousingOwnersApi(housing, [owner])
+            ...faker.helpers.multiple(() => factories.housing.create(), {
+              count: 3
+            })
+          ]);
+          const owner = await factories.owner.create();
+          await Promise.all(
+            housings.map((housing) =>
+              factories.housingOwner({ housing, owner }).create({ rank: 1 })
             )
           );
         });
@@ -342,16 +311,15 @@ describe('Housing repository', () => {
 
       describe('by occupancy', () => {
         beforeEach(async () => {
-          const housings: HousingApi[] = OCCUPANCY_VALUES.map((occupancy) => ({
-            ...genHousingApi(),
-            occupancy
-          }));
-          await Housing().insert(housings.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
-          await Owners().insert(formatOwnerApi(owner));
-          await HousingOwners().insert(
-            housings.flatMap((housing) =>
-              formatHousingOwnersApi(housing, [owner])
+          const housings: HousingApi[] = await Promise.all(
+            OCCUPANCY_VALUES.map((occupancy) =>
+              factories.housing.create({ occupancy })
+            )
+          );
+          const owner = await factories.owner.create();
+          await Promise.all(
+            housings.map((housing) =>
+              factories.housingOwner({ housing, owner }).create({ rank: 1 })
             )
           );
         });
@@ -401,9 +369,9 @@ describe('Housing repository', () => {
             ...genBuildingApi(),
             dpe: null
           };
+          await factories.building.create(building);
           const housing: HousingApi = genHousingApi(undefined, building);
-          await Buildings().insert(formatBuildingApi(building));
-          await Housing().insert(formatHousingRecordApi(housing));
+          await factories.housing.create(housing);
 
           const actual = await housingRepository.find({
             filters: {
@@ -412,12 +380,17 @@ describe('Housing repository', () => {
           });
 
           expect(actual.length).toBeGreaterThan(0);
-          const buildings = await Buildings().whereIn(
-            'id',
-            actual.map((housing) => housing.buildingId)
-          );
-          expect(buildings).toSatisfyAll<Partial<BuildingDBO>>((building) => {
-            return building.class_dpe === null;
+          const buildings = await kysely
+            .selectFrom('buildings')
+            .selectAll('buildings')
+            .where(
+              'id',
+              'in',
+              actual.map((housing) => housing.buildingId).filter(isDefined)
+            )
+            .execute();
+          expect(buildings).toSatisfyAll((building) => {
+            return building.classDpe === null;
           });
         });
 
@@ -430,9 +403,9 @@ describe('Housing repository', () => {
             if (building.dpe && energyConsumption !== null) {
               building.dpe.class = energyConsumption;
             }
+            await factories.building.create(building);
             const housing = genHousingApi(undefined, building);
-            await Buildings().insert(formatBuildingApi(building));
-            await Housing().insert(formatHousingRecordApi(housing));
+            await factories.housing.create(housing);
 
             const actual = await housingRepository.find({
               filters: {
@@ -440,12 +413,17 @@ describe('Housing repository', () => {
               }
             });
 
-            const buildings = await Buildings().whereIn(
-              'id',
-              actual.map((housing) => housing.buildingId)
-            );
-            expect(buildings).toSatisfyAll<BuildingDBO>((building) => {
-              return building.class_dpe === energyConsumption;
+            const buildings = await kysely
+              .selectFrom('buildings')
+              .selectAll('buildings')
+              .where(
+                'id',
+                'in',
+                actual.map((housing) => housing.buildingId).filter(isDefined)
+              )
+              .execute();
+            expect(buildings).toSatisfyAll((building) => {
+              return building.classDpe === energyConsumption;
             });
           }
         );
@@ -466,11 +444,15 @@ describe('Housing repository', () => {
               return building;
             }
           );
+          await Promise.all(
+            buildings.map((building) => factories.building.create(building))
+          );
           const housings = buildings.map((building) =>
             genHousingApi(undefined, building)
           );
-          await Buildings().insert(buildings.map(formatBuildingApi));
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await Promise.all(
+            housings.map((housing) => factories.housing.create(housing))
+          );
 
           const actual = await housingRepository.find({
             filters: {
@@ -478,26 +460,35 @@ describe('Housing repository', () => {
             }
           });
 
-          const actualBuildings = await Buildings().whereIn(
-            'id',
-            actual.map((housing) => housing.buildingId)
-          );
-          expect(actualBuildings).toSatisfyAll<BuildingDBO>((building) => {
-            return energyConsumptions.includes(building.class_dpe);
+          const actualBuildings = await kysely
+            .selectFrom('buildings')
+            .selectAll('buildings')
+            .where(
+              'id',
+              'in',
+              actual.map((housing) => housing.buildingId).filter(isDefined)
+            )
+            .execute();
+          expect(actualBuildings).toSatisfyAll((building) => {
+            return energyConsumptions.includes(
+              building.classDpe as (typeof energyConsumptions)[number]
+            );
           });
         });
       });
 
       it('should filter by establishment', async () => {
         const otherEstablishment = genEstablishmentApi();
-        await Establishments().insert(
-          formatEstablishmentApi(otherEstablishment)
-        );
-        const houses: HousingApi[] = [
-          genHousingApi(oneOf(establishment.geoCodes)),
-          genHousingApi(oneOf(otherEstablishment.geoCodes))
-        ];
-        await Housing().insert(houses.map(formatHousingRecordApi));
+        await kysely
+          .insertInto('establishments')
+          .values(toEstablishmentInsert(otherEstablishment))
+          .execute();
+        await Promise.all([
+          factories.housing.create({ geoCode: oneOf(establishment.geoCodes) }),
+          factories.housing.create({
+            geoCode: oneOf(otherEstablishment.geoCodes)
+          })
+        ]);
 
         const actual = await housingRepository.find({
           filters: {
@@ -511,33 +502,40 @@ describe('Housing repository', () => {
       });
 
       it('should filter by group', async () => {
-        const groups = faker.helpers.multiple(
-          () => genGroupApi(user, establishment),
-          { count: 2 }
-        );
-        await Groups().insert(groups.map(formatGroupApi));
+        const groups = await factories
+          .group(establishment)
+          .createList(2, {}, { associations: { createdBy: user } });
         const housesByGroup = fp.fromPairs(
-          groups.map((group) => {
-            const houses: HousingApi[] = faker.helpers.multiple(
-              () => genHousingApi(oneOf(establishment.geoCodes)),
-              { count: 3 }
-            );
-            return [group.id, houses];
-          })
+          await Promise.all(
+            groups.map(async (group) => {
+              const houses: HousingApi[] = await Promise.all(
+                faker.helpers.multiple(
+                  () =>
+                    factories.housing.create({
+                      geoCode: oneOf(establishment.geoCodes)
+                    }),
+                  { count: 3 }
+                )
+              );
+              return [group.id, houses] as [string, HousingApi[]];
+            })
+          )
         );
-        const houses: HousingApi[] = fp.values(housesByGroup).flat();
-        await Housing().insert(houses.map(formatHousingRecordApi));
-        await GroupsHousing().insert(
-          groups.flatMap((group) => {
-            return formatGroupHousingApi(
-              group,
+        await kysely
+          .insertInto('groupsHousing')
+          .values(
+            groups.flatMap((group) =>
               manyOf(
                 housesByGroup[group.id],
                 faker.number.int({ min: 1, max: 3 })
-              )
-            );
-          })
-        );
+              ).map((housing) => ({
+                groupId: group.id,
+                housingId: housing.id,
+                housingGeoCode: housing.geoCode
+              }))
+            )
+          )
+          .execute();
         const [firstGroup] = groups;
 
         const actual = await housingRepository.find({
@@ -560,26 +558,34 @@ describe('Housing repository', () => {
           campaigns = await factories
             .campaign(establishment)
             .createList(3, {}, { associations: { createdBy: user } });
-          const campaignHousings = campaigns.map((campaign) => {
-            return {
-              campaign: campaign,
-              housings: faker.helpers.multiple(() => genHousingApi(), {
-                count: 3
-              })
-            };
-          });
-          const housings = campaignHousings.flatMap(({ housings }) => housings);
-          await Housing().insert(housings.map(formatHousingRecordApi));
-          await CampaignsHousing().insert(
-            campaignHousings.flatMap((ch) => {
-              return formatCampaignHousingApi(ch.campaign, ch.housings);
+          const campaignHousings = await Promise.all(
+            campaigns.map(async (campaign) => {
+              return {
+                campaign,
+                housings: await Promise.all(
+                  faker.helpers.multiple(() => factories.housing.create(), {
+                    count: 3
+                  })
+                )
+              };
             })
           );
+          await kysely
+            .insertInto('campaignsHousing')
+            .values(
+              campaignHousings.flatMap((ch) =>
+                ch.housings.map((housing) => ({
+                  campaignId: ch.campaign.id,
+                  housingId: housing.id,
+                  housingGeoCode: housing.geoCode
+                }))
+              )
+            )
+            .execute();
         });
 
         it('should keep housings that are not in a campaign', async () => {
-          const housing = genHousingApi();
-          await Housing().insert(formatHousingRecordApi(housing));
+          await factories.housing.create();
 
           const actual = await housingRepository.find({
             filters: {
@@ -625,23 +631,27 @@ describe('Housing repository', () => {
         }
 
         beforeAll(async () => {
-          const owners: OwnerApi[] = [
-            createOwner(null),
-            createOwner(39),
-            createOwner(40),
-            createOwner(59),
-            createOwner(60),
-            createOwner(74),
-            createOwner(75),
-            createOwner(99),
-            createOwner(100)
-          ];
-          await Owners().insert(owners.map(formatOwnerApi));
-          const housingList: HousingApi[] = owners.map(() => genHousingApi());
-          await Housing().insert(housingList.map(formatHousingRecordApi));
-          await HousingOwners().insert(
-            housingList.flatMap((housing, i) =>
-              formatHousingOwnersApi(housing, owners.slice(i, i + 1))
+          const owners: OwnerApi[] = await Promise.all(
+            [
+              createOwner(null),
+              createOwner(39),
+              createOwner(40),
+              createOwner(59),
+              createOwner(60),
+              createOwner(74),
+              createOwner(75),
+              createOwner(99),
+              createOwner(100)
+            ].map((owner) => factories.owner.create(owner))
+          );
+          const housingList: HousingApi[] = await Promise.all(
+            owners.map(() => factories.housing.create())
+          );
+          await Promise.all(
+            housingList.map((housing, i) =>
+              factories
+                .housingOwner({ housing, owner: owners[i] })
+                .create({ rank: 1 })
             )
           );
         });
@@ -739,22 +749,21 @@ describe('Housing repository', () => {
       });
 
       it('should filter by owner ids', async () => {
-        const housings = faker.helpers.multiple(() => genHousingApi(), {
-          count: 3
-        });
-        await Housing().insert(housings.map(formatHousingRecordApi));
-        await Owners().insert(
-          housings.map((housing) => formatOwnerApi(housing.owner))
+        const housings = await factories.housing.createList(3);
+        const owners = await Promise.all(
+          housings.map(() => factories.owner.create())
         );
-        await HousingOwners().insert(
-          housings.flatMap((housing) =>
-            formatHousingOwnersApi(housing, [housing.owner])
+        await Promise.all(
+          housings.map((housing, i) =>
+            factories
+              .housingOwner({ housing, owner: owners[i] })
+              .create({ rank: 1 })
           )
         );
 
         const actual = await housingRepository.find({
           filters: {
-            ownerIds: housings.map((housing) => housing.owner.id)
+            ownerIds: owners.map((owner) => owner.id)
           }
         });
 
@@ -768,34 +777,25 @@ describe('Housing repository', () => {
         const kinds = OWNER_KIND_VALUES;
 
         beforeEach(async () => {
-          const housings = faker.helpers.multiple(() => genHousingApi(), {
-            count: kinds.length
-          });
-          await Housing().insert(housings.map(formatHousingRecordApi));
-          const owners: OwnerApi[] = Object.values(OWNER_KIND_LABELS).map(
-            (kind, i) => {
-              return { ...housings[i].owner, kind };
-            }
+          const housings = await factories.housing.createList(kinds.length);
+          const owners: OwnerApi[] = await Promise.all(
+            Object.values(OWNER_KIND_LABELS).map((kind) =>
+              factories.owner.create({ kind })
+            )
           );
-          await Owners().insert(owners.map(formatOwnerApi));
-          await HousingOwners().insert(
-            housings.flatMap((housing) =>
-              formatHousingOwnersApi(housing, [housing.owner])
+          await Promise.all(
+            housings.map((housing, i) =>
+              factories
+                .housingOwner({ housing, owner: owners[i] })
+                .create({ rank: 1 })
             )
           );
         });
 
         it('should keep owners that have an empty kind', async () => {
-          const housing = genHousingApi();
-          await Housing().insert(formatHousingRecordApi(housing));
-          const owner: OwnerApi = {
-            ...genOwnerApi(),
-            kind: null
-          };
-          await Owners().insert(formatOwnerApi(owner));
-          await HousingOwners().insert(
-            formatHousingOwnersApi(housing, [owner])
-          );
+          const housing = await factories.housing.create();
+          const owner = await factories.owner.create({ kind: null });
+          await factories.housingOwner({ housing, owner }).create({ rank: 1 });
 
           const actual = await housingRepository.find({
             filters: {
@@ -827,15 +827,11 @@ describe('Housing repository', () => {
         test.each(RELATIVE_LOCATION_VALUES)(
           'should include housing whose primary owner has relative location %s',
           async (relativeLocation) => {
-            const housing = genHousingApi();
-            const owner = genOwnerApi();
-            await Housing().insert(formatHousingRecordApi(housing));
-            await Owners().insert(formatOwnerApi(owner));
-            const [housingOwnerRow] = formatHousingOwnersApi(housing, [owner]);
-            await HousingOwners().insert({
-              ...housingOwnerRow,
-              locprop_relative_ban: toRelativeLocationDBO(relativeLocation)
-            });
+            const housing = await factories.housing.create();
+            const owner = await factories.owner.create();
+            await factories
+              .housingOwner({ housing, owner })
+              .create({ rank: 1, relativeLocation });
             const filter = match(relativeLocation)
               .returnType<RelativeLocationFilter>()
               .with('metropolitan', 'overseas', () => 'other-region')
@@ -848,46 +844,49 @@ describe('Housing repository', () => {
               }
             });
 
-            const actualHousingOwners = await HousingOwners()
-              .where({ rank: 1 })
-              .whereIn(
-                ['housing_geo_code', 'housing_id'],
-                actual.map((housing) => [housing.geoCode, housing.id])
+            const actualHousingOwners = await kysely
+              .selectFrom('ownersHousing')
+              .selectAll('ownersHousing')
+              .where('rank', '=', 1)
+              .where((eb) =>
+                eb(
+                  eb.refTuple('housingGeoCode', 'housingId'),
+                  'in',
+                  actual.map((housing) => eb.tuple(housing.geoCode, housing.id))
+                )
+              )
+              .execute();
+            expect(actualHousingOwners).toSatisfyAll((housingOwner) => {
+              return (
+                housingOwner.locpropRelativeBan !== null &&
+                relativeLocationFilterToDBO(filter).includes(
+                  housingOwner.locpropRelativeBan
+                )
               );
-            expect(actualHousingOwners).toSatisfyAll<HousingOwnerDBO>(
-              (housing) => {
-                return (
-                  housing.locprop_relative_ban !== null &&
-                  relativeLocationFilterToDBO(filter).includes(
-                    housing.locprop_relative_ban
-                  )
-                );
-              }
-            );
+            });
           }
         );
       });
 
       describe('by multi owners', () => {
         beforeEach(async () => {
-          const housings = faker.helpers.multiple(() => genHousingApi(), {
-            count: 3
-          });
-          await Housing().insert(housings.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
-          const anotherOwner = genOwnerApi();
-          await Owners().insert([owner, anotherOwner].map(formatOwnerApi));
-          const housingOwners = housings
-            .slice(0, 2)
-            .flatMap((housing) => formatHousingOwnersApi(housing, [owner]))
-            .concat(
-              housings
-                .slice(2)
-                .flatMap((housing) =>
-                  formatHousingOwnersApi(housing, [anotherOwner])
-                )
-            );
-          await HousingOwners().insert(housingOwners);
+          const housings = await factories.housing.createList(3);
+          const owner = await factories.owner.create();
+          const anotherOwner = await factories.owner.create();
+          await Promise.all([
+            ...housings
+              .slice(0, 2)
+              .map((housing) =>
+                factories.housingOwner({ housing, owner }).create({ rank: 1 })
+              ),
+            ...housings
+              .slice(2)
+              .map((housing) =>
+                factories
+                  .housingOwner({ housing, owner: anotherOwner })
+                  .create({ rank: 1 })
+              )
+          ]);
           await refreshMultiOwnerFlags([owner.id, anotherOwner.id]);
         });
 
@@ -934,27 +933,18 @@ describe('Housing repository', () => {
 
       describe('by beneficiary count', () => {
         beforeEach(async () => {
-          const housings = faker.helpers.multiple(() => genHousingApi(), {
-            count: BENEFIARY_COUNT_VALUES.length
-          });
-          await Housing().insert(housings.map(formatHousingRecordApi));
-          const housingOwners = housings.map((housing, i) => {
-            return {
-              housing,
-              owners: faker.helpers.multiple(() => genOwnerApi(), {
-                count: i
-              })
-            };
-          });
-          const owners = housingOwners.flatMap(
-            (housingOwner) => housingOwner.owners
+          const housings = await factories.housing.createList(
+            BENEFIARY_COUNT_VALUES.length
           );
-          await Owners().insert(owners.map(formatOwnerApi));
-          await HousingOwners().insert(
-            housingOwners.flatMap((housingOwner) => {
-              return formatHousingOwnersApi(
-                housingOwner.housing,
-                housingOwner.owners
+          await Promise.all(
+            housings.map(async (housing, i) => {
+              const owners = await factories.owner.createList(i);
+              await Promise.all(
+                owners.map((owner, rank) =>
+                  factories
+                    .housingOwner({ housing, owner })
+                    .create({ rank: (rank + 1) as OwnerRank })
+                )
               );
             })
           );
@@ -966,7 +956,7 @@ describe('Housing repository', () => {
             return {
               name: `housings that have ${count} active owner(s)`,
               filter: [String(count)],
-              predicate(housingOwners: ReadonlyArray<HousingOwnerDBO>) {
+              predicate(housingOwners: ReadonlyArray<{ rank: number }>) {
                 return (
                   housingOwners.filter((housingOwner) => housingOwner.rank >= 1)
                     .length === count
@@ -977,7 +967,7 @@ describe('Housing repository', () => {
           .concat({
             name: `housings that have 5+ secondary owners`,
             filter: ['gte5'],
-            predicate(housingOwners: ReadonlyArray<HousingOwnerDBO>) {
+            predicate(housingOwners: ReadonlyArray<{ rank: number }>) {
               return (
                 housingOwners.filter((housingOwner) =>
                   isActiveOwnerRank(housingOwner.rank)
@@ -988,8 +978,8 @@ describe('Housing repository', () => {
           .concat({
             name: 'housings that have 0 or 5+ secondary owners',
             filter: ['0', 'gte5'],
-            predicate(housingOwners: ReadonlyArray<HousingOwnerDBO>) {
-              const isActive = (housingOwner: HousingOwnerDBO) =>
+            predicate(housingOwners: ReadonlyArray<{ rank: number }>) {
+              const isActive = (housingOwner: { rank: number }) =>
                 isActiveOwnerRank(housingOwner.rank);
               return (
                 housingOwners.filter(isActive).length === 0 ||
@@ -1006,23 +996,24 @@ describe('Housing repository', () => {
 
           expect(actual.length).toBeGreaterThan(0);
           await async.forEach(actual, async (housing) => {
-            const actualHousingOwners = await HousingOwners().where({
-              housing_geo_code: housing.geoCode,
-              housing_id: housing.id
-            });
-            expect(actualHousingOwners).toSatisfy<
-              ReadonlyArray<HousingOwnerDBO>
-            >(predicate);
+            const actualHousingOwners = await kysely
+              .selectFrom('ownersHousing')
+              .selectAll('ownersHousing')
+              .where('housingGeoCode', '=', housing.geoCode)
+              .where('housingId', '=', housing.id)
+              .execute();
+            expect(actualHousingOwners).toSatisfy(predicate);
           });
         });
       });
 
       describe('by housing kind', () => {
         beforeEach(async () => {
-          const housings = HOUSING_KIND_VALUES.map((kind) => {
-            return { ...genHousingApi(), kind };
-          });
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await Promise.all(
+            HOUSING_KIND_VALUES.map((kind) =>
+              factories.housing.create({ housingKind: kind })
+            )
+          );
         });
 
         test.each(HOUSING_KIND_VALUES)('should filter by %s', async (kind) => {
@@ -1040,15 +1031,11 @@ describe('Housing repository', () => {
 
       describe('by living area', () => {
         beforeEach(async () => {
-          const housingList: HousingApi[] = [
-            { ...genHousingApi(), livingArea: 34 },
-            { ...genHousingApi(), livingArea: 35 },
-            { ...genHousingApi(), livingArea: 74 },
-            { ...genHousingApi(), livingArea: 75 },
-            { ...genHousingApi(), livingArea: 99 },
-            { ...genHousingApi(), livingArea: 100 }
-          ];
-          await Housing().insert(housingList.map(formatHousingRecordApi));
+          await Promise.all(
+            [34, 35, 74, 75, 99, 100].map((livingArea) =>
+              factories.housing.create({ livingArea })
+            )
+          );
         });
 
         const tests = [
@@ -1096,13 +1083,11 @@ describe('Housing repository', () => {
 
       describe('by room count', () => {
         beforeEach(async () => {
-          const housings = faker.helpers
-            .multiple(() => genHousingApi(), { count: 10 })
-            .map((housing, i) => ({
-              ...housing,
-              roomsCount: i + 1
-            }));
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await Promise.all(
+            fp
+              .range(0, 10)
+              .map((i) => factories.housing.create({ roomsCount: i + 1 }))
+          );
         });
 
         const tests = ROOM_COUNT_VALUES.map(Number)
@@ -1143,11 +1128,11 @@ describe('Housing repository', () => {
         ];
 
         beforeAll(async () => {
-          const housings: ReadonlyArray<HousingApi> =
-            cadastralClassifications.map((cadastralClassification) => {
-              return { ...genHousingApi(), cadastralClassification };
-            });
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await Promise.all(
+            cadastralClassifications.map((cadastralClassification) =>
+              factories.housing.create({ cadastralClassification })
+            )
+          );
         });
 
         test.each(cadastralClassifications)(
@@ -1171,15 +1156,11 @@ describe('Housing repository', () => {
 
       describe('by building period', () => {
         beforeEach(async () => {
-          const housings: ReadonlyArray<HousingApi> = [
-            { ...genHousingApi(), buildingYear: 1918 },
-            { ...genHousingApi(), buildingYear: 1919 },
-            { ...genHousingApi(), buildingYear: 1945 },
-            { ...genHousingApi(), buildingYear: 1946 },
-            { ...genHousingApi(), buildingYear: 1990 },
-            { ...genHousingApi(), buildingYear: 1991 }
-          ];
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await Promise.all(
+            [1918, 1919, 1945, 1946, 1990, 1991].map((buildingYear) =>
+              factories.housing.create({ buildingYear })
+            )
+          );
         });
 
         const tests = [
@@ -1245,16 +1226,14 @@ describe('Housing repository', () => {
 
       describe('by vacancy duration', () => {
         beforeEach(async () => {
-          const housingList: HousingApi[] = [
-            ...faker.helpers
-              .multiple(() => genHousingApi(), { count: 16 })
-              .map((housing, i) => ({
-                ...housing,
+          await Promise.all([
+            ...fp.range(0, 16).map((i) =>
+              factories.housing.create({
                 vacancyStartYear: ReferenceDataYear - i
-              })),
-            { ...genHousingApi(), vacancyStartYear: null as number | null }
-          ];
-          await Housing().insert(housingList.map(formatHousingRecordApi));
+              })
+            ),
+            factories.housing.create({ vacancyStartYear: null })
+          ]);
         });
 
         const tests: ReadonlyArray<{
@@ -1330,12 +1309,11 @@ describe('Housing repository', () => {
 
       describe('by taxed', () => {
         beforeEach(async () => {
-          const housings: ReadonlyArray<HousingApi> = [
-            { ...genHousingApi(), taxed: true },
-            { ...genHousingApi(), taxed: false },
-            { ...genHousingApi(), taxed: null }
-          ];
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await Promise.all(
+            [true, false, null].map((taxed) =>
+              factories.housing.create({ taxed })
+            )
+          );
         });
 
         const tests = [
@@ -1365,21 +1343,25 @@ describe('Housing repository', () => {
 
       describe('by ownership kind', () => {
         beforeEach(async () => {
-          const housings: ReadonlyArray<HousingApi> = [
+          const ownershipKinds: ReadonlyArray<string | null> = [
             // Monopropriété
-            { ...genHousingApi(), ownershipKind: 'single' },
-            { ...genHousingApi(), ownershipKind: null },
+            'single',
+            null,
             // Copropriété
-            { ...genHousingApi(), ownershipKind: 'CL' },
-            { ...genHousingApi(), ownershipKind: 'co' },
-            { ...genHousingApi(), ownershipKind: 'CLV' },
-            { ...genHousingApi(), ownershipKind: 'CV' },
+            'CL',
+            'co',
+            'CLV',
+            'CV',
             // Autre
-            { ...genHousingApi(), ownershipKind: 'BND' },
-            { ...genHousingApi(), ownershipKind: 'MP' },
-            { ...genHousingApi(), ownershipKind: 'TF' }
+            'BND',
+            'MP',
+            'TF'
           ];
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await Promise.all(
+            ownershipKinds.map((ownershipKind) =>
+              factories.housing.create({ ownershipKind })
+            )
+          );
         });
 
         const tests: ReadonlyArray<{
@@ -1471,37 +1453,34 @@ describe('Housing repository', () => {
       });
 
       describe('by housing count by building', () => {
-        function createHousingByBuilding(building: BuildingApi): HousingApi[] {
-          return faker.helpers.multiple(
-            () => ({
-              ...genHousingApi(),
-              buildingId: building.id
-            }),
-            { count: building.housingCount }
+        async function createHousingByBuilding(
+          building: BuildingApi
+        ): Promise<HousingApi[]> {
+          return Promise.all(
+            faker.helpers.multiple(
+              () => factories.housing.create({ buildingId: building.id }),
+              { count: building.housingCount }
+            )
           );
         }
 
         beforeEach(async () => {
           const testAmounts = [4, 5, 19, 20, 49, 50];
 
-          const buildings: BuildingApi[] = testAmounts.map((amount) => {
-            return {
-              ...genBuildingApi(),
-              housingCount: amount
-            };
-          });
-          await Buildings().insert(buildings.map(formatBuildingApi));
+          const buildings: BuildingApi[] = await Promise.all(
+            testAmounts.map((amount) =>
+              factories.building.create({ housingCount: amount })
+            )
+          );
 
-          const housingByBuilding: HousingApi[][] = buildings.map((building) =>
-            createHousingByBuilding(building)
+          const housingByBuilding: HousingApi[][] = await Promise.all(
+            buildings.map((building) => createHousingByBuilding(building))
           );
           const housingList = housingByBuilding.flat();
-          await Housing().insert(housingList.map(formatHousingRecordApi));
-          const owner = genOwnerApi();
-          await Owners().insert(formatOwnerApi(owner));
-          await HousingOwners().insert(
-            housingList.flatMap((housing) =>
-              formatHousingOwnersApi(housing, [owner])
+          const owner = await factories.owner.create();
+          await Promise.all(
+            housingList.map((housing) =>
+              factories.housingOwner({ housing, owner }).create({ rank: 1 })
             )
           );
         });
@@ -1510,28 +1489,28 @@ describe('Housing repository', () => {
           {
             name: 'less than 5',
             filter: ['lt5'],
-            predicate: (building: BuildingApi) => {
+            predicate: (building: { housingCount: number }) => {
               return building.housingCount < 5;
             }
           },
           {
             name: 'between 5 and 19',
             filter: ['5to19'],
-            predicate: (building: BuildingApi) => {
+            predicate: (building: { housingCount: number }) => {
               return 5 <= building.housingCount && building.housingCount <= 19;
             }
           },
           {
             name: 'between 20 and 49',
             filter: ['20to49'],
-            predicate: (building: BuildingApi) => {
+            predicate: (building: { housingCount: number }) => {
               return 20 <= building.housingCount && building.housingCount <= 49;
             }
           },
           {
             name: '50 and more',
             filter: ['gte50'],
-            predicate: (building: BuildingApi) => {
+            predicate: (building: { housingCount: number }) => {
               return building.housingCount >= 50;
             }
           }
@@ -1548,10 +1527,12 @@ describe('Housing repository', () => {
           const ids = fp.uniq(
             actual.map((housing) => housing.buildingId).filter(isDefined)
           );
-          const buildings = await Buildings()
-            .whereIn('id', ids)
-            .then((buildings) => buildings.map(parseBuildingApi));
-          expect(buildings).toSatisfyAll<BuildingApi>(predicate);
+          const buildings = await kysely
+            .selectFrom('buildings')
+            .selectAll('buildings')
+            .where('id', 'in', ids)
+            .execute();
+          expect(buildings).toSatisfyAll(predicate);
         });
 
         it('should not crash when combined with the buildings include (both join buildings)', async () => {
@@ -1601,36 +1582,46 @@ describe('Housing repository', () => {
             { vacant: 8, total: 10 }
           ];
 
-          const buildings: BuildingApi[] = testAmounts.map(
-            ({ vacant, total }) => {
-              return {
-                ...genBuildingApi(),
+          const buildings: BuildingApi[] = await Promise.all(
+            testAmounts.map(({ vacant, total }) =>
+              factories.building.create({
                 vacantHousingCount: vacant,
                 housingCount: total
-              };
-            }
+              })
+            )
           );
-          await Buildings().insert(buildings.map(formatBuildingApi));
 
           const housingByBuilding: HousingApi[][] = buildings.map((building) =>
             createHousingByBuilding(building)
           );
           const housingList = housingByBuilding.flat();
-          await Housing().insert(housingList.map(formatHousingRecordApi));
+          // 440 rows: bulk-insert directly instead of factories.housing.create,
+          // which would be far too slow for this volume.
+          for (const chunk of fp.chunk(500, housingList)) {
+            await kysely
+              .insertInto('fastHousing')
+              .values(chunk.map(toHousingInsert))
+              .execute();
+          }
         });
+
+        type BuildingCounts = {
+          vacantHousingCount: number;
+          housingCount: number;
+        };
 
         const tests = [
           {
             name: 'less than 20 %',
             filter: ['lt20'],
-            predicate: (building: BuildingApi) => {
+            predicate: (building: BuildingCounts) => {
               return building.vacantHousingCount / building.housingCount < 0.2;
             }
           },
           {
             name: 'between 20 and 39 %',
             filter: ['20to39'],
-            predicate: (building: BuildingApi) => {
+            predicate: (building: BuildingCounts) => {
               const rate = building.vacantHousingCount / building.housingCount;
               return 0.2 <= rate && rate <= 0.39;
             }
@@ -1638,7 +1629,7 @@ describe('Housing repository', () => {
           {
             name: 'between 40 and 59 %',
             filter: ['40to59'],
-            predicate: (building: BuildingApi) => {
+            predicate: (building: BuildingCounts) => {
               const rate = building.vacantHousingCount / building.housingCount;
               return 0.4 <= rate && rate <= 0.59;
             }
@@ -1646,7 +1637,7 @@ describe('Housing repository', () => {
           {
             name: 'between 60 and 79 %',
             filter: ['60to79'],
-            predicate: (building: BuildingApi) => {
+            predicate: (building: BuildingCounts) => {
               const rate = building.vacantHousingCount / building.housingCount;
               return 0.6 <= rate && rate <= 0.79;
             }
@@ -1654,7 +1645,7 @@ describe('Housing repository', () => {
           {
             name: '80 % and more',
             filter: ['gte80'],
-            predicate: (building: BuildingApi) => {
+            predicate: (building: BuildingCounts) => {
               return building.vacantHousingCount / building.housingCount >= 0.8;
             }
           }
@@ -1671,10 +1662,12 @@ describe('Housing repository', () => {
           const ids = fp.uniq(
             actual.map((housing) => housing.buildingId).filter(isDefined)
           );
-          const buildings = await Buildings()
-            .whereIn('id', ids)
-            .then((buildings) => buildings.map(parseBuildingApi));
-          expect(buildings).toSatisfyAll<BuildingApi>(predicate);
+          const buildings = await kysely
+            .selectFrom('buildings')
+            .selectAll('buildings')
+            .where('id', 'in', ids)
+            .execute();
+          expect(buildings).toSatisfyAll(predicate);
         });
       });
 
@@ -1682,8 +1675,9 @@ describe('Housing repository', () => {
         const geoCodes = ['12345', '23456', '34567'];
 
         beforeEach(async () => {
-          const housings = geoCodes.map((geoCode) => genHousingApi(geoCode));
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await Promise.all(
+            geoCodes.map((geoCode) => factories.housing.create({ geoCode }))
+          );
         });
 
         test.each(geoCodes)(
@@ -1709,9 +1703,11 @@ describe('Housing repository', () => {
             ...genLocalityApi(),
             kind: null
           };
-          await Localities().insert(formatLocalityApi(locality));
-          const housing = genHousingApi(locality.geoCode);
-          await Housing().insert(formatHousingRecordApi(housing));
+          await kysely
+            .insertInto('localities')
+            .values(toLocalityInsert(locality))
+            .execute();
+          await factories.housing.create({ geoCode: locality.geoCode });
 
           const actual = await housingRepository.find({
             filters: {
@@ -1719,12 +1715,15 @@ describe('Housing repository', () => {
             }
           });
 
-          const actualLocalities =
-            await Localities().whereNull('locality_kind');
+          const actualLocalities = await kysely
+            .selectFrom('localities')
+            .selectAll('localities')
+            .where('localityKind', 'is', null)
+            .execute();
           expect(actual.length).toBeGreaterThan(0);
           expect(actual).toSatisfyAll<HousingApi>((housing) => {
             return actualLocalities.some(
-              (locality) => locality.geo_code === housing.geoCode
+              (locality) => locality.geoCode === housing.geoCode
             );
           });
         });
@@ -1734,15 +1733,19 @@ describe('Housing repository', () => {
             { ...genLocalityApi(), kind: 'ACV' },
             { ...genLocalityApi(), kind: 'PVD' }
           ];
-          await Localities().insert(localities.map(formatLocalityApi));
-          const housingList = faker.helpers.multiple(
-            () => {
-              const geoCode = oneOf(localities).geoCode;
-              return genHousingApi(geoCode);
-            },
-            { count: 10 }
+          await kysely
+            .insertInto('localities')
+            .values(localities.map(toLocalityInsert))
+            .execute();
+          await Promise.all(
+            faker.helpers.multiple(
+              () =>
+                factories.housing.create({
+                  geoCode: oneOf(localities).geoCode
+                }),
+              { count: 10 }
+            )
           );
-          await Housing().insert(housingList.map(formatHousingRecordApi));
 
           const actual = await housingRepository.find({
             filters: {
@@ -1750,13 +1753,14 @@ describe('Housing repository', () => {
             }
           });
 
-          const actualLocalities = await Localities().whereIn('locality_kind', [
-            'ACV',
-            'PVD'
-          ]);
+          const actualLocalities = await kysely
+            .selectFrom('localities')
+            .selectAll('localities')
+            .where('localityKind', 'in', ['ACV', 'PVD'])
+            .execute();
           expect(actual).toSatisfyAll<HousingApi>((housing) =>
             actualLocalities
-              .map((locality) => locality.geo_code)
+              .map((locality) => locality.geoCode)
               .includes(housing.geoCode)
           );
         });
@@ -1779,13 +1783,15 @@ describe('Housing repository', () => {
             ...genGeoPerimeterApi(establishment.id, user),
             geometry: box.geometry
           };
-          await GeoPerimeters().insert(formatGeoPerimeterApi(perimeter));
-          const housings: ReadonlyArray<HousingApi> = [
-            { ...genHousingApi(), longitude: 2.5, latitude: 48.5 },
-            { ...genHousingApi(), longitude: 2, latitude: 47.9 },
-            { ...genHousingApi(), longitude: 1.9, latitude: 48 }
-          ];
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await kysely
+            .insertInto('geoPerimeters')
+            .values(toGeoPerimeterInsert(perimeter))
+            .execute();
+          await Promise.all([
+            factories.housing.create({ longitude: 2.5, latitude: 48.5 }),
+            factories.housing.create({ longitude: 2, latitude: 47.9 }),
+            factories.housing.create({ longitude: 1.9, latitude: 48 })
+          ]);
 
           const actual = await housingRepository.find({
             filters: {
@@ -1822,13 +1828,15 @@ describe('Housing repository', () => {
             ...genGeoPerimeterApi(establishment.id, user),
             geometry: box.geometry
           };
-          await GeoPerimeters().insert(formatGeoPerimeterApi(perimeter));
-          const housings: ReadonlyArray<HousingApi> = [
-            { ...genHousingApi(), longitude: 2.5, latitude: 48.5 },
-            { ...genHousingApi(), longitude: 2, latitude: 47.9 },
-            { ...genHousingApi(), longitude: 1.9, latitude: 48 }
-          ];
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await kysely
+            .insertInto('geoPerimeters')
+            .values(toGeoPerimeterInsert(perimeter))
+            .execute();
+          await Promise.all([
+            factories.housing.create({ longitude: 2.5, latitude: 48.5 }),
+            factories.housing.create({ longitude: 2, latitude: 47.9 }),
+            factories.housing.create({ longitude: 1.9, latitude: 48 })
+          ]);
 
           const actual = await housingRepository.find({
             filters: {
@@ -1850,17 +1858,11 @@ describe('Housing repository', () => {
 
       describe('by included data file year', () => {
         beforeEach(async () => {
-          const housings = faker.helpers.multiple(() => genHousingApi(), {
-            count: 10
-          });
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await factories.housing.createList(10);
         });
 
         it('should keep housings that have no data file years', async () => {
-          const housings: ReadonlyArray<HousingApi> = [
-            { ...genHousingApi(), dataFileYears: [] }
-          ];
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await factories.housing.create({ dataFileYears: [] });
 
           const actual = await housingRepository.find({
             filters: {
@@ -1899,19 +1901,16 @@ describe('Housing repository', () => {
         });
 
         it('should keep housings with source datafoncier-manual when datafoncier-manual is included', async () => {
-          const housings: ReadonlyArray<HousingApi> = [
-            {
-              ...genHousingApi(),
+          await Promise.all([
+            factories.housing.create({
               source: 'datafoncier-manual',
               dataFileYears: ['ff-2024']
-            },
-            {
-              ...genHousingApi(),
+            }),
+            factories.housing.create({
               source: 'lovac',
               dataFileYears: ['lovac-2024']
-            }
-          ];
-          await Housing().insert(housings.map(formatHousingRecordApi));
+            })
+          ]);
 
           const actual = await housingRepository.find({
             filters: {
@@ -1927,18 +1926,10 @@ describe('Housing repository', () => {
       });
 
       describe('by excluded data file year', () => {
-        beforeEach(() => {
-          const housings = faker.helpers.multiple(() => genHousingApi(), {
-            count: 10
-          });
-          return Housing().insert(housings.map(formatHousingRecordApi));
-        });
+        beforeEach(() => factories.housing.createList(10));
 
         it('should skip housings that have no data file years', async () => {
-          const housings: ReadonlyArray<HousingApi> = [
-            { ...genHousingApi(), dataFileYears: [] }
-          ];
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await factories.housing.create({ dataFileYears: [] });
 
           const actual = await housingRepository.find({
             filters: {
@@ -1974,19 +1965,16 @@ describe('Housing repository', () => {
         });
 
         it('should exclude housings with source datafoncier-manual when datafoncier-manual is excluded', async () => {
-          const housings: ReadonlyArray<HousingApi> = [
-            {
-              ...genHousingApi(),
+          await Promise.all([
+            factories.housing.create({
               source: 'datafoncier-manual',
               dataFileYears: ['ff-2024']
-            },
-            {
-              ...genHousingApi(),
+            }),
+            factories.housing.create({
               source: 'lovac',
               dataFileYears: ['lovac-2024']
-            }
-          ];
-          await Housing().insert(housings.map(formatHousingRecordApi));
+            })
+          ]);
 
           const actual = await housingRepository.find({
             filters: {
@@ -2006,26 +1994,18 @@ describe('Housing repository', () => {
         // datafoncier-manual housing with non-empty data file years must still be
         // excluded — it must not slip through via the "has data file years" arm.
         it('should combine null and datafoncier-manual exclusions with AND', async () => {
-          const manualWithYears: HousingApi = {
-            ...genHousingApi(),
+          const manualWithYears = await factories.housing.create({
             source: 'datafoncier-manual',
             dataFileYears: ['ff-2024']
-          };
-          const lovacWithYears: HousingApi = {
-            ...genHousingApi(),
+          });
+          const lovacWithYears = await factories.housing.create({
             source: 'lovac',
             dataFileYears: ['lovac-2024']
-          };
-          const lovacWithoutYears: HousingApi = {
-            ...genHousingApi(),
+          });
+          const lovacWithoutYears = await factories.housing.create({
             source: 'lovac',
             dataFileYears: []
-          };
-          await Housing().insert(
-            [manualWithYears, lovacWithYears, lovacWithoutYears].map(
-              formatHousingRecordApi
-            )
-          );
+          });
 
           const actual = await housingRepository.find({
             filters: {
@@ -2052,12 +2032,11 @@ describe('Housing repository', () => {
 
       describe('by status', () => {
         beforeEach(async () => {
-          const housings: ReadonlyArray<HousingApi> = HOUSING_STATUS_VALUES.map(
-            (status) => {
-              return { ...genHousingApi(), status };
-            }
+          await Promise.all(
+            HOUSING_STATUS_VALUES.map((status) =>
+              factories.housing.create({ status })
+            )
           );
-          await Housing().insert(housings.map(formatHousingRecordApi));
         });
 
         test.each(HOUSING_STATUS_VALUES)(
@@ -2081,11 +2060,10 @@ describe('Housing repository', () => {
         const substatus = 'Intervention publique';
 
         beforeEach(async () => {
-          const housings: ReadonlyArray<HousingApi> = [
-            { ...genHousingApi(), subStatus: substatus },
-            { ...genHousingApi(), subStatus: 'Autre' }
-          ];
-          await Housing().insert(housings.map(formatHousingRecordApi));
+          await Promise.all([
+            factories.housing.create({ subStatus: substatus }),
+            factories.housing.create({ subStatus: 'Autre' })
+          ]);
         });
 
         it(`should keep housings with substatus "${substatus}"`, async () => {
@@ -2103,18 +2081,13 @@ describe('Housing repository', () => {
       });
 
       it('should query by an owner’s name', async () => {
-        const housingList = faker.helpers.multiple(() => genHousingApi(), {
-          count: 10
-        });
-        await Housing().insert(housingList.map(formatHousingRecordApi));
-        const owner: OwnerApi = {
-          ...genOwnerApi(),
+        const housingList = await factories.housing.createList(10);
+        const owner = await factories.owner.create({
           fullName: 'Jean Dupont'
-        };
-        await Owners().insert(formatOwnerApi(owner));
-        await HousingOwners().insert(
-          housingList.flatMap((housing) =>
-            formatHousingOwnersApi(housing, [owner])
+        });
+        await Promise.all(
+          housingList.map((housing) =>
+            factories.housingOwner({ housing, owner }).create({ rank: 1 })
           )
         );
         const query = 'Dupon';
@@ -2133,30 +2106,32 @@ describe('Housing repository', () => {
       describe('Mutation', () => {
         describe('by last mutation year', () => {
           beforeAll(async () => {
-            function createHousingWithMutation(year: number): HousingApi {
+            function createHousingWithMutation(
+              year: number
+            ): Promise<HousingApi> {
               const date = faker.date.between({
                 from: year.toString(),
                 to: endOfYear(year.toString())
               });
               const bool = faker.datatype.boolean();
-              return {
-                ...genHousingApi(),
+              return factories.housing.create({
                 lastTransactionDate: bool ? date.toJSON() : null,
                 lastMutationDate: bool ? null : date.toJSON()
-              };
+              });
             }
 
-            const housings: HousingApi[] = [];
+            const years: number[] = [];
             for (let i = 2000; i <= 2024; i++) {
-              housings.push(createHousingWithMutation(i));
+              years.push(i);
             }
-            housings.push({
-              ...genHousingApi(),
-              lastMutationDate: null,
-              lastTransactionDate: null,
-              lastTransactionValue: null
-            });
-            await Housing().insert(housings.map(formatHousingRecordApi));
+            await Promise.all([
+              ...years.map((year) => createHousingWithMutation(year)),
+              factories.housing.create({
+                lastMutationDate: null,
+                lastTransactionDate: null,
+                lastTransactionValue: null
+              })
+            ]);
           });
 
           const tests: ReadonlyArray<{
@@ -2293,35 +2268,37 @@ describe('Housing repository', () => {
           beforeAll(async () => {
             async function createHousings(
               types: ReadonlyArray<HousingApi['lastMutationType']>
-            ): Promise<ReadonlyArray<HousingApi>> {
-              const housings = types.map((type) => {
-                return match(type)
-                  .returnType<HousingApi>()
-                  .with('donation', () => ({
-                    ...genHousingApi(),
-                    lastMutationType: type,
-                    lastMutationDate: '2024-01-01',
-                    lastTransactionDate: '2020-01-01',
-                    lastTransactionValue: null
-                  }))
-                  .with('sale', () => ({
-                    ...genHousingApi(),
-                    lastMutationType: type,
-                    lastMutationDate: '2023-01-01',
-                    lastTransactionDate: '2024-01-01',
-                    lastTransactionValue: 1_000_000
-                  }))
-                  .with(null, () => ({
-                    ...genHousingApi(),
-                    lastMutationType: type,
-                    lastMutationDate: null,
-                    lastTransactionDate: null,
-                    lastTransactionValue: null
-                  }))
-                  .exhaustive();
-              });
-              await Housing().insert(housings.map(formatHousingRecordApi));
-              return housings;
+            ): Promise<void> {
+              await Promise.all(
+                types.map((type) =>
+                  match(type)
+                    .with('donation', () =>
+                      factories.housing.create({
+                        lastMutationType: type,
+                        lastMutationDate: '2024-01-01',
+                        lastTransactionDate: '2020-01-01',
+                        lastTransactionValue: null
+                      })
+                    )
+                    .with('sale', () =>
+                      factories.housing.create({
+                        lastMutationType: type,
+                        lastMutationDate: '2023-01-01',
+                        lastTransactionDate: '2024-01-01',
+                        lastTransactionValue: 1_000_000
+                      })
+                    )
+                    .with(null, () =>
+                      factories.housing.create({
+                        lastMutationType: type,
+                        lastMutationDate: null,
+                        lastTransactionDate: null,
+                        lastTransactionValue: null
+                      })
+                    )
+                    .exhaustive()
+                )
+              );
             }
 
             await createHousings(['sale', 'donation', null]);
@@ -2415,12 +2392,9 @@ describe('Housing repository', () => {
               >
             >
           ): Promise<ReadonlyArray<HousingApi>> {
-            const housings = payloads.map((payload) => ({
-              ...genHousingApi(),
-              ...payload
-            }));
-            await Housing().insert(housings.map(formatHousingRecordApi));
-            return housings;
+            return Promise.all(
+              payloads.map((payload) => factories.housing.create(payload))
+            );
           }
 
           it('should keep housings that were donated in 2024', async () => {
@@ -2604,17 +2578,17 @@ describe('Housing repository', () => {
         let targetOwner: OwnerApi;
 
         beforeEach(async () => {
-          const housing1 = genHousingApi(geoCode);
-          const housing2 = genHousingApi(geoCode);
-          targetOwner = genOwnerApi();
-          const otherOwner = genOwnerApi();
-          await Housing().insert(
-            [housing1, housing2].map(formatHousingRecordApi)
-          );
-          await Owners().insert([targetOwner, otherOwner].map(formatOwnerApi));
-          await HousingOwners().insert([
-            ...formatHousingOwnersApi(housing1, [targetOwner]),
-            ...formatHousingOwnersApi(housing2, [otherOwner])
+          const housing1 = await factories.housing.create({ geoCode });
+          const housing2 = await factories.housing.create({ geoCode });
+          targetOwner = await factories.owner.create();
+          const otherOwner = await factories.owner.create();
+          await Promise.all([
+            factories
+              .housingOwner({ housing: housing1, owner: targetOwner })
+              .create({ rank: 1 }),
+            factories
+              .housingOwner({ housing: housing2, owner: otherOwner })
+              .create({ rank: 1 })
           ]);
         });
 
@@ -2633,21 +2607,21 @@ describe('Housing repository', () => {
         const geoCode = oneOf(establishment.geoCodes);
 
         beforeEach(async () => {
-          const multiHousing1 = genHousingApi(geoCode);
-          const multiHousing2 = genHousingApi(geoCode);
-          const singleHousing = genHousingApi(geoCode);
-          const multiOwner = genOwnerApi();
-          const singleOwner = genOwnerApi();
-          await Housing().insert(
-            [multiHousing1, multiHousing2, singleHousing].map(
-              formatHousingRecordApi
-            )
-          );
-          await Owners().insert([multiOwner, singleOwner].map(formatOwnerApi));
-          await HousingOwners().insert([
-            ...formatHousingOwnersApi(multiHousing1, [multiOwner]),
-            ...formatHousingOwnersApi(multiHousing2, [multiOwner]),
-            ...formatHousingOwnersApi(singleHousing, [singleOwner])
+          const multiHousing1 = await factories.housing.create({ geoCode });
+          const multiHousing2 = await factories.housing.create({ geoCode });
+          const singleHousing = await factories.housing.create({ geoCode });
+          const multiOwner = await factories.owner.create();
+          const singleOwner = await factories.owner.create();
+          await Promise.all([
+            factories
+              .housingOwner({ housing: multiHousing1, owner: multiOwner })
+              .create({ rank: 1 }),
+            factories
+              .housingOwner({ housing: multiHousing2, owner: multiOwner })
+              .create({ rank: 1 }),
+            factories
+              .housingOwner({ housing: singleHousing, owner: singleOwner })
+              .create({ rank: 1 })
           ]);
           await refreshMultiOwnerFlags([multiOwner.id, singleOwner.id]);
         });
@@ -2669,19 +2643,21 @@ describe('Housing repository', () => {
         let housingIds: string[];
 
         beforeEach(async () => {
-          const housingWith2 = genHousingApi(geoCode);
-          const housingWith1 = genHousingApi(geoCode);
+          const housingWith2 = await factories.housing.create({ geoCode });
+          const housingWith1 = await factories.housing.create({ geoCode });
           housingIds = [housingWith2.id, housingWith1.id];
-          const owners = faker.helpers.multiple(() => genOwnerApi(), {
-            count: 3
-          });
-          await Housing().insert(
-            [housingWith2, housingWith1].map(formatHousingRecordApi)
-          );
-          await Owners().insert(owners.map(formatOwnerApi));
-          await HousingOwners().insert([
-            ...formatHousingOwnersApi(housingWith2, owners.slice(0, 2)),
-            ...formatHousingOwnersApi(housingWith1, owners.slice(2, 3))
+          const owners = await factories.owner.createList(3);
+          await Promise.all([
+            ...owners
+              .slice(0, 2)
+              .map((owner, rank) =>
+                factories
+                  .housingOwner({ housing: housingWith2, owner })
+                  .create({ rank: (rank + 1) as OwnerRank })
+              ),
+            factories
+              .housingOwner({ housing: housingWith1, owner: owners[2] })
+              .create({ rank: 1 })
           ]);
         });
 
@@ -2705,10 +2681,13 @@ describe('Housing repository', () => {
     const address: AddressApi = genAddressApi(owner.id, AddressKinds.Owner);
 
     beforeAll(async () => {
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Owners().insert(formatOwnerApi(owner));
-      await HousingOwners().insert(formatHousingOwnersApi(housing, [owner]));
-      await Addresses().insert(formatAddressApi(address));
+      await factories.housing.create(housing);
+      await factories.owner.create(owner);
+      await factories.housingOwner({ housing, owner }).create({ rank: 1 });
+      await kysely
+        .insertInto('banAddresses')
+        .values(toAddressInsert(address))
+        .execute();
     });
 
     it('should find by id', async () => {
@@ -2775,13 +2754,16 @@ describe('Housing repository', () => {
   });
 
   describe('stream', () => {
-    const houses: HousingApi[] = faker.helpers.multiple(
-      () => genHousingApi(oneOf(establishment.geoCodes)),
-      { count: 5 }
-    );
-
     beforeAll(async () => {
-      await Housing().insert(houses.map(formatHousingRecordApi));
+      await Promise.all(
+        faker.helpers.multiple(
+          () =>
+            factories.housing.create({
+              geoCode: oneOf(establishment.geoCodes)
+            }),
+          { count: 5 }
+        )
+      );
     });
 
     it('should stream a list of housing', async () => {
@@ -2806,13 +2788,12 @@ describe('Housing repository', () => {
       const geoCode = oneOf(establishment.geoCodes);
       const building = genBuildingApi({ hasEnergyConsumption: true });
       building.dpe!.class = 'F';
-      const housing: HousingApi = {
-        ...genHousingApi(geoCode, building),
+      await factories.building.create(building);
+      const housing = await factories.housing.create({
+        geoCode,
+        buildingId: building.id,
         energyConsumption: 'A'
-      };
-
-      await Buildings().insert(formatBuildingApi(building));
-      await Housing().insert(formatHousingRecordApi(housing));
+      });
 
       const stream = housingRepository.stream({
         filters: { localities: [geoCode] },
@@ -2834,13 +2815,18 @@ describe('Housing repository', () => {
 
       await housingRepository.save(housing);
 
-      const actual = await Housing().where('id', housing.id).first();
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
       expect(actual).toBeDefined();
     });
 
     it('should update all fields of an existing housing', async () => {
-      const original = genHousingApi(oneOf(establishment.geoCodes));
-      await Housing().insert(formatHousingRecordApi(original));
+      const original = await factories.housing.create({
+        geoCode: oneOf(establishment.geoCodes)
+      });
       const update: HousingApi = {
         ...original,
         occupancy: Occupancy.RENT,
@@ -2849,21 +2835,24 @@ describe('Housing repository', () => {
 
       await housingRepository.save(update, { onConflict: 'merge' });
 
-      const actual = await Housing().where('id', original.id).first();
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('id', '=', original.id)
+        .executeTakeFirst();
       expect(actual).toBeDefined();
       expect(actual).toMatchObject({
         occupancy: update.occupancy,
-        occupancy_intended: update.occupancyIntended
+        occupancyIntended: update.occupancyIntended
       });
     });
 
     it('should update specific fields of an existing housing', async () => {
-      const original: HousingApi = {
-        ...genHousingApi(oneOf(establishment.geoCodes)),
+      const original = await factories.housing.create({
+        geoCode: oneOf(establishment.geoCodes),
         occupancy: Occupancy.VACANT,
         occupancyIntended: Occupancy.RENT
-      };
-      await Housing().insert(formatHousingRecordApi(original));
+      });
       const update: HousingApi = {
         ...original,
         occupancy: Occupancy.RENT,
@@ -2875,44 +2864,53 @@ describe('Housing repository', () => {
         merge: ['occupancy']
       });
 
-      const actual = await Housing().where('id', original.id).first();
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('id', '=', original.id)
+        .executeTakeFirst();
       expect(actual).toBeDefined();
       expect(actual).toMatchObject({
         occupancy: update.occupancy,
-        occupancy_intended: original.occupancyIntended
+        occupancyIntended: original.occupancyIntended
       });
     });
 
     it('should preserve read-only columns (plot_area, occupancy_history) on a merge-all upsert', async () => {
       const original = genHousingApi(oneOf(establishment.geoCodes));
-      // plot_area/occupancy_history are LOVAC-imported and never written by the
+      // plotArea/occupancyHistory are LOVAC-imported and never written by the
       // API path (toHousingInsert forces them to null), so seed them directly.
-      await Housing().insert({
-        ...formatHousingRecordApi(original),
-        plot_area: 500,
-        occupancy_history: 'V;2020'
-      });
+      await kysely
+        .insertInto('fastHousing')
+        .values({
+          ...toHousingInsert(original),
+          plotArea: 500,
+          occupancyHistory: 'V;2020'
+        })
+        .execute();
       const update: HousingApi = { ...original, occupancy: Occupancy.RENT };
 
       await housingRepository.save(update, { onConflict: 'merge' });
 
-      const actual = await Housing().where('id', original.id).first();
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('id', '=', original.id)
+        .executeTakeFirst();
       expect(actual).toMatchObject({
         occupancy: update.occupancy,
-        plot_area: 500,
-        occupancy_history: 'V;2020'
+        plotArea: 500,
+        occupancyHistory: 'V;2020'
       });
     });
   });
 
   describe('updateMany', () => {
     it('should remove the substatus correctly', async () => {
-      const housing: HousingApi = {
-        ...genHousingApi(),
+      const housing = await factories.housing.create({
         status: HousingStatus.FIRST_CONTACT,
         subStatus: 'N’habite pas à l’adresse indiquée'
-      };
-      await Housing().insert(formatHousingRecordApi(housing));
+      });
 
       await housingRepository.updateMany(
         [{ geoCode: housing.geoCode, id: housing.id }],
@@ -2922,55 +2920,66 @@ describe('Housing repository', () => {
         }
       );
 
-      const actual = await Housing()
-        .where({ geo_code: housing.geoCode, id: housing.id })
-        .first();
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
       expect(actual).toMatchObject({
         status: HousingStatus.NEVER_CONTACTED,
-        sub_status: null
+        subStatus: null
       });
     });
   });
 
   describe('remove', () => {
     it('should remove the links with a campaign in cascade', async () => {
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create();
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await CampaignsHousing().insert(
-        formatCampaignHousingApi(campaign, [housing])
-      );
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
 
       await housingRepository.remove(housing);
 
-      const actual = await CampaignsHousing().where({
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
-      });
+      const actual = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('housingGeoCode', '=', housing.geoCode)
+        .where('housingId', '=', housing.id)
+        .execute();
       expect(actual).toBeArrayOfSize(0);
     });
   });
 
   it('should save null values', async () => {
-    const housing: HousingApi = {
-      ...genHousingApi(),
+    const housing = await factories.housing.create({
       subStatus: 'Sortie de la vacance'
-    };
-    await Housing().insert(formatHousingRecordApi(housing));
+    });
 
-    await Housing()
-      .where({ geo_code: housing.geoCode, id: housing.id })
-      .update({
-        sub_status: null
-      });
+    await kysely
+      .updateTable('fastHousing')
+      .set({ subStatus: null })
+      .where('geoCode', '=', housing.geoCode)
+      .where('id', '=', housing.id)
+      .execute();
 
-    const actual = await Housing()
-      .where({ geo_code: housing.geoCode, id: housing.id })
-      .first();
+    const actual = await kysely
+      .selectFrom('fastHousing')
+      .selectAll('fastHousing')
+      .where('geoCode', '=', housing.geoCode)
+      .where('id', '=', housing.id)
+      .executeTakeFirst();
     expect(actual).toMatchObject({
-      sub_status: null
+      subStatus: null
     });
   });
 });

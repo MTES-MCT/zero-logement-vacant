@@ -5,7 +5,11 @@ import {
   Occupancy,
   type EventType
 } from '@zerologementvacant/models';
+import type { Selectable } from 'kysely';
 
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import {
   CampaignEventApi,
   CampaignHousingEventApi,
@@ -19,248 +23,261 @@ import {
   PerimeterHousingEventApi,
   PrecisionHousingEventApi
 } from '~/models/EventApi';
+import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
+import { OwnerApi } from '~/models/OwnerApi';
 import type { PrecisionApi } from '~/models/PrecisionApi';
-import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
+import { UserApi } from '~/models/UserApi';
+import { toDocumentInsert } from '~/repositories/documentRepository';
 import eventRepository, {
-  CampaignEvents,
-  CampaignHousingEventDBO,
-  CampaignHousingEvents,
-  DocumentEvents,
-  Events,
-  formatCampaignEventApi,
-  formatCampaignHousingEventApi,
   formatEventApi,
   formatGroupHousingEventApi,
-  formatHousingEventApi,
   formatHousingOwnerEventApi,
-  formatOwnerEventApi,
   formatPerimeterHousingEventApi,
   formatPrecisionHousingEventApi,
-  GroupHousingEventDBO,
-  GroupHousingEvents,
-  HousingDocumentEvents,
-  HousingEventDBO,
-  HousingEvents,
-  HousingOwnerEventDBO,
-  HousingOwnerEvents,
-  OwnerEventDBO,
-  OwnerEvents,
   parseEventApi,
-  PrecisionHousingEvents
+  toEventInsert
 } from '~/repositories/eventRepository';
-import { formatGroupApi, Groups } from '~/repositories/groupRepository';
-import {
-  formatHousingOwnerApi,
-  HousingOwners
-} from '~/repositories/housingOwnerRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import {
-  formatPrecisionApi,
-  Precisions
-} from '~/repositories/precisionRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
 import {
   genDocumentApi,
-  genEstablishmentApi,
   genEventApi,
-  genGroupApi,
   genHousingApi,
-  genHousingOwnerApi,
-  genOwnerApi,
-  genPrecisionApi,
-  genUserApi
+  genPrecisionApi
 } from '~/test/testFixtures';
 
 describe('Event repository', () => {
-  const establishment = genEstablishmentApi();
-  const creator = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let creator: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(creator));
+    establishment = await factories.establishment.create();
+    creator = await factories.user.create({
+      establishmentId: establishment.id
+    });
   });
 
   describe('insertManyHousingEvents', () => {
-    const housing = genHousingApi();
-    const events: ReadonlyArray<HousingEventApi> = [
-      genEventApi({
-        creator,
-        type: 'housing:created',
-        nextOld: null,
-        nextNew: {
-          source: 'datafoncier-manual',
-          occupancy: Occupancy.VACANT
-        }
-      }),
-      genEventApi({
-        creator,
-        type: 'housing:occupancy-updated',
-        nextOld: { occupancy: Occupancy.VACANT },
-        nextNew: { occupancy: Occupancy.RENT }
-      }),
-      genEventApi({
-        creator,
-        type: 'housing:status-updated',
-        nextOld: { status: 'never-contacted' },
-        nextNew: { status: 'blocked' }
-      })
-    ].map((event) => ({
-      ...event,
-      housingGeoCode: housing.geoCode,
-      housingId: housing.id
-    }));
-    const ids = events.map((event) => event.id);
+    let housing: HousingApi;
+    let events: ReadonlyArray<HousingEventApi>;
+    let ids: ReadonlyArray<string>;
 
     beforeAll(async () => {
-      await Housing().insert(formatHousingRecordApi(housing));
+      housing = await factories.housing.create();
+      events = [
+        genEventApi({
+          creator,
+          type: 'housing:created',
+          nextOld: null,
+          nextNew: {
+            source: 'datafoncier-manual',
+            occupancy: Occupancy.VACANT
+          }
+        }),
+        genEventApi({
+          creator,
+          type: 'housing:occupancy-updated',
+          nextOld: { occupancy: Occupancy.VACANT },
+          nextNew: { occupancy: Occupancy.RENT }
+        }),
+        genEventApi({
+          creator,
+          type: 'housing:status-updated',
+          nextOld: { status: 'never-contacted' },
+          nextNew: { status: 'blocked' }
+        })
+      ].map((event) => ({
+        ...event,
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
+      }));
+      ids = events.map((event) => event.id);
 
       await eventRepository.insertManyHousingEvents(events);
     });
 
     it('should insert events', async () => {
-      const actual = await Events().whereIn('id', ids);
+      const actual = await kysely
+        .selectFrom('events')
+        .selectAll('events')
+        .where('id', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
     });
 
     it('should link events to the housing', async () => {
-      const actual = await HousingEvents().whereIn('event_id', ids);
+      const actual = await kysely
+        .selectFrom('housingEvents')
+        .selectAll('housingEvents')
+        .where('eventId', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
-      expect(actual).toSatisfyAll<HousingEventDBO>(
-        (event) => event.housing_geo_code === housing.geoCode
+      expect(actual).toSatisfyAll<Selectable<DB['housingEvents']>>(
+        (event) => event.housingGeoCode === housing.geoCode
       );
-      expect(actual).toSatisfyAll<HousingEventDBO>(
-        (event) => event.housing_id === housing.id
+      expect(actual).toSatisfyAll<Selectable<DB['housingEvents']>>(
+        (event) => event.housingId === housing.id
       );
     });
 
     it('does not write when given an empty array', async () => {
-      const before = (await HousingEvents()).length;
+      const before = await kysely
+        .selectFrom('housingEvents')
+        .selectAll('housingEvents')
+        .execute();
       await eventRepository.insertManyHousingEvents([]);
-      const after = (await HousingEvents()).length;
-      expect(after).toBe(before);
+      const after = await kysely
+        .selectFrom('housingEvents')
+        .selectAll('housingEvents')
+        .execute();
+      expect(after.length).toBe(before.length);
     });
   });
 
   describe('insertManyOwnerEvents', () => {
-    const owner = genOwnerApi();
-    const events: ReadonlyArray<OwnerEventApi> = [
-      genEventApi({
-        creator,
-        type: 'owner:updated',
-        nextOld: {
-          name: faker.person.fullName(),
-          birthdate: faker.date.birthdate().toJSON()
-        },
-        nextNew: {
-          name: faker.person.fullName(),
-          birthdate: faker.date.birthdate().toJSON()
-        }
-      })
-    ].map((event) => ({
-      ...event,
-      ownerId: owner.id
-    }));
-    const ids = events.map((event) => event.id);
+    let owner: OwnerApi;
+    let events: ReadonlyArray<OwnerEventApi>;
+    let ids: ReadonlyArray<string>;
 
     beforeAll(async () => {
-      await Owners().insert(formatOwnerApi(owner));
+      owner = await factories.owner.create();
+      events = [
+        genEventApi({
+          creator,
+          type: 'owner:updated',
+          nextOld: {
+            name: faker.person.fullName(),
+            birthdate: faker.date.birthdate().toJSON()
+          },
+          nextNew: {
+            name: faker.person.fullName(),
+            birthdate: faker.date.birthdate().toJSON()
+          }
+        })
+      ].map((event) => ({
+        ...event,
+        ownerId: owner.id
+      }));
+      ids = events.map((event) => event.id);
 
       await eventRepository.insertManyOwnerEvents(events);
     });
 
     it('should insert events', async () => {
-      const actual = await Events().whereIn('id', ids);
+      const actual = await kysely
+        .selectFrom('events')
+        .selectAll('events')
+        .where('id', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
     });
 
     it('should link events to the owner', async () => {
-      const actual = await OwnerEvents().whereIn('event_id', ids);
+      const actual = await kysely
+        .selectFrom('ownerEvents')
+        .selectAll('ownerEvents')
+        .where('eventId', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
-      expect(actual).toSatisfyAll<OwnerEventDBO>(
-        (event) => event.owner_id === owner.id
+      expect(actual).toSatisfyAll<Selectable<DB['ownerEvents']>>(
+        (event) => event.ownerId === owner.id
       );
     });
 
     it('does not write when given an empty array', async () => {
-      const before = (await OwnerEvents()).length;
+      const before = await kysely
+        .selectFrom('ownerEvents')
+        .selectAll('ownerEvents')
+        .execute();
       await eventRepository.insertManyOwnerEvents([]);
-      const after = (await OwnerEvents()).length;
-      expect(after).toBe(before);
+      const after = await kysely
+        .selectFrom('ownerEvents')
+        .selectAll('ownerEvents')
+        .execute();
+      expect(after.length).toBe(before.length);
     });
   });
 
   describe('insertManyHousingOwnerEvents', () => {
-    const housing = genHousingApi();
-    const owner = genOwnerApi();
-    const events: ReadonlyArray<HousingOwnerEventApi> = [
-      genEventApi({
-        creator,
-        type: 'housing:owner-attached',
-        nextOld: null,
-        nextNew: { name: owner.fullName, rank: 1 }
-      })
-    ].map((event) => ({
-      ...event,
-      housingGeoCode: housing.geoCode,
-      housingId: housing.id,
-      ownerId: owner.id
-    }));
-    const ids = events.map((event) => event.id);
+    let housing: HousingApi;
+    let owner: OwnerApi;
+    let events: ReadonlyArray<HousingOwnerEventApi>;
+    let ids: ReadonlyArray<string>;
 
     beforeAll(async () => {
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Owners().insert(formatOwnerApi(owner));
+      housing = await factories.housing.create();
+      owner = await factories.owner.create();
+      events = [
+        genEventApi({
+          creator,
+          type: 'housing:owner-attached',
+          nextOld: null,
+          nextNew: { name: owner.fullName, rank: 1 }
+        })
+      ].map((event) => ({
+        ...event,
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        ownerId: owner.id
+      }));
+      ids = events.map((event) => event.id);
 
       await eventRepository.insertManyHousingOwnerEvents(events);
     });
 
     it('should insert events', async () => {
-      const actual = await Events().whereIn('id', ids);
+      const actual = await kysely
+        .selectFrom('events')
+        .selectAll('events')
+        .where('id', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
     });
 
     it('should link events to the housing and owner', async () => {
-      const actual = await HousingOwnerEvents().whereIn('event_id', ids);
+      const actual = await kysely
+        .selectFrom('housingOwnerEvents')
+        .selectAll('housingOwnerEvents')
+        .where('eventId', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
-      expect(actual).toSatisfyAll<HousingOwnerEventDBO>(
-        (event) => event.housing_geo_code === housing.geoCode
+      expect(actual).toSatisfyAll<Selectable<DB['housingOwnerEvents']>>(
+        (event) => event.housingGeoCode === housing.geoCode
       );
-      expect(actual).toSatisfyAll<HousingOwnerEventDBO>(
-        (event) => event.housing_id === housing.id
+      expect(actual).toSatisfyAll<Selectable<DB['housingOwnerEvents']>>(
+        (event) => event.housingId === housing.id
       );
-      expect(actual).toSatisfyAll<HousingOwnerEventDBO>(
-        (event) => event.owner_id === owner.id
+      expect(actual).toSatisfyAll<Selectable<DB['housingOwnerEvents']>>(
+        (event) => event.ownerId === owner.id
       );
     });
 
     it('does not write when given an empty array', async () => {
-      const before = (await HousingOwnerEvents()).length;
+      const before = await kysely
+        .selectFrom('housingOwnerEvents')
+        .selectAll('housingOwnerEvents')
+        .execute();
       await eventRepository.insertManyHousingOwnerEvents([]);
-      const after = (await HousingOwnerEvents()).length;
-      expect(after).toBe(before);
+      const after = await kysely
+        .selectFrom('housingOwnerEvents')
+        .selectAll('housingOwnerEvents')
+        .execute();
+      expect(after.length).toBe(before.length);
     });
   });
 
   describe('insertManyPrecisionHousingEvents', () => {
-    const housing = genHousingApi();
+    let housing: HousingApi;
     let precision: PrecisionApi;
     let events: ReadonlyArray<PrecisionHousingEventApi>;
 
     beforeAll(async () => {
-      precision = await Precisions()
-        .first()
-        .then((p) => formatPrecisionApi(p!));
+      housing = await factories.housing.create();
+      precision = (await kysely
+        .selectFrom('precisions')
+        .selectAll('precisions')
+        .executeTakeFirstOrThrow()) as PrecisionApi;
       events = [
         {
           ...genEventApi({
@@ -275,43 +292,57 @@ describe('Event repository', () => {
         }
       ];
 
-      await Housing().insert(formatHousingRecordApi(housing));
       await eventRepository.insertManyPrecisionHousingEvents(events);
     });
 
     it('should insert events', async () => {
       const ids = events.map((e) => e.id);
-      const actual = await Events().whereIn('id', ids);
+      const actual = await kysely
+        .selectFrom('events')
+        .selectAll('events')
+        .where('id', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
     });
 
     it('should link events to the housing and precision', async () => {
       const ids = events.map((e) => e.id);
-      const actual = await PrecisionHousingEvents().whereIn('event_id', ids);
+      const actual = await kysely
+        .selectFrom('precisionHousingEvents')
+        .selectAll('precisionHousingEvents')
+        .where('eventId', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
       expect(actual).toSatisfyAll(
-        (event) => event.housing_geo_code === housing.geoCode
+        (event) => event.housingGeoCode === housing.geoCode
       );
-      expect(actual).toSatisfyAll((event) => event.housing_id === housing.id);
+      expect(actual).toSatisfyAll((event) => event.housingId === housing.id);
       expect(actual).toSatisfyAll(
-        (event) => event.precision_id === precision.id
+        (event) => event.precisionId === precision.id
       );
     });
 
     it('does not write when given an empty array', async () => {
-      const before = (await PrecisionHousingEvents()).length;
+      const before = await kysely
+        .selectFrom('precisionHousingEvents')
+        .selectAll('precisionHousingEvents')
+        .execute();
       await eventRepository.insertManyPrecisionHousingEvents([]);
-      const after = (await PrecisionHousingEvents()).length;
-      expect(after).toBe(before);
+      const after = await kysely
+        .selectFrom('precisionHousingEvents')
+        .selectAll('precisionHousingEvents')
+        .execute();
+      expect(after.length).toBe(before.length);
     });
   });
 
   describe('insertManyCampaignHousingEvents', () => {
-    const housing = genHousingApi();
+    let housing: HousingApi;
     let campaign: CampaignDTO;
     let events: ReadonlyArray<CampaignHousingEventApi>;
 
     beforeAll(async () => {
+      housing = await factories.housing.create();
       campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: creator } });
@@ -329,36 +360,49 @@ describe('Event repository', () => {
         }
       ];
 
-      await Housing().insert(formatHousingRecordApi(housing));
       await eventRepository.insertManyCampaignHousingEvents(events);
     });
 
     it('should insert events', async () => {
       const ids = events.map((e) => e.id);
-      const actual = await Events().whereIn('id', ids);
+      const actual = await kysely
+        .selectFrom('events')
+        .selectAll('events')
+        .where('id', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
     });
 
     it('should link events to the housing and campaign', async () => {
       const ids = events.map((e) => e.id);
-      const actual = await CampaignHousingEvents().whereIn('event_id', ids);
+      const actual = await kysely
+        .selectFrom('campaignHousingEvents')
+        .selectAll('campaignHousingEvents')
+        .where('eventId', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
-      expect(actual).toSatisfyAll<CampaignHousingEventDBO>(
-        (event) => event.housing_geo_code === housing.geoCode
+      expect(actual).toSatisfyAll<Selectable<DB['campaignHousingEvents']>>(
+        (event) => event.housingGeoCode === housing.geoCode
       );
-      expect(actual).toSatisfyAll<CampaignHousingEventDBO>(
-        (event) => event.housing_id === housing.id
+      expect(actual).toSatisfyAll<Selectable<DB['campaignHousingEvents']>>(
+        (event) => event.housingId === housing.id
       );
-      expect(actual).toSatisfyAll<CampaignHousingEventDBO>(
-        (event) => event.campaign_id === campaign.id
+      expect(actual).toSatisfyAll<Selectable<DB['campaignHousingEvents']>>(
+        (event) => event.campaignId === campaign.id
       );
     });
 
     it('does not write when given an empty array', async () => {
-      const before = (await CampaignHousingEvents()).length;
+      const before = await kysely
+        .selectFrom('campaignHousingEvents')
+        .selectAll('campaignHousingEvents')
+        .execute();
       await eventRepository.insertManyCampaignHousingEvents([]);
-      const after = (await CampaignHousingEvents()).length;
-      expect(after).toBe(before);
+      const after = await kysely
+        .selectFrom('campaignHousingEvents')
+        .selectAll('campaignHousingEvents')
+        .execute();
+      expect(after.length).toBe(before.length);
     });
   });
 
@@ -387,109 +431,132 @@ describe('Event repository', () => {
 
     it('should insert events', async () => {
       const ids = events.map((e) => e.id);
-      const actual = await Events().whereIn('id', ids);
+      const actual = await kysely
+        .selectFrom('events')
+        .selectAll('events')
+        .where('id', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
     });
 
     it('should link events to the campaign', async () => {
       const ids = events.map((e) => e.id);
-      const actual = await CampaignEvents().whereIn('event_id', ids);
+      const actual = await kysely
+        .selectFrom('campaignEvents')
+        .selectAll('campaignEvents')
+        .where('eventId', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
-      expect(actual).toSatisfyAll((event) => event.campaign_id === campaign.id);
+      expect(actual).toSatisfyAll<Selectable<DB['campaignEvents']>>(
+        (event) => event.campaignId === campaign.id
+      );
     });
 
     it('does not write when given an empty array', async () => {
-      const before = (await CampaignEvents()).length;
+      const before = await kysely
+        .selectFrom('campaignEvents')
+        .selectAll('campaignEvents')
+        .execute();
       await eventRepository.insertManyCampaignEvents([]);
-      const after = (await CampaignEvents()).length;
-      expect(after).toBe(before);
+      const after = await kysely
+        .selectFrom('campaignEvents')
+        .selectAll('campaignEvents')
+        .execute();
+      expect(after.length).toBe(before.length);
     });
   });
 
   describe('insertManyGroupHousingEvents', () => {
-    const housing = genHousingApi();
-    const group = genGroupApi(creator, establishment);
-    const events: GroupHousingEventApi[] = [
-      genEventApi({
-        creator,
-        type: 'housing:group-attached',
-        nextOld: null,
-        nextNew: { name: group.title }
-      })
-    ].map((event) => ({
-      ...event,
-      housingGeoCode: housing.geoCode,
-      housingId: housing.id,
-      groupId: group.id
-    }));
-    const ids = events.map((event) => event.id);
+    let housing: HousingApi;
+    let group: GroupApi;
+    let events: GroupHousingEventApi[];
+    let ids: ReadonlyArray<string>;
 
     beforeAll(async () => {
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Groups().insert(formatGroupApi(group));
+      housing = await factories.housing.create();
+      group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: creator } });
+      events = [
+        genEventApi({
+          creator,
+          type: 'housing:group-attached',
+          nextOld: null,
+          nextNew: { name: group.title }
+        })
+      ].map((event) => ({
+        ...event,
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id,
+        groupId: group.id
+      }));
+      ids = events.map((event) => event.id);
 
       await eventRepository.insertManyGroupHousingEvents(events);
     });
 
     it('should insert events', async () => {
-      const actual = await Events().whereIn('id', ids);
+      const actual = await kysely
+        .selectFrom('events')
+        .selectAll('events')
+        .where('id', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
     });
 
     it('should store nextOld/nextNew as JSON and read them back unchanged', async () => {
-      const [actual] = await Events().whereIn('id', ids);
-      expect(actual.next_old).toBeNull();
-      expect(actual.next_new).toStrictEqual({ name: group.title });
+      const actual = await kysely
+        .selectFrom('events')
+        .selectAll('events')
+        .where('id', 'in', ids)
+        .executeTakeFirstOrThrow();
+      expect(actual.nextOld).toBeNull();
+      expect(actual.nextNew).toStrictEqual({ name: group.title });
     });
 
     it('should link events to the housing and group', async () => {
-      const actual = await GroupHousingEvents().whereIn('event_id', ids);
+      const actual = await kysely
+        .selectFrom('groupHousingEvents')
+        .selectAll('groupHousingEvents')
+        .where('eventId', 'in', ids)
+        .execute();
       expect(actual.length).toBe(events.length);
-      expect(actual).toSatisfyAll<GroupHousingEventDBO>(
-        (event) => event.housing_geo_code === housing.geoCode
+      expect(actual).toSatisfyAll<Selectable<DB['groupHousingEvents']>>(
+        (event) => event.housingGeoCode === housing.geoCode
       );
-      expect(actual).toSatisfyAll<GroupHousingEventDBO>(
-        (event) => event.housing_id === housing.id
+      expect(actual).toSatisfyAll<Selectable<DB['groupHousingEvents']>>(
+        (event) => event.housingId === housing.id
       );
-      expect(actual).toSatisfyAll<GroupHousingEventDBO>(
-        (event) => event.group_id === group.id
+      expect(actual).toSatisfyAll<Selectable<DB['groupHousingEvents']>>(
+        (event) => event.groupId === group.id
       );
     });
 
     it('does not write when given an empty array', async () => {
-      const before = (await GroupHousingEvents()).length;
+      const before = await kysely
+        .selectFrom('groupHousingEvents')
+        .selectAll('groupHousingEvents')
+        .execute();
       await eventRepository.insertManyGroupHousingEvents([]);
-      const after = (await GroupHousingEvents()).length;
-      expect(after).toBe(before);
+      const after = await kysely
+        .selectFrom('groupHousingEvents')
+        .selectAll('groupHousingEvents')
+        .execute();
+      expect(after.length).toBe(before.length);
     });
   });
 
   describe('find', () => {
-    const housings: ReadonlyArray<HousingApi> = faker.helpers.multiple(() =>
-      genHousingApi()
-    );
-    const housingOwners: ReadonlyArray<HousingOwnerApi> = housings.flatMap(
-      (housing) => {
-        const owners = faker.helpers.multiple(() => genOwnerApi(), {
-          count: { min: 1, max: 6 }
-        });
-        return owners
-          .map((owner) => genHousingOwnerApi(housing, owner))
-          .map((housingOwner, i) => ({
-            ...housingOwner,
-            rank: (i + 1) as ActiveOwnerRank
-          }));
-      }
-    );
-    const groups = faker.helpers.multiple(() =>
-      genGroupApi(creator, establishment)
-    );
-    const precisions = faker.helpers.multiple(() =>
-      genPrecisionApi(faker.number.int({ min: 10000, max: 99999 }))
-    );
-    // Add campaign housing events fixtures
+    let housings: ReadonlyArray<HousingApi>;
+    let housingOwners: ReadonlyArray<HousingOwnerApi>;
+    let groups: ReadonlyArray<GroupApi>;
+    let precisions: ReadonlyArray<PrecisionApi>;
     let campaigns: ReadonlyArray<CampaignDTO>;
     let campaignHousingEvents: ReadonlyArray<CampaignHousingEventApi>;
+    let housingEvents: ReadonlyArray<HousingEventApi>;
+    let groupHousingEvents: ReadonlyArray<GroupHousingEventApi>;
+    let precisionHousingEvents: ReadonlyArray<PrecisionHousingEventApi>;
+    let housingOwnerEvents: ReadonlyArray<HousingOwnerEventApi>;
     let events: ReadonlyArray<
       | HousingEventApi
       | GroupHousingEventApi
@@ -498,8 +565,41 @@ describe('Event repository', () => {
       | CampaignHousingEventApi
     >;
 
-    const housingEvents: ReadonlyArray<HousingEventApi> =
-      housings.map<HousingEventApi>((housing) => {
+    beforeAll(async () => {
+      housings = await factories.housing.createList(
+        faker.number.int({ min: 2, max: 4 })
+      );
+      housingOwners = (
+        await Promise.all(
+          housings.map(async (housing) => {
+            const owners = await factories.owner.createList(
+              faker.number.int({ min: 1, max: 6 })
+            );
+            return Promise.all(
+              owners.map((owner, i) =>
+                factories
+                  .housingOwner({ housing, owner })
+                  .create({ rank: (i + 1) as ActiveOwnerRank })
+              )
+            );
+          })
+        )
+      ).flat();
+      groups = await factories
+        .group(establishment)
+        .createList(
+          faker.number.int({ min: 2, max: 4 }),
+          {},
+          { associations: { createdBy: creator } }
+        );
+      precisions = faker.helpers.multiple(() =>
+        genPrecisionApi(faker.number.int({ min: 10000, max: 99999 }))
+      );
+      campaigns = await factories
+        .campaign(establishment)
+        .createList(3, {}, { associations: { createdBy: creator } });
+
+      housingEvents = housings.map<HousingEventApi>((housing) => {
         return {
           ...genEventApi({
             creator,
@@ -514,23 +614,22 @@ describe('Event repository', () => {
           housingId: housing.id
         };
       });
-    const groupHousingEvents: ReadonlyArray<GroupHousingEventApi> = groups
-      .map((group) => {
-        return housings.map<GroupHousingEventApi>((housing) => ({
-          ...genEventApi({
-            creator,
-            type: 'housing:group-attached',
-            nextOld: null,
-            nextNew: { name: faker.commerce.productName() }
-          }),
-          groupId: group.id,
-          housingGeoCode: housing.geoCode,
-          housingId: housing.id
-        }));
-      })
-      .flat();
-    const precisionHousingEvents: ReadonlyArray<PrecisionHousingEventApi> =
-      precisions
+      groupHousingEvents = groups
+        .map((group) => {
+          return housings.map<GroupHousingEventApi>((housing) => ({
+            ...genEventApi({
+              creator,
+              type: 'housing:group-attached',
+              nextOld: null,
+              nextNew: { name: faker.commerce.productName() }
+            }),
+            groupId: group.id,
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id
+          }));
+        })
+        .flat();
+      precisionHousingEvents = precisions
         .map((precision) => {
           return housings.map<PrecisionHousingEventApi>((housing) => ({
             ...genEventApi({
@@ -548,8 +647,7 @@ describe('Event repository', () => {
           }));
         })
         .flat();
-    const housingOwnerEvents: ReadonlyArray<HousingOwnerEventApi> =
-      housingOwners.map((housingOwner) => ({
+      housingOwnerEvents = housingOwners.map((housingOwner) => ({
         ...genEventApi({
           creator,
           type: 'housing:owner-attached',
@@ -563,10 +661,6 @@ describe('Event repository', () => {
         housingId: housingOwner.housingId,
         ownerId: housingOwner.ownerId
       }));
-    beforeAll(async () => {
-      campaigns = await factories
-        .campaign(establishment)
-        .createList(3, {}, { associations: { createdBy: creator } });
       campaignHousingEvents = campaigns
         .map((campaign) => {
           return housings.map<CampaignHousingEventApi>((housing) => ({
@@ -592,25 +686,65 @@ describe('Event repository', () => {
         ...campaignHousingEvents
       ];
 
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      await Events().insert(events.map(formatEventApi));
-      await HousingEvents().insert(housingEvents.map(formatHousingEventApi));
-      await Groups().insert(groups.map(formatGroupApi));
-      await GroupHousingEvents().insert(
-        groupHousingEvents.map(formatGroupHousingEventApi)
-      );
-      await Precisions().insert(precisions.map(formatPrecisionApi));
-      await PrecisionHousingEvents().insert(
-        precisionHousingEvents.map(formatPrecisionHousingEventApi)
-      );
-      await Owners().insert(housingOwners.map(formatOwnerApi));
-      await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
-      await HousingOwnerEvents().insert(
-        housingOwnerEvents.map(formatHousingOwnerEventApi)
-      );
-      await CampaignHousingEvents().insert(
-        campaignHousingEvents.map(formatCampaignHousingEventApi)
-      );
+      await kysely
+        .insertInto('events')
+        .values(events.map(toEventInsert))
+        .execute();
+      await kysely
+        .insertInto('housingEvents')
+        .values(
+          housingEvents.map((event) => ({
+            eventId: event.id,
+            housingGeoCode: event.housingGeoCode,
+            housingId: event.housingId
+          }))
+        )
+        .execute();
+      await kysely
+        .insertInto('groupHousingEvents')
+        .values(
+          groupHousingEvents.map((event) => ({
+            eventId: event.id,
+            housingGeoCode: event.housingGeoCode,
+            housingId: event.housingId,
+            groupId: event.groupId
+          }))
+        )
+        .execute();
+      await kysely.insertInto('precisions').values(precisions).execute();
+      await kysely
+        .insertInto('precisionHousingEvents')
+        .values(
+          precisionHousingEvents.map((event) => ({
+            eventId: event.id,
+            housingGeoCode: event.housingGeoCode,
+            housingId: event.housingId,
+            precisionId: event.precisionId
+          }))
+        )
+        .execute();
+      await kysely
+        .insertInto('housingOwnerEvents')
+        .values(
+          housingOwnerEvents.map((event) => ({
+            eventId: event.id,
+            housingGeoCode: event.housingGeoCode,
+            housingId: event.housingId,
+            ownerId: event.ownerId
+          }))
+        )
+        .execute();
+      await kysely
+        .insertInto('campaignHousingEvents')
+        .values(
+          campaignHousingEvents.map((event) => ({
+            eventId: event.id,
+            campaignId: event.campaignId,
+            housingGeoCode: event.housingGeoCode,
+            housingId: event.housingId
+          }))
+        )
+        .execute();
     });
 
     it('should return events', async () => {
@@ -644,14 +778,19 @@ describe('Event repository', () => {
         'housing:precision-detached'
       ] as const;
 
-      const housings = faker.helpers.multiple(() => genHousingApi());
+      let housings: ReadonlyArray<HousingApi>;
       let precisions: ReadonlyArray<PrecisionApi>;
       let events: ReadonlyArray<PrecisionHousingEventApi>;
 
       beforeAll(async () => {
-        precisions = await Precisions()
+        housings = await factories.housing.createList(
+          faker.number.int({ min: 2, max: 4 })
+        );
+        precisions = (await kysely
+          .selectFrom('precisions')
+          .selectAll('precisions')
           .limit(10)
-          .then((precisions) => precisions.map(formatPrecisionApi));
+          .execute()) as PrecisionApi[];
         events = housings
           .map((housing) => {
             return faker.helpers
@@ -673,11 +812,21 @@ describe('Event repository', () => {
           })
           .flat();
 
-        await Housing().insert(housings.map(formatHousingRecordApi));
-        await Events().insert(events.map(formatEventApi));
-        await PrecisionHousingEvents().insert(
-          events.map(formatPrecisionHousingEventApi)
-        );
+        await kysely
+          .insertInto('events')
+          .values(events.map(toEventInsert))
+          .execute();
+        await kysely
+          .insertInto('precisionHousingEvents')
+          .values(
+            events.map((event) => ({
+              eventId: event.id,
+              housingGeoCode: event.housingGeoCode,
+              housingId: event.housingId,
+              precisionId: event.precisionId
+            }))
+          )
+          .execute();
       });
 
       it('should return precision housing events', async () => {
@@ -759,56 +908,69 @@ describe('Event repository', () => {
     });
 
     describe('Group housing events', () => {
-      const housings = Array.from({ length: 3 }, () => genHousingApi());
-      const groups = Array.from({ length: 3 }, () =>
-        genGroupApi(creator, establishment)
-      );
-      const events: ReadonlyArray<GroupHousingEventApi> = groups
-        .map((group) => {
-          return housings.map((housing) => {
-            const event = faker.helpers.arrayElement([
-              genEventApi({
-                creator,
-                type: 'housing:group-attached',
-                nextOld: null,
-                nextNew: { name: faker.commerce.productName() }
-              }),
-              genEventApi({
-                creator,
-                type: 'housing:group-detached',
-                nextOld: { name: faker.commerce.productName() },
-                nextNew: null
-              }),
-              genEventApi({
-                creator,
-                type: 'housing:group-removed',
-                nextOld: { name: faker.commerce.productName() },
-                nextNew: null
-              }),
-              genEventApi({
-                creator,
-                type: 'housing:group-archived',
-                nextOld: { name: faker.commerce.productName() },
-                nextNew: null
-              })
-            ]);
-            return {
-              ...event,
-              housingGeoCode: housing.geoCode,
-              housingId: housing.id,
-              groupId: group.id
-            };
-          });
-        })
-        .flat();
+      let housings: ReadonlyArray<HousingApi>;
+      let groups: ReadonlyArray<GroupApi>;
+      let events: ReadonlyArray<GroupHousingEventApi>;
 
       beforeAll(async () => {
-        await Housing().insert(housings.map(formatHousingRecordApi));
-        await Groups().insert(groups.map(formatGroupApi));
-        await Events().insert(events.map(formatEventApi));
-        await GroupHousingEvents().insert(
-          events.map(formatGroupHousingEventApi)
-        );
+        housings = await factories.housing.createList(3);
+        groups = await factories
+          .group(establishment)
+          .createList(3, {}, { associations: { createdBy: creator } });
+        events = groups
+          .map((group) => {
+            return housings.map((housing) => {
+              const event = faker.helpers.arrayElement([
+                genEventApi({
+                  creator,
+                  type: 'housing:group-attached',
+                  nextOld: null,
+                  nextNew: { name: faker.commerce.productName() }
+                }),
+                genEventApi({
+                  creator,
+                  type: 'housing:group-detached',
+                  nextOld: { name: faker.commerce.productName() },
+                  nextNew: null
+                }),
+                genEventApi({
+                  creator,
+                  type: 'housing:group-removed',
+                  nextOld: { name: faker.commerce.productName() },
+                  nextNew: null
+                }),
+                genEventApi({
+                  creator,
+                  type: 'housing:group-archived',
+                  nextOld: { name: faker.commerce.productName() },
+                  nextNew: null
+                })
+              ]);
+              return {
+                ...event,
+                housingGeoCode: housing.geoCode,
+                housingId: housing.id,
+                groupId: group.id
+              };
+            });
+          })
+          .flat();
+
+        await kysely
+          .insertInto('events')
+          .values(events.map(toEventInsert))
+          .execute();
+        await kysely
+          .insertInto('groupHousingEvents')
+          .values(
+            events.map((event) => ({
+              eventId: event.id,
+              housingGeoCode: event.housingGeoCode,
+              housingId: event.housingId,
+              groupId: event.groupId
+            }))
+          )
+          .execute();
       });
 
       it('should return group events', async () => {
@@ -904,32 +1066,47 @@ describe('Event repository', () => {
 
     describe('Owner events', () => {
       const types = ['owner:updated'] as const;
-      const owners = faker.helpers.multiple(() => genOwnerApi());
-      const events = owners.map<OwnerEventApi>((owner) => {
-        const event = {
-          ...genEventApi({
-            creator,
-            type: 'owner:updated',
-            nextOld: {
-              name: faker.person.fullName(),
-              birthdate: faker.date.birthdate().toJSON()
-            },
-            nextNew: {
-              name: faker.person.fullName(),
-              birthdate: faker.date.birthdate().toJSON()
-            }
-          })
-        };
-        return {
-          ...event,
-          ownerId: owner.id
-        };
-      });
+      let owners: ReadonlyArray<OwnerApi>;
+      let events: ReadonlyArray<OwnerEventApi>;
 
       beforeAll(async () => {
-        await Owners().insert(owners.map(formatOwnerApi));
-        await Events().insert(events.map(formatEventApi));
-        await OwnerEvents().insert(events.map(formatOwnerEventApi));
+        owners = await factories.owner.createList(
+          faker.number.int({ min: 2, max: 4 })
+        );
+        events = owners.map<OwnerEventApi>((owner) => {
+          const event = {
+            ...genEventApi({
+              creator,
+              type: 'owner:updated',
+              nextOld: {
+                name: faker.person.fullName(),
+                birthdate: faker.date.birthdate().toJSON()
+              },
+              nextNew: {
+                name: faker.person.fullName(),
+                birthdate: faker.date.birthdate().toJSON()
+              }
+            })
+          };
+          return {
+            ...event,
+            ownerId: owner.id
+          };
+        });
+
+        await kysely
+          .insertInto('events')
+          .values(events.map(toEventInsert))
+          .execute();
+        await kysely
+          .insertInto('ownerEvents')
+          .values(
+            events.map((event) => ({
+              eventId: event.id,
+              ownerId: event.ownerId
+            }))
+          )
+          .execute();
       });
 
       it('should return owner events', async () => {
@@ -1239,15 +1416,14 @@ describe('Event repository', () => {
   });
 
   describe('removeCampaignEvents', () => {
-    const establishment = genEstablishmentApi();
-    const user = genUserApi(establishment.id);
-
+    let establishment: EstablishmentApi;
+    let user: UserApi;
     let campaign: CampaignDTO;
     let events: ReadonlyArray<CampaignEventApi>;
 
     beforeAll(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(toUserDBO(user));
+      establishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
       campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
@@ -1262,22 +1438,39 @@ describe('Event repository', () => {
           campaignId: campaign.id
         }
       ];
-      await Events().insert(events.map(formatEventApi));
-      await CampaignEvents().insert(events.map(formatCampaignEventApi));
+      await kysely
+        .insertInto('events')
+        .values(events.map(toEventInsert))
+        .execute();
+      await kysely
+        .insertInto('campaignEvents')
+        .values(
+          events.map((event) => ({
+            eventId: event.id,
+            campaignId: event.campaignId
+          }))
+        )
+        .execute();
 
       await eventRepository.removeCampaignEvents(campaign.id);
     });
 
     it('should remove the events', async () => {
-      const actual = await Events().whereIn(
-        'id',
-        events.map((event) => event.id)
-      );
+      const ids = events.map((event) => event.id);
+      const actual = await kysely
+        .selectFrom('events')
+        .selectAll('events')
+        .where('id', 'in', ids)
+        .execute();
       expect(actual).toBeArrayOfSize(0);
     });
 
     it('should remove the associated campaign events', async () => {
-      const actual = await CampaignEvents().where({ campaign_id: campaign.id });
+      const actual = await kysely
+        .selectFrom('campaignEvents')
+        .selectAll('campaignEvents')
+        .where('campaignId', '=', campaign.id)
+        .execute();
       expect(actual).toBeArrayOfSize(0);
     });
   });
@@ -1298,21 +1491,32 @@ describe('Event repository', () => {
           }
         ];
 
-        await Documents().insert(toDocumentDBO(document));
+        await kysely
+          .insertInto('documents')
+          .values(toDocumentInsert(document))
+          .execute();
         await eventRepository.insertManyDocumentEvents(events);
 
-        const [eventRecord] = await Events().where({ id: events[0].id });
-        expect(eventRecord).toMatchObject({
+        const eventRecord = await kysely
+          .selectFrom('events')
+          .selectAll('events')
+          .where('id', '=', events[0].id)
+          .executeTakeFirst();
+        expect(eventRecord).toMatchObject<Partial<Selectable<DB['events']>>>({
           type: 'document:created',
-          next_new: { filename: document.filename },
-          next_old: null
+          nextNew: { filename: document.filename },
+          nextOld: null
         });
 
-        const [documentEvent] = await DocumentEvents().where({
-          event_id: events[0].id
-        });
-        expect(documentEvent).toMatchObject({
-          document_id: document.id
+        const documentEvent = await kysely
+          .selectFrom('documentEvents')
+          .selectAll('documentEvents')
+          .where('eventId', '=', events[0].id)
+          .executeTakeFirst();
+        expect(documentEvent).toMatchObject<
+          Partial<Selectable<DB['documentEvents']>>
+        >({
+          documentId: document.id
         });
       });
 
@@ -1330,14 +1534,21 @@ describe('Event repository', () => {
           }
         ];
 
-        await Documents().insert(toDocumentDBO(document));
+        await kysely
+          .insertInto('documents')
+          .values(toDocumentInsert(document))
+          .execute();
         await eventRepository.insertManyDocumentEvents(events);
 
-        const [eventRecord] = await Events().where({ id: events[0].id });
-        expect(eventRecord).toMatchObject({
+        const eventRecord = await kysely
+          .selectFrom('events')
+          .selectAll('events')
+          .where('id', '=', events[0].id)
+          .executeTakeFirst();
+        expect(eventRecord).toMatchObject<Partial<Selectable<DB['events']>>>({
           type: 'document:updated',
-          next_old: { filename: 'old.pdf' },
-          next_new: { filename: 'new.pdf' }
+          nextOld: { filename: 'old.pdf' },
+          nextNew: { filename: 'new.pdf' }
         });
       });
 
@@ -1355,28 +1566,41 @@ describe('Event repository', () => {
           }
         ];
 
-        await Documents().insert(toDocumentDBO(document));
+        await kysely
+          .insertInto('documents')
+          .values(toDocumentInsert(document))
+          .execute();
         await eventRepository.insertManyDocumentEvents(events);
 
-        const [eventRecord] = await Events().where({ id: events[0].id });
-        expect(eventRecord).toMatchObject({
+        const eventRecord = await kysely
+          .selectFrom('events')
+          .selectAll('events')
+          .where('id', '=', events[0].id)
+          .executeTakeFirstOrThrow();
+        expect(eventRecord).toMatchObject<Partial<Selectable<DB['events']>>>({
           type: 'document:removed',
-          next_old: { filename: document.filename }
+          nextOld: { filename: document.filename }
         });
-        expect(eventRecord.next_new).toBeNull();
+        expect(eventRecord.nextNew).toBeNull();
       });
 
       it('does not write when given an empty array', async () => {
-        const before = (await DocumentEvents()).length;
+        const before = await kysely
+          .selectFrom('documentEvents')
+          .selectAll('documentEvents')
+          .execute();
         await eventRepository.insertManyDocumentEvents([]);
-        const after = (await DocumentEvents()).length;
-        expect(after).toBe(before);
+        const after = await kysely
+          .selectFrom('documentEvents')
+          .selectAll('documentEvents')
+          .execute();
+        expect(after.length).toBe(before.length);
       });
     });
 
     describe('insertManyHousingDocumentEvents', () => {
       it('should insert housing:document-attached events', async () => {
-        const housing = genHousingApi();
+        const housing = await factories.housing.create();
         const document = genDocumentApi({ creator });
         const events: HousingDocumentEventApi[] = [
           {
@@ -1392,28 +1616,38 @@ describe('Event repository', () => {
           }
         ];
 
-        await Housing().insert(formatHousingRecordApi(housing));
-        await Documents().insert(toDocumentDBO(document));
+        await kysely
+          .insertInto('documents')
+          .values(toDocumentInsert(document))
+          .execute();
         await eventRepository.insertManyHousingDocumentEvents(events);
 
-        const [eventRecord] = await Events().where({ id: events[0].id });
-        expect(eventRecord).toMatchObject({
+        const eventRecord = await kysely
+          .selectFrom('events')
+          .selectAll('events')
+          .where('id', '=', events[0].id)
+          .executeTakeFirst();
+        expect(eventRecord).toMatchObject<Partial<Selectable<DB['events']>>>({
           type: 'housing:document-attached',
-          next_new: { filename: document.filename }
+          nextNew: { filename: document.filename }
         });
 
-        const [housingDocumentEvent] = await HousingDocumentEvents().where({
-          event_id: events[0].id
-        });
-        expect(housingDocumentEvent).toMatchObject({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
-          document_id: document.id
+        const housingDocumentEvent = await kysely
+          .selectFrom('housingDocumentEvents')
+          .selectAll('housingDocumentEvents')
+          .where('eventId', '=', events[0].id)
+          .executeTakeFirst();
+        expect(housingDocumentEvent).toMatchObject<
+          Partial<Selectable<DB['housingDocumentEvents']>>
+        >({
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id,
+          documentId: document.id
         });
       });
 
       it('should insert housing:document-detached events', async () => {
-        const housing = genHousingApi();
+        const housing = await factories.housing.create();
         const document = genDocumentApi({ creator });
         const events: HousingDocumentEventApi[] = [
           {
@@ -1429,20 +1663,26 @@ describe('Event repository', () => {
           }
         ];
 
-        await Housing().insert(formatHousingRecordApi(housing));
-        await Documents().insert(toDocumentDBO(document));
+        await kysely
+          .insertInto('documents')
+          .values(toDocumentInsert(document))
+          .execute();
         await eventRepository.insertManyHousingDocumentEvents(events);
 
-        const [eventRecord] = await Events().where({ id: events[0].id });
-        expect(eventRecord).toMatchObject({
+        const eventRecord = await kysely
+          .selectFrom('events')
+          .selectAll('events')
+          .where('id', '=', events[0].id)
+          .executeTakeFirstOrThrow();
+        expect(eventRecord).toMatchObject<Partial<Selectable<DB['events']>>>({
           type: 'housing:document-detached',
-          next_old: { filename: document.filename }
+          nextOld: { filename: document.filename }
         });
-        expect(eventRecord.next_new).toBeNull();
+        expect(eventRecord.nextNew).toBeNull();
       });
 
       it('should insert housing:document-removed events', async () => {
-        const housing = genHousingApi();
+        const housing = await factories.housing.create();
         const document = genDocumentApi({ creator });
         const events: HousingDocumentEventApi[] = [
           {
@@ -1458,23 +1698,35 @@ describe('Event repository', () => {
           }
         ];
 
-        await Housing().insert(formatHousingRecordApi(housing));
-        await Documents().insert(toDocumentDBO(document));
+        await kysely
+          .insertInto('documents')
+          .values(toDocumentInsert(document))
+          .execute();
         await eventRepository.insertManyHousingDocumentEvents(events);
 
-        const [eventRecord] = await Events().where({ id: events[0].id });
-        expect(eventRecord).toMatchObject({
+        const eventRecord = await kysely
+          .selectFrom('events')
+          .selectAll('events')
+          .where('id', '=', events[0].id)
+          .executeTakeFirstOrThrow();
+        expect(eventRecord).toMatchObject<Partial<Selectable<DB['events']>>>({
           type: 'housing:document-removed',
-          next_old: { filename: document.filename }
+          nextOld: { filename: document.filename }
         });
-        expect(eventRecord.next_new).toBeNull();
+        expect(eventRecord.nextNew).toBeNull();
       });
 
       it('does not write when given an empty array', async () => {
-        const before = (await HousingDocumentEvents()).length;
+        const before = await kysely
+          .selectFrom('housingDocumentEvents')
+          .selectAll('housingDocumentEvents')
+          .execute();
         await eventRepository.insertManyHousingDocumentEvents([]);
-        const after = (await HousingDocumentEvents()).length;
-        expect(after).toBe(before);
+        const after = await kysely
+          .selectFrom('housingDocumentEvents')
+          .selectAll('housingDocumentEvents')
+          .execute();
+        expect(after.length).toBe(before.length);
       });
     });
   });

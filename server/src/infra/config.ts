@@ -183,6 +183,7 @@ export const configSchema = z.object({
   ]),
   metabase: z.object({
     domain: z.url().nullable().default('http://localhost:4000'),
+    token: z.string().default('example-token'),
     apiToken: z.string().default('example-api-token'),
     cacheTtlMs: z.coerce
       .number()
@@ -343,6 +344,7 @@ const config = configSchema.parse({
   },
   metabase: {
     domain: env('METABASE_DOMAIN'),
+    token: env('METABASE_TOKEN'),
     apiToken: env('METABASE_API_TOKEN'),
     cacheTtlMs: env('METABASE_CACHE_TTL_MS'),
     cacheMaxEntries: env('METABASE_CACHE_MAX_ENTRIES'),
@@ -376,6 +378,7 @@ const config = configSchema.parse({
 export default config as Omit<Config, 'metabase'> & {
   metabase: {
     domain: string;
+    token: string;
     apiToken: string;
     cacheTtlMs: number;
     cacheMaxEntries: number;

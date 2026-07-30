@@ -54,6 +54,7 @@ jobs:
         run: yarn typecheck
         env:
           DISABLE_ESLINT_PLUGIN: true
+          METABASE_TOKEN: token
 
       - name: Lint
         run: yarn lint && yarn format

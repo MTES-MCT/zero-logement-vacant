@@ -779,7 +779,7 @@ describe('Dashboard API', () => {
   });
 
   describe('GET /dashboards/:id', () => {
-    it('returns dashboard cards without the legacy embed URL', async () => {
+    it('preserves the legacy embed URL during the frontend rollout', async () => {
       nock(METABASE_URL)
         .get('/api/dashboard/13')
         .reply(200, mockMetabaseDashboard);
@@ -791,7 +791,7 @@ describe('Dashboard API', () => {
       expect(response.status).toBe(constants.HTTP_STATUS_OK);
       const body = response.body as DashboardDTO;
       expect(body.id).toBe(13);
-      expect(body).not.toHaveProperty('url');
+      expect(body.url).toMatch(/embed\/dashboard/);
       expect('cards' in body).toBe(true);
       if ('cards' in body) {
         expect(body.cards).toHaveLength(1);

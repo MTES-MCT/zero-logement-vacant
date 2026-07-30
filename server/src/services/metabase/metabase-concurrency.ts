@@ -1,32 +1,78 @@
 import async from 'async';
 
+import ExternalServiceUnavailableError from '~/errors/externalServiceUnavailableError';
+
 import type { CardValue, MetabaseService } from './metabase-service';
 
 interface ConcurrencyOptions {
   maxConcurrency: number;
+  maxQueuedQueries?: number;
+  maxQueueWaitMs?: number;
 }
 
-type CardQuery = () => Promise<CardValue>;
+interface CardQuery {
+  execute: () => Promise<CardValue>;
+  started: boolean;
+  timeout?: ReturnType<typeof setTimeout>;
+}
+
+const DEFAULT_MAX_QUEUED_QUERIES = 20;
+const DEFAULT_MAX_QUEUE_WAIT_MS = 10_000;
+
+function assertPositiveInteger(value: number, name: string): void {
+  if (!Number.isInteger(value) || value < 1) {
+    throw new RangeError(`${name} must be a positive integer`);
+  }
+}
 
 export function createConcurrencyLimitedMetabaseService(
   inner: MetabaseService,
   options: ConcurrencyOptions
 ): MetabaseService {
-  if (!Number.isInteger(options.maxConcurrency) || options.maxConcurrency < 1) {
-    throw new RangeError('maxConcurrency must be a positive integer');
-  }
+  const maxQueuedQueries =
+    options.maxQueuedQueries ?? DEFAULT_MAX_QUEUED_QUERIES;
+  const maxQueueWaitMs = options.maxQueueWaitMs ?? DEFAULT_MAX_QUEUE_WAIT_MS;
 
-  const cardQueries = async.queue<CardQuery, CardValue>(
-    async (query) => query(),
-    options.maxConcurrency
-  );
+  assertPositiveInteger(options.maxConcurrency, 'maxConcurrency');
+  assertPositiveInteger(maxQueuedQueries, 'maxQueuedQueries');
+  assertPositiveInteger(maxQueueWaitMs, 'maxQueueWaitMs');
+
+  const cardQueries = async.queue<CardQuery, CardValue>(async (query) => {
+    query.started = true;
+    clearTimeout(query.timeout);
+    return query.execute();
+  }, options.maxConcurrency);
+
+  function enqueue(execute: () => Promise<CardValue>): Promise<CardValue> {
+    if (cardQueries.length() >= maxQueuedQueries) {
+      return Promise.reject(new ExternalServiceUnavailableError('Metabase'));
+    }
+
+    return new Promise<CardValue>((resolve, reject) => {
+      const query: CardQuery = { execute, started: false };
+      query.timeout = setTimeout(() => {
+        if (query.started) return;
+
+        cardQueries.remove(({ data }) => data === query);
+        reject(new ExternalServiceUnavailableError('Metabase'));
+      }, maxQueueWaitMs);
+
+      cardQueries.push<CardValue>(query, (error, value) => {
+        clearTimeout(query.timeout);
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(value as CardValue);
+      });
+    });
+  }
 
   return {
     fetchDashboardRaw: (id) => inner.fetchDashboardRaw(id),
     getDashboard: (id) => inner.getDashboard(id),
     findDashcard: (dashboardId, dashcardId) =>
       inner.findDashcard(dashboardId, dashcardId),
-    getCardValue: (...args) =>
-      cardQueries.pushAsync(() => inner.getCardValue(...args))
+    getCardValue: (...args) => enqueue(() => inner.getCardValue(...args))
   };
 }

@@ -1020,18 +1020,24 @@ export function genPieChartCard(
 
 export function genDashboardDTO(override?: {
   id?: number;
+  url?: string;
   cards?: DashboardCard[];
   tabs?: Tab[];
 }): DashboardDTO {
   const id = override?.id ?? faker.number.int({ min: 1, max: 999 });
+  const url =
+    override?.url ??
+    'https://stats.zlv.beta.gouv.fr/embed/dashboard/fake-token';
   if (override?.tabs) {
     return {
       id,
+      url,
       tabs: override.tabs
     };
   }
   return {
     id,
+    url,
     cards: override?.cards ?? [genFlatNumberCard()]
   };
 }

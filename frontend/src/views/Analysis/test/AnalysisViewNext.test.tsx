@@ -71,6 +71,7 @@ describe('AnalysisViewNext', () => {
     const card = genFlatNumberCard({ id: 929, title: 'Logements vacants' });
     const dashboard: DashboardDTO = {
       id: 13,
+      url: 'https://stats.zlv.beta.gouv.fr/embed/dashboard/fake',
       tabs: [{ id: 1, title: 'Parc vacant', cards: [card] }]
     };
 
@@ -92,6 +93,7 @@ describe('AnalysisViewNext', () => {
     });
     const dashboard: DashboardDTO = {
       id: 38,
+      url: 'https://stats.zlv.beta.gouv.fr/embed/dashboard/fake',
       tabs: [
         { id: 54, title: 'Parc vacant', cards: [firstCard] },
         { id: 55, title: 'Évolution', cards: [secondCard] }

@@ -8,10 +8,12 @@ import type {
 import { RESOURCE_VALUES } from '@zerologementvacant/models';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'express-jwt';
+import jwt from 'jsonwebtoken';
 
 import DashcardMissingError from '~/errors/dashcardMissingError';
 import UnprocessableEntityError from '~/errors/unprocessableEntityError';
-import { getResource } from '~/models/DashboardApi';
+import config from '~/infra/config';
+import { createURL, getResource } from '~/models/DashboardApi';
 import { metabaseAPI } from '~/services/metabase/metabase-api';
 import type {
   BarChartValue,
@@ -24,14 +26,23 @@ async function findOne(
   request: Request<{ id: Resource }>,
   response: Response<DashboardDTO>
 ): Promise<void> {
-  const { params } = request as AuthenticatedRequest<{ id: Resource }>;
+  const { auth, params } = request as AuthenticatedRequest<{ id: Resource }>;
 
   const numericId = getResource(params.id);
-  const normalized = await metabaseAPI.getDashboard(numericId);
+
+  const [token, normalized] = await Promise.all([
+    sign({
+      resource: { dashboard: numericId },
+      params: { id: auth.establishmentId }
+    }),
+    metabaseAPI.getDashboard(numericId)
+  ]);
+
+  const url = createURL({ domain: config.metabase.domain, token });
 
   response
     .status(constants.HTTP_STATUS_OK)
-    .json({ id: numericId, ...normalized });
+    .json({ id: numericId, url, ...normalized });
 }
 
 async function findOneCard(
@@ -136,6 +147,26 @@ async function findOneCard(
     id: numericCid,
     type: dashcard.type as 'flat-number' | 'percentage',
     data
+  });
+}
+
+function sign(payload: object): Promise<string> {
+  return new Promise((resolve, reject) => {
+    jwt.sign(
+      payload,
+      config.metabase.token,
+      {
+        algorithm: 'HS256',
+        expiresIn: '10m'
+      },
+      (err, token) => {
+        if (err) {
+          return reject(err);
+        }
+        if (!token) return reject(new Error('jwt.sign produced no token'));
+        return resolve(token);
+      }
+    );
   });
 }
 

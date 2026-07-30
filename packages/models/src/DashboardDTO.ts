@@ -64,7 +64,10 @@ interface WithoutTabs {
   cards: ReadonlyArray<DashboardCard>;
 }
 
-export type DashboardDTO = { id: number } & (WithTabs | WithoutTabs);
+export type DashboardDTO = { id: number; url: string } & (
+  | WithTabs
+  | WithoutTabs
+);
 
 export interface ScalarCardDataDTO {
   id: number;

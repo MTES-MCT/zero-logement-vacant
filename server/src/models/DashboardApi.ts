@@ -8,3 +8,12 @@ export function getResource(id: string): number {
 
   return nb;
 }
+
+interface CreateURLOptions {
+  domain: string;
+  token: string;
+}
+
+export function createURL(opts: CreateURLOptions): string {
+  return `${opts.domain}/embed/dashboard/${opts.token}#bordered=true&titled=false`;
+}

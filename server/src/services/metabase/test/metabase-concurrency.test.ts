@@ -82,4 +82,73 @@ describe('ConcurrencyLimitedMetabaseService', () => {
     await expect(second).resolves.toBe(42);
     expect(inner.getCardValue).toHaveBeenCalledTimes(2);
   });
+
+  it('rejects new card queries when the waiting queue is full', async () => {
+    const started = Promise.withResolvers<void>();
+    const release = Promise.withResolvers<void>();
+    const inner: MetabaseService = {
+      fetchDashboardRaw: vi.fn(),
+      getDashboard: vi.fn(),
+      findDashcard: vi.fn(),
+      getCardValue: vi.fn(async () => {
+        started.resolve();
+        await release.promise;
+        return 42 as CardValue;
+      })
+    };
+    const limited = createConcurrencyLimitedMetabaseService(inner, {
+      maxConcurrency: 1,
+      maxQueuedQueries: 1,
+      maxQueueWaitMs: 10_000
+    });
+
+    const running = getCardValue(limited, 1);
+    await started.promise;
+    const queued = getCardValue(limited, 2);
+
+    await expect(getCardValue(limited, 3)).rejects.toMatchObject({
+      name: 'ExternalServiceUnavailableError',
+      status: 503
+    });
+    expect(inner.getCardValue).toHaveBeenCalledTimes(1);
+
+    release.resolve();
+    await expect(running).resolves.toBe(42);
+    await expect(queued).resolves.toBe(42);
+  });
+
+  it('expires queued card queries before they reach Metabase', async () => {
+    const started = Promise.withResolvers<void>();
+    const release = Promise.withResolvers<void>();
+    const inner: MetabaseService = {
+      fetchDashboardRaw: vi.fn(),
+      getDashboard: vi.fn(),
+      findDashcard: vi.fn(),
+      getCardValue: vi.fn(async () => {
+        started.resolve();
+        await release.promise;
+        return 42 as CardValue;
+      })
+    };
+    const limited = createConcurrencyLimitedMetabaseService(inner, {
+      maxConcurrency: 1,
+      maxQueuedQueries: 1,
+      maxQueueWaitMs: 20
+    });
+
+    const running = getCardValue(limited, 1);
+    await started.promise;
+    const queued = getCardValue(limited, 2);
+
+    await expect(queued).rejects.toMatchObject({
+      name: 'ExternalServiceUnavailableError',
+      status: 503
+    });
+
+    const replacement = getCardValue(limited, 3);
+    release.resolve();
+    await expect(running).resolves.toBe(42);
+    await expect(replacement).resolves.toBe(42);
+    expect(inner.getCardValue).toHaveBeenCalledTimes(2);
+  });
 });

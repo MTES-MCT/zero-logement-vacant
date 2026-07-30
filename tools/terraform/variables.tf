@@ -29,6 +29,7 @@ variable "metabase" {
   description = "Metabase configuration"
   type = object({
     api_token = string
+    token     = string
   })
   sensitive = true
 }

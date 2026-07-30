@@ -51,10 +51,9 @@ resource "clevercloud_nodejs" "api" {
     MAILER_PASSWORD = var.mailer.password
 
     METABASE_ENABLED   = "true"
-    METABASE_API_TOKEN              = var.metabase.api_token
-    METABASE_DOMAIN                 = "https://stats.zlv.beta.gouv.fr"
-    METABASE_MAX_CONCURRENT_QUERIES = "2"
-    METABASE_TOKEN                  = var.metabase.token
+    METABASE_API_TOKEN = var.metabase.api_token
+    METABASE_DOMAIN    = "https://stats.zlv.beta.gouv.fr"
+    METABASE_TOKEN     = var.metabase.token
 
     S3_ACCESS_KEY_ID     = var.s3.access_key_id
     S3_BUCKET            = var.s3.bucket

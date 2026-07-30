@@ -186,12 +186,8 @@ WHERE oh.rank >= 1
 
 The migration
 `server/src/infra/database/migrations/20260625130000_owner-housing-location-postprocess-indexes.ts`
-adds:
-
-- one `data_file_years` GIN index on every existing `fast_housing` partition;
-- `idx_owners_housing_distances` partial index on
-  `(owner_id, housing_id, housing_geo_code)` where `rank >= 1` and
-  `locprop_relative_ban IS NULL`.
+adds one `data_file_years` GIN index on every existing `fast_housing`
+partition.
 
 Run migrations before a production write.
 

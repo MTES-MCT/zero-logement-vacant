@@ -5,7 +5,7 @@ import { Knex } from 'knex';
 
 import config from '~/infra/config';
 import { SALT_LENGTH } from '~/models/UserApi';
-import { Establishments } from '~/repositories/establishmentRepository';
+import { establishmentsTable } from '~/repositories/establishmentRepository';
 import { toUserDBO, USERS_TABLE } from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
 
@@ -27,9 +27,11 @@ export async function seed(knex: Knex): Promise<void> {
   const password = config.auth.testPassword;
 
   const [strasbourg, saintLo, zlv] = await Promise.all([
-    Establishments(knex).where('siren', SirenStrasbourg).first(),
-    Establishments(knex).where('siren', SirenSaintLo).first(),
-    Establishments(knex).where('name', ZeroLogementVacantEstablishment).first()
+    knex(establishmentsTable).where('siren', SirenStrasbourg).first(),
+    knex(establishmentsTable).where('siren', SirenSaintLo).first(),
+    knex(establishmentsTable)
+      .where('name', ZeroLogementVacantEstablishment)
+      .first()
   ]);
   if (!strasbourg || !saintLo || !zlv) {
     throw new Error('Establishments not found');
@@ -71,7 +73,9 @@ export async function seed(knex: Knex): Promise<void> {
     })
   ];
 
-  const establishments = await Establishments(knex).where({ available: true });
+  const establishments = await knex(establishmentsTable).where({
+    available: true
+  });
   const randomUsers = establishments.flatMap((establishments) => {
     return factories.user.buildList(faker.number.int({ min: 1, max: 10 }), {
       establishmentId: establishments.id

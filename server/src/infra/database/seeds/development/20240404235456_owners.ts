@@ -15,11 +15,10 @@ import pRetry from 'p-retry';
 
 import { AddressApi } from '~/models/AddressApi';
 import {
-  Addresses,
   banAddressesTable,
   formatAddressApi
 } from '~/repositories/banAddressesRepository';
-import { Establishments } from '~/repositories/establishmentRepository';
+import { establishmentsTable } from '~/repositories/establishmentRepository';
 import { formatOwnerApi, ownerTable } from '~/repositories/ownerRepository';
 import { createBanAPI } from '~/services/ban/ban-api';
 import { genOwnerApi } from '~/test/testFixtures';
@@ -28,7 +27,9 @@ export async function seed(knex: Knex): Promise<void> {
   console.time('20240404235456_owners');
 
   const ban = createBanAPI();
-  const establishments = await Establishments(knex).where({ available: true });
+  const establishments = await knex(establishmentsTable).where({
+    available: true
+  });
 
   // Skip seeding if no establishments are available
   if (establishments.length === 0) {
@@ -88,7 +89,9 @@ export async function seed(knex: Knex): Promise<void> {
     });
 
   await knex.raw(`TRUNCATE TABLE ${ownerTable} CASCADE`);
-  await Addresses(knex).where({ address_kind: AddressKinds.Owner }).delete();
+  await knex(banAddressesTable)
+    .where({ address_kind: AddressKinds.Owner })
+    .delete();
 
   console.log(`Inserting ${owners.length} owners...`);
   await knex.batchInsert(ownerTable, owners.map(formatOwnerApi));

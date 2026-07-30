@@ -779,7 +779,7 @@ describe('Dashboard API', () => {
   });
 
   describe('GET /dashboards/:id', () => {
-    it('preserves the legacy embed URL during the frontend rollout', async () => {
+    it('returns DashboardDTO with url and cards', async () => {
       nock(METABASE_URL)
         .get('/api/dashboard/13')
         .reply(200, mockMetabaseDashboard);

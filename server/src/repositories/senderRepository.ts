@@ -92,7 +92,7 @@ async function save(sender: SenderApi): Promise<void> {
   logger.debug('Saved sender', sender);
 }
 
-function toSenderInsert(sender: SenderApi): Insertable<DB['senders']> {
+export function toSenderInsert(sender: SenderApi): Insertable<DB['senders']> {
   return {
     id: sender.id,
     name: sender.name,

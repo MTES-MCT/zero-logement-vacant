@@ -229,7 +229,9 @@ export function toDocumentDBO(document: DocumentApi): DocumentDBO {
   };
 }
 
-function toDocumentInsert(document: DocumentApi): Insertable<DB['documents']> {
+export function toDocumentInsert(
+  document: DocumentApi
+): Insertable<DB['documents']> {
   return {
     id: document.id,
     filename: document.filename,

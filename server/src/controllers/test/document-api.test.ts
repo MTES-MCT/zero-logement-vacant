@@ -10,45 +10,22 @@ import {
   type DocumentPayload
 } from '@zerologementvacant/models';
 import { createS3 } from '@zerologementvacant/utils/node';
+import type { Selectable } from 'kysely';
 import nock from 'nock';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import config from '~/infra/config';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { HousingApi } from '~/models/HousingApi';
 import { UserApi } from '~/models/UserApi';
-import { CampaignDocuments } from '~/repositories/campaignDocumentRepository';
-import {
-  CampaignsHousing,
-  formatCampaignHousingApi
-} from '~/repositories/campaignHousingRepository';
-import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  CAMPAIGN_DOCUMENT_EVENTS_TABLE,
-  DOCUMENT_EVENTS_TABLE,
-  Events,
-  EVENTS_TABLE,
-  HOUSING_DOCUMENT_EVENTS_TABLE,
-  type EventDBO
-} from '~/repositories/eventRepository';
-import { HousingDocuments } from '~/repositories/housingDocumentRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
+import { toDocumentInsert } from '~/repositories/documentRepository';
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
-import {
-  genDocumentApi,
-  genEstablishmentApi,
-  genHousingApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { genDocumentApi } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Document API', () => {
@@ -58,35 +35,34 @@ describe('Document API', () => {
     url = await createServer().testing();
   });
 
-  const establishment = genEstablishmentApi('12345');
-  const user: UserApi = {
-    ...genUserApi(establishment.id),
-    role: UserRole.USUAL
-  };
-  const admin: UserApi = {
-    ...genUserApi(establishment.id),
-    role: UserRole.ADMIN
-  };
-  const anotherUser: UserApi = {
-    ...genUserApi(establishment.id),
-    role: UserRole.USUAL
-  };
-  const visitor: UserApi = {
-    ...genUserApi(establishment.id),
-    role: UserRole.VISITOR
-  };
-  const anotherEstablishment = genEstablishmentApi('23456');
-  const userFromAnotherEstablishment = genUserApi(anotherEstablishment.id);
+  let establishment: EstablishmentApi;
+  let anotherEstablishment: EstablishmentApi;
+  let user: UserApi;
+  let anotherUser: UserApi;
+  let visitor: UserApi;
+  let userFromAnotherEstablishment: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi)
-    );
-    await Users().insert(
-      [user, admin, anotherUser, visitor, userFromAnotherEstablishment].map(
-        toUserDBO
-      )
-    );
+    [establishment, anotherEstablishment] = await Promise.all([
+      factories.establishment.create(),
+      factories.establishment.create()
+    ]);
+    [user, anotherUser, visitor, userFromAnotherEstablishment] =
+      await Promise.all([
+        factories.user.create({
+          establishmentId: establishment.id,
+          role: UserRole.USUAL
+        }),
+        factories.user.create({
+          establishmentId: establishment.id,
+          role: UserRole.USUAL
+        }),
+        factories.user.create({
+          establishmentId: establishment.id,
+          role: UserRole.VISITOR
+        }),
+        factories.user.create({ establishmentId: anotherEstablishment.id })
+      ]);
   });
 
   describe('POST /documents', () => {
@@ -96,12 +72,12 @@ describe('Document API', () => {
       url = await createServer().testing();
     });
 
-    const establishment = genEstablishmentApi();
-    const user = genUserApi(establishment.id);
+    let establishment: EstablishmentApi;
+    let user: UserApi;
 
     beforeAll(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(toUserDBO(user));
+      establishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
     });
 
     const samplePdfPath = path.join(__dirname, '../../test/sample.pdf');
@@ -131,17 +107,17 @@ describe('Document API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       const documents = body as ReadonlyArray<DocumentDTO>;
-      const events = await Events()
-        .where({ type: 'document:created' })
-        .join(
-          DOCUMENT_EVENTS_TABLE,
-          `${DOCUMENT_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
-        )
-        .whereIn(
-          `${DOCUMENT_EVENTS_TABLE}.document_id`,
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin('documentEvents', 'documentEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'document:created')
+        .where(
+          'documentEvents.documentId',
+          'in',
           documents.map((document) => document.id)
-        );
+        )
+        .execute();
       expect(events).toHaveLength(2);
     });
 
@@ -212,7 +188,10 @@ describe('Document API', () => {
         creator: userFromAnotherEstablishment,
         establishmentId: anotherEstablishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status } = await request(url)
         .get(testRoute(document.id))
@@ -227,7 +206,10 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status, body } = await request(url)
         .get(testRoute(document.id))
@@ -257,7 +239,10 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
       const payload: DocumentPayload = {
         filename: 'renamed.pdf'
       };
@@ -280,7 +265,10 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
       const payload: DocumentPayload = {
         filename: 'renamed.pdf'
       };
@@ -291,20 +279,18 @@ describe('Document API', () => {
         .send(payload);
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const event = await Events()
-        .where({ type: 'document:updated' })
-        .join(
-          DOCUMENT_EVENTS_TABLE,
-          `${DOCUMENT_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
-        )
-        .where(`${DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
-        .first();
-      expect(event).toMatchObject<Partial<EventDBO<'document:updated'>>>({
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin('documentEvents', 'documentEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'document:updated')
+        .where('documentEvents.documentId', '=', document.id)
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'document:updated',
-        next_old: { filename: document.filename },
-        next_new: { filename: payload.filename },
-        created_by: user.id
+        nextOld: { filename: document.filename },
+        nextNew: { filename: payload.filename },
+        createdBy: user.id
       });
     });
 
@@ -327,7 +313,10 @@ describe('Document API', () => {
         creator: userFromAnotherEstablishment,
         establishmentId: anotherEstablishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
       const payload: DocumentPayload = {
         filename: 'hacked.pdf'
       };
@@ -350,7 +339,10 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute(document.id))
@@ -358,11 +350,13 @@ describe('Document API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
-      const [deletedDocument] = await Documents()
-        .where('id', document.id)
-        .select('*');
+      const deletedDocument = await kysely
+        .selectFrom('documents')
+        .select('deletedAt')
+        .where('id', '=', document.id)
+        .executeTakeFirst();
       expect(deletedDocument).toBeDefined();
-      expect(deletedDocument.deleted_at).not.toBeNull();
+      expect(deletedDocument?.deletedAt).not.toBeNull();
     });
 
     it('should remove the actual file from S3', async () => {
@@ -371,7 +365,10 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
       const s3 = createS3(config.s3);
       const upload = new PutObjectCommand({
         Bucket: config.s3.bucket,
@@ -398,27 +395,28 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute(document.id))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-      const event = await Events()
-        .where({ type: 'document:removed' })
-        .join(
-          DOCUMENT_EVENTS_TABLE,
-          `${DOCUMENT_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
-        )
-        .where(`${DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
-        .first();
-      expect(event).toMatchObject<Partial<EventDBO<'document:removed'>>>({
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin('documentEvents', 'documentEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'document:removed')
+        .where('documentEvents.documentId', '=', document.id)
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'document:removed',
-        next_old: { filename: document.filename },
-        next_new: null,
-        created_by: user.id
+        nextOld: { filename: document.filename },
+        nextNew: null,
+        createdBy: user.id
       });
     });
 
@@ -428,38 +426,44 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
-      const housings = faker.helpers.multiple(() => genHousingApi());
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      await HousingDocuments().insert(
-        housings.map((housing) => ({
-          document_id: document.id,
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id
-        }))
-      );
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
+      const housings = await factories.housing.createList(3);
+      await kysely
+        .insertInto('documentsHousings')
+        .values(
+          housings.map((housing) => ({
+            documentId: document.id,
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id
+          }))
+        )
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute(document.id))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-      const events = await Events()
-        .where({ type: 'housing:document-removed' })
-        .join(
-          HOUSING_DOCUMENT_EVENTS_TABLE,
-          `${HOUSING_DOCUMENT_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'housingDocumentEvents',
+          'housingDocumentEvents.eventId',
+          'events.id'
         )
-        .where(`${HOUSING_DOCUMENT_EVENTS_TABLE}.document_id`, document.id);
+        .selectAll('events')
+        .where('events.type', '=', 'housing:document-removed')
+        .where('housingDocumentEvents.documentId', '=', document.id)
+        .execute();
       events.forEach((event) => {
-        expect(event).toMatchObject<
-          Partial<EventDBO<'housing:document-removed'>>
-        >({
+        expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
           type: 'housing:document-removed',
-          next_old: { filename: document.filename },
-          next_new: null,
-          created_by: user.id
+          nextOld: { filename: document.filename },
+          nextNew: null,
+          createdBy: user.id
         });
       });
     });
@@ -478,7 +482,10 @@ describe('Document API', () => {
         creator: userFromAnotherEstablishment,
         establishmentId: anotherEstablishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute(document.id))
@@ -491,17 +498,18 @@ describe('Document API', () => {
   describe('GET /housing/:id/documents', () => {
     const testRoute = (housingId: string) => `/housing/${housingId}/documents`;
 
-    const housing = genHousingApi(
-      faker.helpers.arrayElement(establishment.geoCodes)
-    );
-    const anotherHousing = genHousingApi(
-      faker.helpers.arrayElement(anotherEstablishment.geoCodes)
-    );
+    let housing: HousingApi;
+    let anotherHousing: HousingApi;
 
     beforeAll(async () => {
-      await Housing().insert(
-        [housing, anotherHousing].map(formatHousingRecordApi)
-      );
+      [housing, anotherHousing] = await Promise.all([
+        factories.housing.create({
+          geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+        }),
+        factories.housing.create({
+          geoCode: faker.helpers.arrayElement(anotherEstablishment.geoCodes)
+        })
+      ]);
 
       const documents = [
         genDocumentApi({
@@ -522,26 +530,32 @@ describe('Document API', () => {
       ];
 
       // Insert documents
-      await Documents().insert(documents.map(toDocumentDBO));
+      await kysely
+        .insertInto('documents')
+        .values(documents.map(toDocumentInsert))
+        .execute();
 
       // Link documents to housings
-      await HousingDocuments().insert([
-        {
-          document_id: documents[0].id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        },
-        {
-          document_id: documents[1].id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        },
-        {
-          document_id: documents[2].id,
-          housing_id: anotherHousing.id,
-          housing_geo_code: anotherHousing.geoCode
-        }
-      ]);
+      await kysely
+        .insertInto('documentsHousings')
+        .values([
+          {
+            documentId: documents[0].id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          },
+          {
+            documentId: documents[1].id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          },
+          {
+            documentId: documents[2].id,
+            housingId: anotherHousing.id,
+            housingGeoCode: anotherHousing.geoCode
+          }
+        ])
+        .execute();
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -595,21 +609,26 @@ describe('Document API', () => {
       `/housing/${housingId}/documents/${documentId}`;
 
     it('should remove association only (keep document)', async () => {
-      const housing = genHousingApi(
-        faker.helpers.arrayElement(establishment.geoCodes)
-      );
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+      });
       const document = genDocumentApi({
         createdBy: user.id,
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
-      await HousingDocuments().insert({
-        document_id: document.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode
-      });
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
+      await kysely
+        .insertInto('documentsHousings')
+        .values({
+          documentId: document.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute(housing.id, document.id))
@@ -618,67 +637,75 @@ describe('Document API', () => {
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
       // Verify association removed
-      const links = await HousingDocuments()
-        .where({
-          document_id: document.id,
-          housing_id: housing.id
-        })
-        .select('*');
+      const links = await kysely
+        .selectFrom('documentsHousings')
+        .selectAll('documentsHousings')
+        .where('documentId', '=', document.id)
+        .where('housingId', '=', housing.id)
+        .execute();
       expect(links).toHaveLength(0);
 
       // Verify document still exists
-      const [doc] = await Documents().where({ id: document.id }).select('*');
+      const doc = await kysely
+        .selectFrom('documents')
+        .select('deletedAt')
+        .where('id', '=', document.id)
+        .executeTakeFirst();
       expect(doc).toBeDefined();
-      expect(doc.deleted_at).toBeNull();
+      expect(doc?.deletedAt).toBeNull();
     });
 
     it('should create an event "housing:document-detached"', async () => {
-      const housing = genHousingApi(
-        faker.helpers.arrayElement(establishment.geoCodes)
-      );
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+      });
       const document = genDocumentApi({
         createdBy: user.id,
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
-      await HousingDocuments().insert({
-        document_id: document.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode
-      });
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
+      await kysely
+        .insertInto('documentsHousings')
+        .values({
+          documentId: document.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute(housing.id, document.id))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-      const event = await Events()
-        .where({ type: 'housing:document-detached' })
-        .join(
-          HOUSING_DOCUMENT_EVENTS_TABLE,
-          `${HOUSING_DOCUMENT_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'housingDocumentEvents',
+          'housingDocumentEvents.eventId',
+          'events.id'
         )
-        .where(`${HOUSING_DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
-        .where(`${HOUSING_DOCUMENT_EVENTS_TABLE}.housing_id`, housing.id)
-        .first();
-      expect(event).toMatchObject<
-        Partial<EventDBO<'housing:document-detached'>>
-      >({
+        .selectAll('events')
+        .where('events.type', '=', 'housing:document-detached')
+        .where('housingDocumentEvents.documentId', '=', document.id)
+        .where('housingDocumentEvents.housingId', '=', housing.id)
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'housing:document-detached',
-        next_old: { filename: document.filename },
-        next_new: null,
-        created_by: user.id
+        nextOld: { filename: document.filename },
+        nextNew: null,
+        createdBy: user.id
       });
     });
 
     it('should return 404 if association not found', async () => {
-      const housing = genHousingApi(
-        faker.helpers.arrayElement(establishment.geoCodes)
-      );
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+      });
 
       const { status } = await request(url)
         .delete(testRoute(housing.id, faker.string.uuid()))
@@ -693,7 +720,10 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute(faker.string.uuid(), document.id))
@@ -703,26 +733,29 @@ describe('Document API', () => {
     });
 
     it('should return 404 if housing belongs to another establishment', async () => {
-      const housingFromAnotherEstablishment = genHousingApi(
-        faker.helpers.arrayElement(anotherEstablishment.geoCodes)
-      );
-      await Housing().insert(
-        formatHousingRecordApi(housingFromAnotherEstablishment)
-      );
+      const housingFromAnotherEstablishment = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(anotherEstablishment.geoCodes)
+      });
 
       const document = genDocumentApi({
         createdBy: userFromAnotherEstablishment.id,
         creator: userFromAnotherEstablishment,
         establishmentId: anotherEstablishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       // Link document to housing
-      await HousingDocuments().insert({
-        document_id: document.id,
-        housing_id: housingFromAnotherEstablishment.id,
-        housing_geo_code: housingFromAnotherEstablishment.geoCode
-      });
+      await kysely
+        .insertInto('documentsHousings')
+        .values({
+          documentId: document.id,
+          housingId: housingFromAnotherEstablishment.id,
+          housingGeoCode: housingFromAnotherEstablishment.geoCode
+        })
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute(housingFromAnotherEstablishment.id, document.id))
@@ -736,16 +769,18 @@ describe('Document API', () => {
     const testRoute = (id: string) => `/housing/${id}/documents`;
 
     it('should not duplicate the "housing:document-attached" event when the same document is linked twice', async () => {
-      const housing = genHousingApi(
-        faker.helpers.arrayElement(establishment.geoCodes)
-      );
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+      });
       const document = genDocumentApi({
         createdBy: user.id,
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       await request(url)
         .post(testRoute(housing.id))
@@ -757,19 +792,25 @@ describe('Document API', () => {
         .send({ documentIds: [document.id] });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const links = await HousingDocuments()
-        .where({ document_id: document.id, housing_id: housing.id })
-        .select('*');
+      const links = await kysely
+        .selectFrom('documentsHousings')
+        .selectAll('documentsHousings')
+        .where('documentId', '=', document.id)
+        .where('housingId', '=', housing.id)
+        .execute();
       expect(links).toHaveLength(1);
-      const events = await Events()
-        .where({ type: 'housing:document-attached' })
-        .join(
-          HOUSING_DOCUMENT_EVENTS_TABLE,
-          `${HOUSING_DOCUMENT_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'housingDocumentEvents',
+          'housingDocumentEvents.eventId',
+          'events.id'
         )
-        .where(`${HOUSING_DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
-        .where(`${HOUSING_DOCUMENT_EVENTS_TABLE}.housing_id`, housing.id);
+        .selectAll('events')
+        .where('events.type', '=', 'housing:document-attached')
+        .where('housingDocumentEvents.documentId', '=', document.id)
+        .where('housingDocumentEvents.housingId', '=', housing.id)
+        .execute();
       expect(events).toHaveLength(1);
     });
   });
@@ -786,7 +827,10 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status, body } = await request(url)
         .post(testRoute(campaign.id))
@@ -807,7 +851,10 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status, body } = await request(url)
         .post(testRoute(campaign.id))
@@ -828,7 +875,10 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status } = await request(url)
         .post(testRoute(campaign.id))
@@ -836,22 +886,22 @@ describe('Document API', () => {
         .send({ documentIds: [document.id] });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const event = await Events()
-        .where({ type: 'campaign:document-attached' })
-        .join(
-          CAMPAIGN_DOCUMENT_EVENTS_TABLE,
-          `${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignDocumentEvents',
+          'campaignDocumentEvents.eventId',
+          'events.id'
         )
-        .where(`${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
-        .first();
-      expect(event).toMatchObject<
-        Partial<EventDBO<'campaign:document-attached'>>
-      >({
+        .selectAll('events')
+        .where('events.type', '=', 'campaign:document-attached')
+        .where('campaignDocumentEvents.documentId', '=', document.id)
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'campaign:document-attached',
-        next_old: null,
-        next_new: { filename: document.filename },
-        created_by: user.id
+        nextOld: null,
+        nextNew: { filename: document.filename },
+        createdBy: user.id
       });
     });
 
@@ -864,7 +914,10 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       await request(url)
         .post(testRoute(campaign.id))
@@ -876,18 +929,24 @@ describe('Document API', () => {
         .send({ documentIds: [document.id] });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const links = await CampaignDocuments()
-        .where({ document_id: document.id, campaign_id: campaign.id })
-        .select('*');
+      const links = await kysely
+        .selectFrom('documentsCampaigns')
+        .selectAll('documentsCampaigns')
+        .where('documentId', '=', document.id)
+        .where('campaignId', '=', campaign.id)
+        .execute();
       expect(links).toHaveLength(1);
-      const events = await Events()
-        .where({ type: 'campaign:document-attached' })
-        .join(
-          CAMPAIGN_DOCUMENT_EVENTS_TABLE,
-          `${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignDocumentEvents',
+          'campaignDocumentEvents.eventId',
+          'events.id'
         )
-        .where(`${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.document_id`, document.id);
+        .selectAll('events')
+        .where('events.type', '=', 'campaign:document-attached')
+        .where('campaignDocumentEvents.documentId', '=', document.id)
+        .execute();
       expect(events).toHaveLength(1);
     });
 
@@ -912,7 +971,10 @@ describe('Document API', () => {
         creator: userFromAnotherEstablishment,
         establishmentId: anotherEstablishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status } = await request(url)
         .post(testRoute(campaign.id))
@@ -931,7 +993,10 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status } = await request(url)
         .post(testRoute(campaign.id))
@@ -954,11 +1019,17 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
-      await CampaignDocuments().insert({
-        document_id: document.id,
-        campaign_id: campaign.id
-      });
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
+      await kysely
+        .insertInto('documentsCampaigns')
+        .values({
+          documentId: document.id,
+          campaignId: campaign.id
+        })
+        .execute();
 
       const { status, body } = await request(url)
         .get(testRoute(campaign.id))
@@ -1001,11 +1072,17 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
-      await CampaignDocuments().insert({
-        document_id: document.id,
-        campaign_id: campaign.id
-      });
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
+      await kysely
+        .insertInto('documentsCampaigns')
+        .values({
+          documentId: document.id,
+          campaignId: campaign.id
+        })
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute(campaign.id, document.id))
@@ -1013,14 +1090,21 @@ describe('Document API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
-      const links = await CampaignDocuments()
-        .where({ document_id: document.id, campaign_id: campaign.id })
-        .select('*');
+      const links = await kysely
+        .selectFrom('documentsCampaigns')
+        .selectAll('documentsCampaigns')
+        .where('documentId', '=', document.id)
+        .where('campaignId', '=', campaign.id)
+        .execute();
       expect(links).toHaveLength(0);
 
-      const [doc] = await Documents().where({ id: document.id }).select('*');
+      const doc = await kysely
+        .selectFrom('documents')
+        .select('deletedAt')
+        .where('id', '=', document.id)
+        .executeTakeFirst();
       expect(doc).toBeDefined();
-      expect(doc.deleted_at).toBeNull();
+      expect(doc?.deletedAt).toBeNull();
     });
 
     it('should create an event "campaign:document-detached"', async () => {
@@ -1032,33 +1116,39 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
-      await CampaignDocuments().insert({
-        document_id: document.id,
-        campaign_id: campaign.id
-      });
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
+      await kysely
+        .insertInto('documentsCampaigns')
+        .values({
+          documentId: document.id,
+          campaignId: campaign.id
+        })
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute(campaign.id, document.id))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-      const event = await Events()
-        .where({ type: 'campaign:document-detached' })
-        .join(
-          CAMPAIGN_DOCUMENT_EVENTS_TABLE,
-          `${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignDocumentEvents',
+          'campaignDocumentEvents.eventId',
+          'events.id'
         )
-        .where(`${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
-        .first();
-      expect(event).toMatchObject<
-        Partial<EventDBO<'campaign:document-detached'>>
-      >({
+        .selectAll('events')
+        .where('events.type', '=', 'campaign:document-detached')
+        .where('campaignDocumentEvents.documentId', '=', document.id)
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'campaign:document-detached',
-        next_old: { filename: document.filename },
-        next_new: null,
-        created_by: user.id
+        nextOld: { filename: document.filename },
+        nextNew: null,
+        createdBy: user.id
       });
     });
 
@@ -1086,11 +1176,17 @@ describe('Document API', () => {
         creator: userFromAnotherEstablishment,
         establishmentId: anotherEstablishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
-      await CampaignDocuments().insert({
-        document_id: document.id,
-        campaign_id: campaign.id
-      });
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
+      await kysely
+        .insertInto('documentsCampaigns')
+        .values({
+          documentId: document.id,
+          campaignId: campaign.id
+        })
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute(campaign.id, document.id))
@@ -1110,21 +1206,26 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       await request(url)
         .post(`/campaigns/${campaign.id}/documents`)
         .use(tokenProvider(user))
         .send({ documentIds: [document.id] });
 
-      const attachedEvents = await Events()
-        .select(`${EVENTS_TABLE}.id`)
-        .join(
-          CAMPAIGN_DOCUMENT_EVENTS_TABLE,
-          `${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
+      const attachedEvents = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignDocumentEvents',
+          'campaignDocumentEvents.eventId',
+          'events.id'
         )
-        .where(`${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.campaign_id`, campaign.id);
+        .select('events.id')
+        .where('campaignDocumentEvents.campaignId', '=', campaign.id)
+        .execute();
       expect(attachedEvents.length).toBeGreaterThan(0);
       const eventIds = attachedEvents.map((event) => event.id);
 
@@ -1133,23 +1234,27 @@ describe('Document API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-      const orphanedEvents = await Events().whereIn('id', eventIds);
+      const orphanedEvents = await kysely
+        .selectFrom('events')
+        .selectAll('events')
+        .where('id', 'in', eventIds)
+        .execute();
       expect(orphanedEvents).toHaveLength(0);
     });
   });
 
   describe('Campaign document endpoints respect the geographic perimeter', () => {
-    const restrictedEstablishment = genEstablishmentApi('75056', '13055');
-    const restrictedUser: UserApi = {
-      ...genUserApi(restrictedEstablishment.id),
-      role: UserRole.USUAL
-    };
+    let restrictedEstablishment: EstablishmentApi;
+    let restrictedUser: UserApi;
 
     beforeAll(async () => {
-      await Establishments().insert(
-        formatEstablishmentApi(restrictedEstablishment)
-      );
-      await Users().insert(toUserDBO(restrictedUser));
+      restrictedEstablishment = await factories.establishment.create({
+        geoCodes: ['75056', '13055']
+      });
+      restrictedUser = await factories.user.create({
+        establishmentId: restrictedEstablishment.id,
+        role: UserRole.USUAL
+      });
       await userPerimeterRepository.upsert({
         userId: restrictedUser.id,
         establishmentId: restrictedEstablishment.id,
@@ -1177,11 +1282,15 @@ describe('Document API', () => {
       const campaign = await factories
         .campaign(restrictedEstablishment)
         .create({}, { associations: { createdBy: restrictedUser } });
-      const housing = genHousingApi('13055');
-      await Housing().insert(formatHousingRecordApi(housing));
-      await CampaignsHousing().insert(
-        formatCampaignHousingApi(campaign, [housing])
-      );
+      const housing = await factories.housing.create({ geoCode: '13055' });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
       return campaign;
     }
 
@@ -1192,7 +1301,10 @@ describe('Document API', () => {
         creator: restrictedUser,
         establishmentId: restrictedEstablishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status } = await request(url)
         .post(`/campaigns/${campaign.id}/documents`)
@@ -1219,11 +1331,17 @@ describe('Document API', () => {
         creator: restrictedUser,
         establishmentId: restrictedEstablishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
-      await CampaignDocuments().insert({
-        document_id: document.id,
-        campaign_id: campaign.id
-      });
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
+      await kysely
+        .insertInto('documentsCampaigns')
+        .values({
+          documentId: document.id,
+          campaignId: campaign.id
+        })
+        .execute();
 
       const { status } = await request(url)
         .delete(`/campaigns/${campaign.id}/documents/${document.id}`)
@@ -1240,36 +1358,42 @@ describe('Document API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await CampaignDocuments().insert({
-        document_id: document.id,
-        campaign_id: campaign.id
-      });
+      await kysely
+        .insertInto('documentsCampaigns')
+        .values({
+          documentId: document.id,
+          campaignId: campaign.id
+        })
+        .execute();
 
       const { status } = await request(url)
         .delete(`/documents/${document.id}`)
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-      const event = await Events()
-        .where({ type: 'campaign:document-removed' })
-        .join(
-          CAMPAIGN_DOCUMENT_EVENTS_TABLE,
-          `${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignDocumentEvents',
+          'campaignDocumentEvents.eventId',
+          'events.id'
         )
-        .where(`${CAMPAIGN_DOCUMENT_EVENTS_TABLE}.document_id`, document.id)
-        .first();
-      expect(event).toMatchObject<
-        Partial<EventDBO<'campaign:document-removed'>>
-      >({
+        .selectAll('events')
+        .where('events.type', '=', 'campaign:document-removed')
+        .where('campaignDocumentEvents.documentId', '=', document.id)
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'campaign:document-removed',
-        next_old: { filename: document.filename },
-        next_new: null,
-        created_by: user.id
+        nextOld: { filename: document.filename },
+        nextNew: null,
+        createdBy: user.id
       });
     });
   });

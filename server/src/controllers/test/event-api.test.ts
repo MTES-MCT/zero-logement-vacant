@@ -1,60 +1,44 @@
 import { constants } from 'http2';
 
 import { faker } from '@faker-js/faker/locale/fr';
-import { Occupancy } from '@zerologementvacant/models';
+import {
+  EventType,
+  Occupancy,
+  PrecisionCategory
+} from '@zerologementvacant/models';
+import { Record } from 'effect';
+import { snakeToCamel } from 'effect/String';
+import type { Insertable } from 'kysely';
 import request from 'supertest';
 
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import {
   CampaignHousingEventApi,
+  EventApi,
   GroupHousingEventApi,
   HousingEventApi,
   HousingOwnerEventApi,
   OwnerEventApi,
   PrecisionHousingEventApi
 } from '~/models/EventApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  CampaignHousingEvents,
-  Events,
-  formatCampaignHousingEventApi,
-  formatEventApi,
-  formatGroupHousingEventApi,
-  formatHousingEventApi,
-  formatHousingOwnerEventApi,
-  formatOwnerEventApi,
-  formatPrecisionHousingEventApi,
-  GroupHousingEvents,
-  HousingEvents,
-  HousingOwnerEvents,
-  OwnerEvents,
-  PrecisionHousingEvents
-} from '~/repositories/eventRepository';
-import { formatGroupApi, Groups } from '~/repositories/groupRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import {
-  Precisions,
-  type PrecisionDBO
-} from '~/repositories/precisionRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { OwnerApi } from '~/models/OwnerApi';
+import { UserApi } from '~/models/UserApi';
+import { formatEventApi } from '~/repositories/eventRepository';
 import { factories } from '~/test/factories';
-import {
-  genEstablishmentApi,
-  genEventApi,
-  genGroupApi,
-  genHousingApi,
-  genHousingOwnerApi,
-  genOwnerApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { genEventApi, genHousingOwnerApi } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
+
+function toEventValues<Type extends EventType>(
+  event: EventApi<Type>
+): Insertable<DB['events']> {
+  return Record.mapKeys(
+    formatEventApi(event) as unknown as Record<string, unknown>,
+    snakeToCamel
+  ) as Insertable<DB['events']>;
+}
 
 describe('Event API', () => {
   let url: string;
@@ -63,42 +47,55 @@ describe('Event API', () => {
     url = await createServer().testing();
   });
 
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('GET /owners/{id}/events', () => {
     const testRoute = (id: string) => `/owners/${id}/events`;
 
-    const owner = genOwnerApi();
-    const events = faker.helpers
-      .multiple(() => {
-        return genEventApi({
-          creator: user,
-          type: 'owner:updated',
-          nextOld: {
-            name: faker.person.fullName(),
-            birthdate: faker.date.birthdate().toJSON()
-          },
-          nextNew: {
-            name: faker.person.fullName(),
-            birthdate: faker.date.birthdate().toJSON()
-          }
-        });
-      })
-      .map<OwnerEventApi>((event) => ({
-        ...event,
-        ownerId: owner.id
-      }));
+    let owner: OwnerApi;
+    let events: ReadonlyArray<OwnerEventApi>;
 
     beforeAll(async () => {
-      await Owners().insert(formatOwnerApi(owner));
-      await Events().insert(events.map(formatEventApi));
-      await OwnerEvents().insert(events.map(formatOwnerEventApi));
+      owner = await factories.owner.create();
+      events = faker.helpers
+        .multiple(() => {
+          return genEventApi({
+            creator: user,
+            type: 'owner:updated',
+            nextOld: {
+              name: faker.person.fullName(),
+              birthdate: faker.date.birthdate().toJSON()
+            },
+            nextNew: {
+              name: faker.person.fullName(),
+              birthdate: faker.date.birthdate().toJSON()
+            }
+          });
+        })
+        .map<OwnerEventApi>((event) => ({
+          ...event,
+          ownerId: owner.id
+        }));
+
+      await kysely
+        .insertInto('events')
+        .values(events.map(toEventValues))
+        .execute();
+      await kysely
+        .insertInto('ownerEvents')
+        .values(
+          events.map((event) => ({
+            ownerId: event.ownerId,
+            eventId: event.id
+          }))
+        )
+        .execute();
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -133,12 +130,10 @@ describe('Event API', () => {
     const testRoute = (id: string) => `/housing/${id}/events`;
 
     async function setUp() {
-      const housing = genHousingApi(
-        faker.helpers.arrayElement(establishment.geoCodes)
-      );
-      await Housing().insert(formatHousingRecordApi(housing));
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+      });
+      const owner = await factories.owner.create();
       const housingOwner = genHousingOwnerApi(housing, owner);
       const housingEvents: ReadonlyArray<HousingEventApi> = [
         genEventApi({
@@ -167,15 +162,17 @@ describe('Event API', () => {
         housingGeoCode: housing.geoCode,
         housingId: housing.id
       }));
-      const precision: PrecisionDBO =
-        (await Precisions().first()) as PrecisionDBO;
+      const precision = await kysely
+        .selectFrom('precisions')
+        .selectAll()
+        .executeTakeFirstOrThrow();
       const precisionHousingEvents: ReadonlyArray<PrecisionHousingEventApi> = [
         genEventApi({
           creator: user,
           type: 'housing:precision-attached',
           nextOld: null,
           nextNew: {
-            category: precision.category,
+            category: precision.category as PrecisionCategory,
             label: precision.label
           }
         }),
@@ -183,7 +180,7 @@ describe('Event API', () => {
           creator: user,
           type: 'housing:precision-detached',
           nextOld: {
-            category: precision.category,
+            category: precision.category as PrecisionCategory,
             label: precision.label
           },
           nextNew: null
@@ -231,8 +228,9 @@ describe('Event API', () => {
         housingGeoCode: housing.geoCode,
         housingId: housing.id
       }));
-      const group = genGroupApi(user, establishment);
-      await Groups().insert(formatGroupApi(group));
+      const group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
       const groupHousingEvents: ReadonlyArray<GroupHousingEventApi> = [
         genEventApi({
           creator: user,
@@ -314,21 +312,65 @@ describe('Event API', () => {
         ...groupHousingEvents,
         ...campaignHousingEvents
       ];
-      await Events().insert(events.map(formatEventApi));
+      await kysely
+        .insertInto('events')
+        .values(events.map(toEventValues))
+        .execute();
       await Promise.all([
-        HousingEvents().insert(housingEvents.map(formatHousingEventApi)),
-        PrecisionHousingEvents().insert(
-          precisionHousingEvents.map(formatPrecisionHousingEventApi)
-        ),
-        HousingOwnerEvents().insert(
-          housingOwnerEvents.map(formatHousingOwnerEventApi)
-        ),
-        GroupHousingEvents().insert(
-          groupHousingEvents.map(formatGroupHousingEventApi)
-        ),
-        CampaignHousingEvents().insert(
-          campaignHousingEvents.map(formatCampaignHousingEventApi)
-        )
+        kysely
+          .insertInto('housingEvents')
+          .values(
+            housingEvents.map((event) => ({
+              housingGeoCode: event.housingGeoCode,
+              housingId: event.housingId,
+              eventId: event.id
+            }))
+          )
+          .execute(),
+        kysely
+          .insertInto('precisionHousingEvents')
+          .values(
+            precisionHousingEvents.map((event) => ({
+              housingGeoCode: event.housingGeoCode,
+              housingId: event.housingId,
+              precisionId: event.precisionId,
+              eventId: event.id
+            }))
+          )
+          .execute(),
+        kysely
+          .insertInto('housingOwnerEvents')
+          .values(
+            housingOwnerEvents.map((event) => ({
+              housingGeoCode: event.housingGeoCode,
+              housingId: event.housingId,
+              ownerId: event.ownerId,
+              eventId: event.id
+            }))
+          )
+          .execute(),
+        kysely
+          .insertInto('groupHousingEvents')
+          .values(
+            groupHousingEvents.map((event) => ({
+              housingGeoCode: event.housingGeoCode,
+              housingId: event.housingId,
+              groupId: event.groupId,
+              eventId: event.id
+            }))
+          )
+          .execute(),
+        kysely
+          .insertInto('campaignHousingEvents')
+          .values(
+            campaignHousingEvents.map((event) => ({
+              campaignId: event.campaignId,
+              housingGeoCode: event.housingGeoCode,
+              housingId: event.housingId,
+              eventId: event.id
+            }))
+          )
+          .execute()
       ]);
 
       return {
@@ -393,13 +435,11 @@ describe('Event API', () => {
     });
 
     it('should not return owner:updated events if there are no housing owners', async () => {
-      const housing = genHousingApi(
-        faker.helpers.arrayElement(establishment.geoCodes)
-      );
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+      });
 
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
+      const owner = await factories.owner.create();
 
       const ownerEvent = genEventApi({
         creator: user,
@@ -418,8 +458,14 @@ describe('Event API', () => {
         ownerId: owner.id
       };
 
-      await Events().insert([formatEventApi(ownerEvent)]);
-      await OwnerEvents().insert([formatOwnerEventApi(ownerEventApi)]);
+      await kysely
+        .insertInto('events')
+        .values(toEventValues(ownerEvent))
+        .execute();
+      await kysely
+        .insertInto('ownerEvents')
+        .values({ ownerId: ownerEventApi.ownerId, eventId: ownerEventApi.id })
+        .execute();
 
       const { body, status } = await request(url)
         .get(testRoute(housing.id))

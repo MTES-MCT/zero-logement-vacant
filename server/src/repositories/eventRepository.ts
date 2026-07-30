@@ -128,7 +128,7 @@ async function insertManyHousingEvents(
   );
 }
 
-function toEventInsert<Type extends EventType>(
+export function toEventInsert<Type extends EventType>(
   event: EventApi<Type>
 ): Insertable<DB['events']> {
   return {

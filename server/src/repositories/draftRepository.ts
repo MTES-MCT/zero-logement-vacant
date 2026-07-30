@@ -84,7 +84,7 @@ async function save(draft: DraftApi): Promise<void> {
   logger.debug('Saved draft', draft);
 }
 
-function toDraftInsert(draft: DraftApi): Insertable<DB['drafts']> {
+export function toDraftInsert(draft: DraftApi): Insertable<DB['drafts']> {
   return {
     id: draft.id,
     subject: draft.subject,

@@ -12,61 +12,22 @@ import {
   type CampaignCreationPayload,
   type UserDTO
 } from '@zerologementvacant/models';
-import { isDefined } from '@zerologementvacant/utils';
+import type { Selectable } from 'kysely';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { CampaignEventApi } from '~/models/EventApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { UserApi } from '~/models/UserApi';
-import {
-  CampaignHousingDBO,
-  CampaignsHousing,
-  formatCampaignHousingApi
-} from '~/repositories/campaignHousingRepository';
-import { Campaigns } from '~/repositories/campaignRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  CAMPAIGN_HOUSING_EVENTS_TABLE,
-  CampaignEvents,
-  Events,
-  formatCampaignEventApi,
-  formatEventApi,
-  HOUSING_EVENTS_TABLE
-} from '~/repositories/eventRepository';
-import {
-  formatGroupApi,
-  formatGroupHousingApi,
-  Groups,
-  GroupsHousing
-} from '~/repositories/groupRepository';
-import {
-  formatHousingOwnerApi,
-  HousingOwners
-} from '~/repositories/housingOwnerRepository';
-import {
-  formatHousingRecordApi,
-  Housing,
-  type HousingRecordDBO
-} from '~/repositories/housingRepository';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { toEventInsert } from '~/repositories/eventRepository';
 import { factories } from '~/test/factories';
-import {
-  genEstablishmentApi,
-  genEventApi,
-  genGroupApi,
-  genHousingApi,
-  genHousingOwnerApi,
-  genUserApi,
-  oneOf
-} from '~/test/testFixtures';
+import { genEventApi } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Campaign API', () => {
@@ -76,12 +37,12 @@ describe('Campaign API', () => {
     url = await createServer().testing();
   });
 
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('GET /campaigns', () => {
@@ -117,10 +78,13 @@ describe('Campaign API', () => {
     });
 
     it('should filter by group', async () => {
-      const groups = Array.from({ length: 2 }).map(() =>
-        genGroupApi(user, establishment)
+      const groups = await Promise.all(
+        Array.from({ length: 2 }, () =>
+          factories
+            .group(establishment)
+            .create({}, { associations: { createdBy: user } })
+        )
       );
-      await Groups().insert(groups.map(formatGroupApi));
       const campaigns = await Promise.all(
         groups.map((group) =>
           factories
@@ -157,26 +121,34 @@ describe('Campaign API', () => {
           .campaign(establishment)
           .createList(3, {}, { associations: { createdBy: user } });
         await Promise.all([
-          Campaigns()
-            .where({ id: sortCampaigns[0].id })
-            .update({ housing_count: 10, owner_count: 5, return_count: 1 }),
-          Campaigns()
-            .where({ id: sortCampaigns[1].id })
-            .update({ housing_count: 20, owner_count: 3, return_count: 4 }),
-          Campaigns()
-            .where({ id: sortCampaigns[2].id })
-            .update({ housing_count: 5, owner_count: 8, return_count: 2 })
+          kysely
+            .updateTable('campaigns')
+            .set({ housingCount: 10, ownerCount: 5, returnCount: 1 })
+            .where('id', '=', sortCampaigns[0].id)
+            .execute(),
+          kysely
+            .updateTable('campaigns')
+            .set({ housingCount: 20, ownerCount: 3, returnCount: 4 })
+            .where('id', '=', sortCampaigns[1].id)
+            .execute(),
+          kysely
+            .updateTable('campaigns')
+            .set({ housingCount: 5, ownerCount: 8, returnCount: 2 })
+            .where('id', '=', sortCampaigns[2].id)
+            .execute()
         ]);
       });
 
       afterEach(async () => {
         if (sortCampaigns?.length) {
-          await Campaigns()
-            .whereIn(
+          await kysely
+            .deleteFrom('campaigns')
+            .where(
               'id',
+              'in',
               sortCampaigns.map((c) => c.id)
             )
-            .delete();
+            .execute();
         }
       });
 
@@ -277,13 +249,15 @@ describe('Campaign API', () => {
   });
 
   describe('GET /campaigns/{id}', () => {
-    const group = genGroupApi(user, establishment);
-    let campaign: CampaignDTO;
-
     const testRoute = (id: string) => `/campaigns/${id}`;
 
+    let group: GroupApi;
+    let campaign: CampaignDTO;
+
     beforeAll(async () => {
-      await Groups().insert(formatGroupApi(group));
+      group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
       campaign = await factories
         .campaign(establishment)
         .create({ groupId: group.id }, { associations: { createdBy: user } });
@@ -346,27 +320,37 @@ describe('Campaign API', () => {
   describe('POST /groups/{id}/campaigns', () => {
     const testRoute = (id: string) => `/groups/${id}/campaigns`;
 
-    const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
-    const group = genGroupApi(user, establishment);
-    const groupHousings = HOUSING_STATUS_VALUES.flatMap((status) => {
-      return faker.helpers.multiple(
-        () => ({ ...genHousingApi(geoCode), status }),
-        { count: 3 }
-      );
-    });
-    const owners = groupHousings
-      .map((housing) => housing.owner)
-      .filter(isDefined);
-    const housingOwners = groupHousings.map((housing) =>
-      genHousingOwnerApi(housing, housing.owner!)
-    );
+    let group: GroupApi;
+    let groupHousings: HousingApi[];
 
     beforeAll(async () => {
-      await Groups().insert(formatGroupApi(group));
-      await Housing().insert(groupHousings.map(formatHousingRecordApi));
-      await Owners().insert(owners.map(formatOwnerApi));
-      await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
-      await GroupsHousing().insert(formatGroupHousingApi(group, groupHousings));
+      const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
+      group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      groupHousings = await Promise.all(
+        HOUSING_STATUS_VALUES.flatMap((status) =>
+          Array.from({ length: 3 }, () =>
+            factories.housing.create({ geoCode, status })
+          )
+        )
+      );
+      await Promise.all(
+        groupHousings.map(async (housing) => {
+          const owner = await factories.owner.create();
+          await factories.housingOwner({ housing, owner }).create();
+        })
+      );
+      await kysely
+        .insertInto('groupsHousing')
+        .values(
+          groupHousings.map((housing) => ({
+            groupId: group.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
     });
 
     test.prop<CampaignCreationPayload>(
@@ -416,11 +400,12 @@ describe('Campaign API', () => {
         description: 'Campagne pour les logements prioritaires',
         sentAt: null
       };
-      const group: GroupApi = {
-        ...genGroupApi(user, establishment),
-        archivedAt: new Date()
-      };
-      await Groups().insert(formatGroupApi(group));
+      const group = await factories
+        .group(establishment)
+        .create(
+          { archivedAt: new Date() },
+          { associations: { createdBy: user } }
+        );
 
       const { status } = await request(url)
         .post(testRoute(group.id))
@@ -432,11 +417,10 @@ describe('Campaign API', () => {
     });
 
     it('should be forbidden for a visitor', async () => {
-      const visitor: UserApi = {
-        ...genUserApi(establishment.id),
+      const visitor = await factories.user.create({
+        establishmentId: establishment.id,
         role: UserRole.VISITOR
-      };
-      await Users().insert(toUserDBO(visitor));
+      });
       const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
@@ -499,13 +483,14 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const campaignHousing = await CampaignsHousing().where(
-        'campaign_id',
-        body.id
-      );
+      const campaignHousing = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', body.id)
+        .execute();
       expect(campaignHousing).toBeArrayOfSize(groupHousings.length);
       expect(campaignHousing).toIncludeAllPartialMembers(
-        groupHousings.map((housing) => ({ housing_id: housing.id }))
+        groupHousings.map((housing) => ({ housingId: housing.id }))
       );
     });
 
@@ -523,16 +508,22 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const events = await Events()
-        .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          campaign_id: body.id,
-          type: 'housing:campaign-attached'
-        });
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignHousingEvents',
+          'campaignHousingEvents.eventId',
+          'events.id'
+        )
+        .selectAll('events')
+        .select('campaignHousingEvents.housingId')
+        .where('campaignHousingEvents.campaignId', '=', body.id)
+        .where('events.type', '=', 'housing:campaign-attached')
+        .execute();
       expect(events).toBeArrayOfSize(groupHousings.length);
       expect(events).toIncludeAllPartialMembers(
         groupHousings.map((housing) => ({
-          housing_id: housing.id,
+          housingId: housing.id,
           type: 'housing:campaign-attached'
         }))
       );
@@ -555,11 +546,20 @@ describe('Campaign API', () => {
       const neverContactedHousings = groupHousings.filter(
         (groupHousing) => groupHousing.status === HousingStatus.NEVER_CONTACTED
       );
-      const actual = await Housing().whereIn(
-        ['geo_code', 'id'],
-        neverContactedHousings.map((housing) => [housing.geoCode, housing.id])
-      );
-      expect(actual).toSatisfyAll<HousingRecordDBO>(
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where((eb) =>
+          eb(
+            eb.refTuple('geoCode', 'id'),
+            'in',
+            neverContactedHousings.map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
+            )
+          )
+        )
+        .execute();
+      expect(actual).toSatisfyAll<Selectable<DB['fastHousing']>>(
         (housing) => housing.status === HousingStatus.WAITING
       );
     });
@@ -584,15 +584,21 @@ describe('Campaign API', () => {
             groupHousing.status
           )
       );
-      const actual = await Housing().whereIn(
-        ['geo_code', 'id'],
-        notNeverContactedHousings.map((housing) => [
-          housing.geoCode,
-          housing.id
-        ])
-      );
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where((eb) =>
+          eb(
+            eb.refTuple('geoCode', 'id'),
+            'in',
+            notNeverContactedHousings.map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
+            )
+          )
+        )
+        .execute();
       expect(actual.length).toBeGreaterThan(0);
-      expect(actual).toSatisfyAll<HousingRecordDBO>(
+      expect(actual).toSatisfyAll<Selectable<DB['fastHousing']>>(
         (housing) => housing.status !== HousingStatus.WAITING
       );
     });
@@ -611,16 +617,24 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const events = await Events()
-        .where({ type: 'housing:status-updated' })
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .whereIn(
-          ['housing_geo_code', 'housing_id'],
-          groupHousings.map((groupHousing) => [
-            groupHousing.geoCode,
-            groupHousing.id
-          ])
-        );
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'housing:status-updated')
+        .where((eb) =>
+          eb(
+            eb.refTuple(
+              'housingEvents.housingGeoCode',
+              'housingEvents.housingId'
+            ),
+            'in',
+            groupHousings.map((groupHousing) =>
+              eb.tuple(groupHousing.geoCode, groupHousing.id)
+            )
+          )
+        )
+        .execute();
       const neverContactedHousings = groupHousings.filter(
         (groupHousing) => groupHousing.status === HousingStatus.NEVER_CONTACTED
       );
@@ -719,7 +733,11 @@ describe('Campaign API', () => {
         sentAt: payload.sentAt
       });
 
-      const actual = await Campaigns().where({ id: campaign.id }).first();
+      const actual = await kysely
+        .selectFrom('campaigns')
+        .selectAll('campaigns')
+        .where('id', '=', campaign.id)
+        .executeTakeFirst();
       expect(actual).toMatchObject({
         title: payload.title,
         description: payload.description
@@ -799,10 +817,10 @@ describe('Campaign API', () => {
     });
 
     it('should fail if the campaign does not belong to the user’s establishment', async () => {
-      const otherEstablishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(otherEstablishment));
-      const otherUser = genUserApi(otherEstablishment.id);
-      await Users().insert(toUserDBO(otherUser));
+      const otherEstablishment = await factories.establishment.create();
+      const otherUser = await factories.user.create({
+        establishmentId: otherEstablishment.id
+      });
 
       const { status } = await request(url)
         .delete(testRoute(campaign.id))
@@ -818,7 +836,11 @@ describe('Campaign API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
-      const actual = await Campaigns().where({ id: campaign.id }).first();
+      const actual = await kysely
+        .selectFrom('campaigns')
+        .selectAll('campaigns')
+        .where('id', '=', campaign.id)
+        .executeTakeFirst();
       expect(actual).toBeUndefined();
     });
 
@@ -832,124 +854,182 @@ describe('Campaign API', () => {
         }),
         campaignId: campaign.id
       };
-      await Events().insert(formatEventApi(event));
-      await CampaignEvents().insert(formatCampaignEventApi(event));
+      await kysely.insertInto('events').values(toEventInsert(event)).execute();
+      await kysely
+        .insertInto('campaignEvents')
+        .values({ eventId: event.id, campaignId: campaign.id })
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute(campaign.id))
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-      const actualEvent = await Events().where({ id: event.id }).first();
+      const actualEvent = await kysely
+        .selectFrom('events')
+        .selectAll('events')
+        .where('id', '=', event.id)
+        .executeTakeFirst();
       expect(actualEvent).toBeUndefined();
-      const actualCampaignEvent = await CampaignEvents().where({
-        campaign_id: campaign.id,
-        event_id: event.id
-      });
+      const actualCampaignEvent = await kysely
+        .selectFrom('campaignEvents')
+        .selectAll('campaignEvents')
+        .where('campaignId', '=', campaign.id)
+        .where('eventId', '=', event.id)
+        .execute();
       expect(actualCampaignEvent).toBeArrayOfSize(0);
     });
 
     it('should unlink the associated housings', async () => {
-      const housings: HousingApi[] = faker.helpers.multiple(() =>
-        genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+      const housings = await Promise.all(
+        faker.helpers.multiple(() =>
+          factories.housing.create({
+            geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+          })
+        )
       );
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      const campaignHousings = formatCampaignHousingApi(campaign, housings);
-      await CampaignsHousing().insert(campaignHousings);
+      await kysely
+        .insertInto('campaignsHousing')
+        .values(
+          housings.map((housing) => ({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
 
       await request(url)
         .delete(testRoute(campaign.id))
         .use(tokenProvider(user));
 
-      const actualCampaignHouses = await CampaignsHousing().where({
-        campaign_id: campaign.id
-      });
+      const actualCampaignHouses = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .execute();
       expect(actualCampaignHouses).toBeArrayOfSize(0);
     });
 
     it('should set the status to "never contacted" for each housing that has a status "waiting" and has no other campaign', async () => {
-      const housing: HousingApi = {
-        ...genHousingApi(oneOf(establishment.geoCodes)),
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
         status: HousingStatus.WAITING
-      };
-      await Housing().insert(formatHousingRecordApi(housing));
-      await CampaignsHousing().insert({
-        campaign_id: campaign.id,
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
       });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
 
       await request(url)
         .delete(testRoute(campaign.id))
         .use(tokenProvider(user));
 
-      const actualHousing = await Housing()
-        .where({
-          geo_code: housing.geoCode,
-          id: housing.id
-        })
-        .first();
+      const actualHousing = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
       expect(actualHousing).toMatchObject({
-        geo_code: housing.geoCode,
+        geoCode: housing.geoCode,
         id: housing.id,
         status: HousingStatus.NEVER_CONTACTED,
-        sub_status: null
+        subStatus: null
       });
     });
 
     it('should create an event "housing:campaign-removed" for each housing', async () => {
-      const housings: HousingApi[] = faker.helpers.multiple(() =>
-        genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+      const housings = await Promise.all(
+        faker.helpers.multiple(() =>
+          factories.housing.create({
+            geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+          })
+        )
       );
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      const campaignHousings: CampaignHousingDBO[] = formatCampaignHousingApi(
-        campaign,
-        housings
-      );
-      await CampaignsHousing().insert(campaignHousings);
+      await kysely
+        .insertInto('campaignsHousing')
+        .values(
+          housings.map((housing) => ({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
 
       await request(url)
         .delete(testRoute(campaign.id))
         .use(tokenProvider(user));
 
-      const events = await Events()
-        .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          type: 'housing:campaign-removed',
-          campaign_id: null
-        })
-        .whereIn(
-          ['housing_geo_code', 'housing_id'],
-          housings.map((housing) => [housing.geoCode, housing.id])
-        );
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignHousingEvents',
+          'campaignHousingEvents.eventId',
+          'events.id'
+        )
+        .selectAll('events')
+        .where('events.type', '=', 'housing:campaign-removed')
+        .where('campaignHousingEvents.campaignId', 'is', null)
+        .where((eb) =>
+          eb(
+            eb.refTuple(
+              'campaignHousingEvents.housingGeoCode',
+              'campaignHousingEvents.housingId'
+            ),
+            'in',
+            housings.map((housing) => eb.tuple(housing.geoCode, housing.id))
+          )
+        )
+        .execute();
       expect(events).toBeArrayOfSize(housings.length);
     });
 
     it('should create an event "housing:status-updated" for each housing that has a status "waiting" and has no other campaign', async () => {
-      const housings: HousingApi[] = faker.helpers.multiple(() => ({
-        ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
-        status: HousingStatus.WAITING
-      }));
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      const campaignHousings: CampaignHousingDBO[] = formatCampaignHousingApi(
-        campaign,
-        housings
+      const housings = await Promise.all(
+        faker.helpers.multiple(() =>
+          factories.housing.create({
+            geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+            status: HousingStatus.WAITING
+          })
+        )
       );
-      await CampaignsHousing().insert(campaignHousings);
+      await kysely
+        .insertInto('campaignsHousing')
+        .values(
+          housings.map((housing) => ({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
 
       await request(url)
         .delete(testRoute(campaign.id))
         .use(tokenProvider(user));
 
-      const events = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          type: 'housing:status-updated'
-        })
-        .whereIn(
-          ['housing_geo_code', 'housing_id'],
-          housings.map((housing) => [housing.geoCode, housing.id])
-        );
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'housing:status-updated')
+        .where((eb) =>
+          eb(
+            eb.refTuple(
+              'housingEvents.housingGeoCode',
+              'housingEvents.housingId'
+            ),
+            'in',
+            housings.map((housing) => eb.tuple(housing.geoCode, housing.id))
+          )
+        )
+        .execute();
       expect(events).toBeArrayOfSize(housings.length);
     });
   });
@@ -965,13 +1045,23 @@ describe('Campaign API', () => {
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
 
-      housings = faker.helpers.multiple(() =>
-        genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+      housings = await Promise.all(
+        faker.helpers.multiple(() =>
+          factories.housing.create({
+            geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+          })
+        )
       );
-      await Housing().insert(housings.map(formatHousingRecordApi));
-
-      const campaignHousings = formatCampaignHousingApi(campaign, housings);
-      await CampaignsHousing().insert(campaignHousings);
+      await kysely
+        .insertInto('campaignsHousing')
+        .values(
+          housings.map((housing) => ({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -995,10 +1085,10 @@ describe('Campaign API', () => {
     });
 
     it('should fail if the campaign does not belong to the user’s establishment', async () => {
-      const otherEstablishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(otherEstablishment));
-      const otherUser = genUserApi(otherEstablishment.id);
-      await Users().insert(toUserDBO(otherUser));
+      const otherEstablishment = await factories.establishment.create();
+      const otherUser = await factories.user.create({
+        establishmentId: otherEstablishment.id
+      });
 
       const { status } = await request(url)
         .delete(testRoute(campaign.id))
@@ -1028,12 +1118,14 @@ describe('Campaign API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
-      const actualCampaignHousings = await CampaignsHousing().where({
-        campaign_id: campaign.id
-      });
+      const actualCampaignHousings = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .execute();
       expect(actualCampaignHousings).toBeArrayOfSize(shouldKeep.length);
       expect(actualCampaignHousings).toIncludeAllPartialMembers(
-        shouldKeep.map((housing) => ({ housing_id: housing.id }))
+        shouldKeep.map((housing) => ({ housingId: housing.id }))
       );
     });
 
@@ -1050,16 +1142,22 @@ describe('Campaign API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
-      const events = await Events()
-        .join(CAMPAIGN_HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          type: 'housing:campaign-detached',
-          campaign_id: campaign.id
-        });
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignHousingEvents',
+          'campaignHousingEvents.eventId',
+          'events.id'
+        )
+        .selectAll('events')
+        .select('campaignHousingEvents.housingId')
+        .where('events.type', '=', 'housing:campaign-detached')
+        .where('campaignHousingEvents.campaignId', '=', campaign.id)
+        .execute();
 
       expect(events).toBeArrayOfSize(housings.length);
       expect(events).toIncludeAllPartialMembers(
-        housings.map((housing) => ({ housing_id: housing.id }))
+        housings.map((housing) => ({ housingId: housing.id }))
       );
     });
 
@@ -1079,32 +1177,35 @@ describe('Campaign API', () => {
       const otherCampaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await CampaignsHousing().insert([
-        {
-          // Should be reset because in status "waiting"
-          // and will not be in any campaign after the deletion
-          campaign_id: campaign.id,
-          housing_geo_code: mustReset.geoCode,
-          housing_id: mustReset.id
-        },
-        {
-          campaign_id: campaign.id,
-          housing_geo_code: mustNotReset[0].geoCode,
-          housing_id: mustNotReset[0].id
-        },
-        {
-          // Should not be reset because still in another campaign
-          campaign_id: otherCampaign.id,
-          housing_geo_code: mustNotReset[0].geoCode,
-          housing_id: mustNotReset[0].id
-        },
-        {
-          // Should not be reset because not in status "waiting"
-          campaign_id: campaign.id,
-          housing_geo_code: mustNotReset[1].geoCode,
-          housing_id: mustNotReset[1].id
-        }
-      ]);
+      await kysely
+        .insertInto('campaignsHousing')
+        .values([
+          {
+            // Should be reset because in status "waiting"
+            // and will not be in any campaign after the deletion
+            campaignId: campaign.id,
+            housingGeoCode: mustReset.geoCode,
+            housingId: mustReset.id
+          },
+          {
+            campaignId: campaign.id,
+            housingGeoCode: mustNotReset[0].geoCode,
+            housingId: mustNotReset[0].id
+          },
+          {
+            // Should not be reset because still in another campaign
+            campaignId: otherCampaign.id,
+            housingGeoCode: mustNotReset[0].geoCode,
+            housingId: mustNotReset[0].id
+          },
+          {
+            // Should not be reset because not in status "waiting"
+            campaignId: campaign.id,
+            housingGeoCode: mustNotReset[1].geoCode,
+            housingId: mustNotReset[1].id
+          }
+        ])
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute(campaign.id))
@@ -1115,13 +1216,19 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-      const actual = await Housing().whereIn(
-        ['geo_code', 'id'],
-        [mustReset, ...mustNotReset].map((housing) => [
-          housing.geoCode,
-          housing.id
-        ])
-      );
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where((eb) =>
+          eb(
+            eb.refTuple('geoCode', 'id'),
+            'in',
+            [mustReset, ...mustNotReset].map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
+            )
+          )
+        )
+        .execute();
       expect(actual).toIncludeAllPartialMembers([
         {
           id: mustReset.id,
@@ -1154,32 +1261,35 @@ describe('Campaign API', () => {
       const otherCampaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await CampaignsHousing().insert([
-        {
-          // Should be reset because in status "waiting"
-          // and will not be in any campaign after the deletion
-          campaign_id: campaign.id,
-          housing_geo_code: mustReset.geoCode,
-          housing_id: mustReset.id
-        },
-        {
-          campaign_id: campaign.id,
-          housing_geo_code: mustNotReset[0].geoCode,
-          housing_id: mustNotReset[0].id
-        },
-        {
-          // Should not be reset because still in another campaign
-          campaign_id: otherCampaign.id,
-          housing_geo_code: mustNotReset[0].geoCode,
-          housing_id: mustNotReset[0].id
-        },
-        {
-          // Should not be reset because not in status "waiting"
-          campaign_id: campaign.id,
-          housing_geo_code: mustNotReset[1].geoCode,
-          housing_id: mustNotReset[1].id
-        }
-      ]);
+      await kysely
+        .insertInto('campaignsHousing')
+        .values([
+          {
+            // Should be reset because in status "waiting"
+            // and will not be in any campaign after the deletion
+            campaignId: campaign.id,
+            housingGeoCode: mustReset.geoCode,
+            housingId: mustReset.id
+          },
+          {
+            campaignId: campaign.id,
+            housingGeoCode: mustNotReset[0].geoCode,
+            housingId: mustNotReset[0].id
+          },
+          {
+            // Should not be reset because still in another campaign
+            campaignId: otherCampaign.id,
+            housingGeoCode: mustNotReset[0].geoCode,
+            housingId: mustNotReset[0].id
+          },
+          {
+            // Should not be reset because not in status "waiting"
+            campaignId: campaign.id,
+            housingGeoCode: mustNotReset[1].geoCode,
+            housingId: mustNotReset[1].id
+          }
+        ])
+        .execute();
       const payload: CampaignRemovalPayload = {
         all: false,
         housingIds: [mustReset, ...mustNotReset].map((housing) => housing.id)
@@ -1191,19 +1301,24 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-      const event = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          type: 'housing:status-updated'
-        })
-        .whereIn(
-          ['housing_geo_code', 'housing_id'],
-          [mustReset, ...mustNotReset].map((housing) => [
-            housing.geoCode,
-            housing.id
-          ])
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'housing:status-updated')
+        .where((eb) =>
+          eb(
+            eb.refTuple(
+              'housingEvents.housingGeoCode',
+              'housingEvents.housingId'
+            ),
+            'in',
+            [mustReset, ...mustNotReset].map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
+            )
+          )
         )
-        .first();
+        .executeTakeFirst();
       expect(event).not.toBeNull();
     });
   });

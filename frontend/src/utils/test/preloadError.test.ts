@@ -8,6 +8,7 @@ describe('Preload error recovery', () => {
     unregister = undefined;
     sessionStorage.clear();
     document.getElementById('vite-preload-error-recovery')?.remove();
+    document.getElementById('preload-error-existing-control')?.remove();
   });
 
   it('should offer recovery only once when a stale dynamic import fails', () => {
@@ -159,8 +160,12 @@ describe('Preload error recovery', () => {
     expect(reload).not.toHaveBeenCalled();
   });
 
-  it('should show an accessible reload action and wait for its activation', () => {
+  it('should show an accessible reload action without moving the focus', () => {
     const reload = vi.fn();
+    const existingControl = document.createElement('button');
+    existingControl.id = 'preload-error-existing-control';
+    document.body.append(existingControl);
+    existingControl.focus();
     unregister = registerPreloadErrorRecovery({
       reload,
       now: () => 100_000
@@ -171,13 +176,13 @@ describe('Preload error recovery', () => {
 
     const alert = document.querySelector('[role="alert"]');
     const button = alert?.querySelector('button');
-    expect(alert).toHaveAccessibleName('L’application a été mise à jour');
-    expect(alert).toHaveTextContent('L’application a été mise à jour');
+    expect(alert).toHaveAccessibleName('Une ressource n’a pas pu être chargée');
+    expect(alert).toHaveTextContent('Une ressource n’a pas pu être chargée');
     expect(alert).toHaveTextContent(
       'Rechargez la page pour continuer. Vous retrouverez la page en cours.'
     );
     expect(button).toHaveAccessibleName('Recharger l’application');
-    expect(button).toHaveFocus();
+    expect(existingControl).toHaveFocus();
     expect(alert?.querySelector('h1, h2, h3, h4, h5, h6')).toBeNull();
     expect(reload).not.toHaveBeenCalled();
 

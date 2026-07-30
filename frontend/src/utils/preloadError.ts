@@ -19,7 +19,7 @@ function showDefaultRecovery(reload: () => void): void {
 
   title.id = `${PRELOAD_ERROR_RECOVERY_ID}-title`;
   title.className = 'fr-alert__title';
-  title.textContent = 'L’application a été mise à jour';
+  title.textContent = 'Une ressource n’a pas pu être chargée';
 
   description.textContent =
     'Rechargez la page pour continuer. Vous retrouverez la page en cours.';
@@ -31,7 +31,6 @@ function showDefaultRecovery(reload: () => void): void {
 
   alert.append(title, description, button);
   document.body.prepend(alert);
-  button.focus();
 }
 
 interface PreloadErrorRecoveryOptions {

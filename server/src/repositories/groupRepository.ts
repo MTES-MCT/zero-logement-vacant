@@ -246,7 +246,7 @@ const remove = async (group: GroupApi): Promise<void> => {
   logger.debug('Removed group', group.id);
 };
 
-function toGroupDBO(group: GroupApi): Insertable<DB['groups']> {
+export function toGroupDBO(group: GroupApi): Insertable<DB['groups']> {
   return {
     id: group.id,
     title: group.title,

@@ -332,7 +332,7 @@ type HousingInclude =
 // path. plot_area/occupancy_history are READ_ONLY (nullable, no default): set
 // null to satisfy Insertable, matching the NULL the Knex path produced by
 // omitting them. last_mutation_type is Generated and stays omitted.
-function toHousingInsert(
+export function toHousingInsert(
   housing: HousingRecordApi
 ): Insertable<DB['fastHousing']> {
   return {

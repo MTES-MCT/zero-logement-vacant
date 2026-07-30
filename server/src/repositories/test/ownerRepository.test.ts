@@ -1,55 +1,25 @@
 import { faker } from '@faker-js/faker';
 import { collect } from '@zerologementvacant/utils/node';
 
-import db from '~/infra/database';
+import { kysely } from '~/infra/database/kysely';
 import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { OwnerApi } from '~/models/OwnerApi';
-import {
-  CampaignsHousing,
-  formatCampaignHousingApi
-} from '~/repositories/campaignHousingRepository';
-import {
-  formatGroupApi,
-  formatGroupHousingApi,
-  Groups,
-  GroupsHousing
-} from '~/repositories/groupRepository';
+import { UserApi } from '~/models/UserApi';
 import { factories } from '~/test/factories';
-import {
-  genEstablishmentApi,
-  genGroupApi,
-  genHousingApi,
-  genHousingOwnerApi,
-  genOwnerApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { genHousingOwnerApi, genOwnerApi } from '~/test/testFixtures';
 
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '../establishmentRepository';
-import {
-  formatHousingOwnerApi,
-  HousingOwners
-} from '../housingOwnerRepository';
-import { formatHousingRecordApi, Housing } from '../housingRepository';
-import ownerRepository, {
-  formatOwnerApi,
-  Owners,
-  ownerTable
-} from '../ownerRepository';
-import { toUserDBO, Users } from '../userRepository';
+import ownerRepository, { toOwnerInsert } from '../ownerRepository';
 
 describe('Owner repository', () => {
   describe('find', () => {
     it('should search by full name', async () => {
-      const owners = [
-        { ...genOwnerApi(), fullName: 'Jean Valjean' },
-        { ...genOwnerApi(), fullName: 'Jean Dupont' },
-        { ...genOwnerApi(), fullName: 'Pierre Jean' },
-        { ...genOwnerApi(), fullName: 'Kyan khojandi' }
-      ];
-      await Owners().insert(owners.map(formatOwnerApi));
+      await Promise.all([
+        factories.owner.create({ fullName: 'Jean Valjean' }),
+        factories.owner.create({ fullName: 'Jean Dupont' }),
+        factories.owner.create({ fullName: 'Pierre Jean' }),
+        factories.owner.create({ fullName: 'Kyan khojandi' })
+      ]);
 
       const actual = await ownerRepository.find({
         search: 'Jea'
@@ -61,12 +31,11 @@ describe('Owner repository', () => {
 
     describe('Filter by idpersonne', () => {
       it('should keep owners who have an idpersonne defined', async () => {
-        const owners: ReadonlyArray<OwnerApi> = [
-          { ...genOwnerApi(), idpersonne: faker.string.alphanumeric(10) },
-          { ...genOwnerApi(), idpersonne: null },
-          { ...genOwnerApi(), idpersonne: faker.string.alphanumeric(10) }
-        ];
-        await Owners().insert(owners.map(formatOwnerApi));
+        await Promise.all([
+          factories.owner.create({ idpersonne: faker.string.alphanumeric(10) }),
+          factories.owner.create({ idpersonne: null }),
+          factories.owner.create({ idpersonne: faker.string.alphanumeric(10) })
+        ]);
 
         const actual = await ownerRepository.find({
           filters: {
@@ -78,8 +47,7 @@ describe('Owner repository', () => {
       });
 
       it('should filter by idpersonne', async () => {
-        const owners = faker.helpers.multiple(() => genOwnerApi());
-        await Owners().insert(owners.map(formatOwnerApi));
+        const owners = await factories.owner.createList(3);
         const idpersonnes = owners
           .map((owner) => owner.idpersonne)
           .filter((id): id is string => id !== null);
@@ -96,12 +64,12 @@ describe('Owner repository', () => {
 
     describe('Filter by idpersonne=false', () => {
       it('should return only owners with null idpersonne', async () => {
-        const ownerWithNull = { ...genOwnerApi(), idpersonne: null };
-        const ownerWithId = {
-          ...genOwnerApi(),
+        const ownerWithNull = await factories.owner.create({
+          idpersonne: null
+        });
+        const ownerWithId = await factories.owner.create({
           idpersonne: faker.string.alphanumeric(10)
-        };
-        await Owners().insert([ownerWithNull, ownerWithId].map(formatOwnerApi));
+        });
 
         const actual = await ownerRepository.find({
           filters: { idpersonne: false },
@@ -119,12 +87,12 @@ describe('Owner repository', () => {
     describe('Filter by idpersonne single string', () => {
       it('should return exactly the owner matching that idpersonne', async () => {
         const targetIdpersonne = faker.string.alphanumeric(10);
-        const owner = { ...genOwnerApi(), idpersonne: targetIdpersonne };
-        const otherOwner = {
-          ...genOwnerApi(),
+        const owner = await factories.owner.create({
+          idpersonne: targetIdpersonne
+        });
+        await factories.owner.create({
           idpersonne: faker.string.alphanumeric(10)
-        };
-        await Owners().insert([owner, otherOwner].map(formatOwnerApi));
+        });
 
         const actual = await ownerRepository.find({
           filters: { idpersonne: targetIdpersonne },
@@ -138,12 +106,10 @@ describe('Owner repository', () => {
 
     describe('Filter by idpersonne empty array', () => {
       it('should apply no idpersonne filter and return owners regardless', async () => {
-        const ownerA = { ...genOwnerApi(), idpersonne: null };
-        const ownerB = {
-          ...genOwnerApi(),
+        const ownerA = await factories.owner.create({ idpersonne: null });
+        const ownerB = await factories.owner.create({
           idpersonne: faker.string.alphanumeric(10)
-        };
-        await Owners().insert([ownerA, ownerB].map(formatOwnerApi));
+        });
 
         const actual = await ownerRepository.find({
           filters: { idpersonne: [] },
@@ -156,34 +122,36 @@ describe('Owner repository', () => {
     });
 
     describe('Filter by campaignId', () => {
-      const establishment = genEstablishmentApi();
-      const creator = genUserApi(establishment.id);
+      let establishment: EstablishmentApi;
+      let creator: UserApi;
 
       beforeAll(async () => {
-        await Establishments().insert(formatEstablishmentApi(establishment));
-        await Users().insert(toUserDBO(creator));
+        establishment = await factories.establishment.create();
+        creator = await factories.user.create({
+          establishmentId: establishment.id
+        });
       });
 
       it('should return only the owner linked to that campaign', async () => {
-        const housing = genHousingApi();
-        const linkedOwner = genOwnerApi();
-        const unlinkedOwner = genOwnerApi();
+        const linkedOwner = await factories.owner.create();
+        const unlinkedOwner = await factories.owner.create();
+        const housing = await factories.housing.create();
 
-        await Housing().insert(formatHousingRecordApi(housing));
-        await Owners().insert([linkedOwner, unlinkedOwner].map(formatOwnerApi));
-        await HousingOwners().insert(
-          formatHousingOwnerApi({
-            ...genHousingOwnerApi(housing, linkedOwner),
-            rank: 1
-          })
-        );
+        await factories
+          .housingOwner({ housing, owner: linkedOwner })
+          .create({ rank: 1 });
 
         const campaign = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: creator } });
-        await CampaignsHousing().insert(
-          formatCampaignHousingApi(campaign, [housing])
-        );
+        await kysely
+          .insertInto('campaignsHousing')
+          .values({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         const actual = await ownerRepository.find({
           filters: { campaignId: campaign.id },
@@ -196,31 +164,36 @@ describe('Owner repository', () => {
     });
 
     describe('Filter by groupId', () => {
-      const establishment = genEstablishmentApi();
-      const creator = genUserApi(establishment.id);
+      let establishment: EstablishmentApi;
+      let creator: UserApi;
 
       beforeAll(async () => {
-        await Establishments().insert(formatEstablishmentApi(establishment));
-        await Users().insert(toUserDBO(creator));
+        establishment = await factories.establishment.create();
+        creator = await factories.user.create({
+          establishmentId: establishment.id
+        });
       });
 
       it('should return only the owner linked to that group', async () => {
-        const housing = genHousingApi();
-        const linkedOwner = genOwnerApi();
-        const unlinkedOwner = genOwnerApi();
+        const linkedOwner = await factories.owner.create();
+        const unlinkedOwner = await factories.owner.create();
+        const housing = await factories.housing.create();
 
-        await Housing().insert(formatHousingRecordApi(housing));
-        await Owners().insert([linkedOwner, unlinkedOwner].map(formatOwnerApi));
-        await HousingOwners().insert(
-          formatHousingOwnerApi({
-            ...genHousingOwnerApi(housing, linkedOwner),
-            rank: 1
+        await factories
+          .housingOwner({ housing, owner: linkedOwner })
+          .create({ rank: 1 });
+
+        const group = await factories
+          .group(establishment)
+          .create({}, { associations: { createdBy: creator } });
+        await kysely
+          .insertInto('groupsHousing')
+          .values({
+            groupId: group.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
           })
-        );
-
-        const group = genGroupApi(creator, establishment);
-        await Groups().insert(formatGroupApi(group));
-        await GroupsHousing().insert(formatGroupHousingApi(group, [housing]));
+          .execute();
 
         const actual = await ownerRepository.find({
           filters: { groupId: group.id },
@@ -244,17 +217,10 @@ describe('Owner repository', () => {
       });
 
       it('should include housings linked to the owner via lateral join', async () => {
-        const housing = genHousingApi();
-        const owner = genOwnerApi();
+        const owner = await factories.owner.create();
+        const housing = await factories.housing.create();
 
-        await Housing().insert(formatHousingRecordApi(housing));
-        await Owners().insert(formatOwnerApi(owner));
-        await HousingOwners().insert(
-          formatHousingOwnerApi({
-            ...genHousingOwnerApi(housing, owner),
-            rank: 1
-          })
-        );
+        await factories.housingOwner({ housing, owner }).create({ rank: 1 });
 
         const actual = await ownerRepository.find({
           filters: { idpersonne: owner.idpersonne ?? [] },
@@ -274,10 +240,7 @@ describe('Owner repository', () => {
 
     describe('Pagination', () => {
       it('should paginate by default', async () => {
-        const owners = faker.helpers.multiple(() => genOwnerApi(), {
-          count: 51
-        });
-        await Owners().insert(owners.map(formatOwnerApi));
+        await factories.owner.createList(51);
 
         const actual = await ownerRepository.find();
 
@@ -285,10 +248,7 @@ describe('Owner repository', () => {
       });
 
       it('should disable pagination', async () => {
-        const owners = faker.helpers.multiple(() => genOwnerApi(), {
-          count: 51
-        });
-        await Owners().insert(owners.map(formatOwnerApi));
+        await factories.owner.createList(51);
 
         const actual = await ownerRepository.find({
           pagination: { paginate: false }
@@ -298,10 +258,7 @@ describe('Owner repository', () => {
       });
 
       it('should paginate explicitely', async () => {
-        const owners = faker.helpers.multiple(() => genOwnerApi(), {
-          count: 21
-        });
-        await Owners().insert(owners.map(formatOwnerApi));
+        await factories.owner.createList(21);
 
         const actual = await ownerRepository.find({
           pagination: {
@@ -318,8 +275,7 @@ describe('Owner repository', () => {
 
   describe('get', () => {
     it('should return a matching OwnerApi for an existing owner', async () => {
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
+      const owner = await factories.owner.create();
 
       const actual = await ownerRepository.get(owner.id);
 
@@ -346,11 +302,7 @@ describe('Owner repository', () => {
     });
 
     it('should find a owner without birth date', async () => {
-      const owner: OwnerApi = {
-        ...genOwnerApi(),
-        birthDate: null
-      };
-      await db(ownerTable).insert(formatOwnerApi(owner));
+      const owner = await factories.owner.create({ birthDate: null });
 
       const actual = await ownerRepository.findOne({
         fullName: owner.fullName,
@@ -365,8 +317,7 @@ describe('Owner repository', () => {
     });
 
     it('should find a owner with birth date', async () => {
-      const owner: OwnerApi = genOwnerApi();
-      await db(ownerTable).insert(formatOwnerApi(owner));
+      const owner = await factories.owner.create();
 
       const actual = await ownerRepository.findOne({
         fullName: owner.fullName,
@@ -385,10 +336,7 @@ describe('Owner repository', () => {
 
   describe('count', () => {
     it('should count all owners', async () => {
-      const owners = faker.helpers.multiple(() => genOwnerApi(), {
-        count: 15
-      });
-      await Owners().insert(owners.map(formatOwnerApi));
+      const owners = await factories.owner.createList(15);
 
       const actual = await ownerRepository.count();
 
@@ -396,13 +344,12 @@ describe('Owner repository', () => {
     });
 
     it('should count owners matching search', async () => {
-      const owners = [
-        { ...genOwnerApi(), fullName: 'Jean Valjean' },
-        { ...genOwnerApi(), fullName: 'Jean Dupont' },
-        { ...genOwnerApi(), fullName: 'Pierre Jean' },
-        { ...genOwnerApi(), fullName: 'Kyan khojandi' }
-      ];
-      await Owners().insert(owners.map(formatOwnerApi));
+      await Promise.all([
+        factories.owner.create({ fullName: 'Jean Valjean' }),
+        factories.owner.create({ fullName: 'Jean Dupont' }),
+        factories.owner.create({ fullName: 'Pierre Jean' }),
+        factories.owner.create({ fullName: 'Kyan khojandi' })
+      ]);
 
       const actual = await ownerRepository.count({
         search: 'Jea'
@@ -412,12 +359,11 @@ describe('Owner repository', () => {
     });
 
     it('should count owners with idpersonne defined', async () => {
-      const owners: ReadonlyArray<OwnerApi> = [
-        { ...genOwnerApi(), idpersonne: faker.string.alphanumeric(10) },
-        { ...genOwnerApi(), idpersonne: null },
-        { ...genOwnerApi(), idpersonne: faker.string.alphanumeric(10) }
-      ];
-      await Owners().insert(owners.map(formatOwnerApi));
+      await Promise.all([
+        factories.owner.create({ idpersonne: faker.string.alphanumeric(10) }),
+        factories.owner.create({ idpersonne: null }),
+        factories.owner.create({ idpersonne: faker.string.alphanumeric(10) })
+      ]);
 
       const actual = await ownerRepository.count({
         filters: {
@@ -429,10 +375,7 @@ describe('Owner repository', () => {
     });
 
     it('should count owners by idpersonne', async () => {
-      const owners = faker.helpers.multiple(() => genOwnerApi(), {
-        count: 5
-      });
-      await Owners().insert(owners.map(formatOwnerApi));
+      const owners = await factories.owner.createList(5);
       const idpersonnes = owners
         .map((owner) => owner.idpersonne)
         .filter((id): id is string => id !== null);
@@ -449,14 +392,7 @@ describe('Owner repository', () => {
 
   describe('stream', () => {
     it('should group by full name', async () => {
-      const owners = new Array(4)
-        .fill('0')
-        .map(() => genOwnerApi())
-        .map<OwnerApi>((owner) => ({
-          ...owner,
-          fullName: 'Jean Dupont'
-        }));
-      await Owners().insert(owners.map(formatOwnerApi));
+      await factories.owner.createList(4, { fullName: 'Jean Dupont' });
 
       const actual = await collect(
         ownerRepository.stream({
@@ -478,10 +414,10 @@ describe('Owner repository', () => {
     it('should format a JS Date birth_date as a yyyy-mm-dd string', async () => {
       const owner = genOwnerApi();
       const birthDate = new Date('1975-06-15T00:00:00.000Z');
-      await Owners().insert({
-        ...formatOwnerApi(owner),
-        birth_date: birthDate
-      });
+      await kysely
+        .insertInto('owners')
+        .values({ ...toOwnerInsert(owner), birthDate })
+        .execute();
 
       const actual = await ownerRepository.get(owner.id);
 
@@ -490,11 +426,10 @@ describe('Owner repository', () => {
 
     it('should map null created_at/updated_at to null createdAt/updatedAt', async () => {
       const owner = genOwnerApi();
-      await Owners().insert({
-        ...formatOwnerApi(owner),
-        created_at: null,
-        updated_at: null
-      });
+      await kysely
+        .insertInto('owners')
+        .values({ ...toOwnerInsert(owner), createdAt: null, updatedAt: null })
+        .execute();
 
       const actual = await ownerRepository.get(owner.id);
 
@@ -503,8 +438,7 @@ describe('Owner repository', () => {
     });
 
     it('should map missing BAN row to null banAddress', async () => {
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
+      const owner = await factories.owner.create();
       // Deliberately insert no ban_addresses row for this owner
 
       const results = await ownerRepository.find({
@@ -520,17 +454,10 @@ describe('Owner repository', () => {
 
   describe('findByHousing', () => {
     it('should return HousingOwnerApi entries for the linked owner', async () => {
-      const owner = genOwnerApi();
-      const housing = genHousingApi();
+      const owner = await factories.owner.create();
+      const housing = await factories.housing.create();
 
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Owners().insert(formatOwnerApi(owner));
-      await HousingOwners().insert(
-        formatHousingOwnerApi({
-          ...genHousingOwnerApi(housing, owner),
-          rank: 1
-        })
-      );
+      await factories.housingOwner({ housing, owner }).create({ rank: 1 });
 
       const actual = await ownerRepository.findByHousing(housing);
 
@@ -538,19 +465,12 @@ describe('Owner repository', () => {
     });
 
     it('should map null locprop_source to null locprop', async () => {
-      const owner = genOwnerApi();
-      const housing = genHousingApi();
-      const housingOwner = genHousingOwnerApi(housing, owner);
+      const owner = await factories.owner.create();
+      const housing = await factories.housing.create();
 
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Owners().insert(formatOwnerApi(owner));
-      await HousingOwners().insert(
-        formatHousingOwnerApi({
-          ...housingOwner,
-          rank: 1,
-          locprop: null
-        })
-      );
+      await factories
+        .housingOwner({ housing, owner })
+        .create({ rank: 1, locprop: null });
 
       const actual = await ownerRepository.findByHousing(housing);
 
@@ -562,11 +482,8 @@ describe('Owner repository', () => {
 
   describe('insertHousingOwners', () => {
     it('should insert rows into HousingOwners and return the inserted count', async () => {
-      const owner = genOwnerApi();
-      const housing = genHousingApi();
-
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Owners().insert(formatOwnerApi(owner));
+      const owner = await factories.owner.create();
+      const housing = await factories.housing.create();
 
       const housingOwners = [
         { ...genHousingOwnerApi(housing, owner), rank: 1 as const }
@@ -576,27 +493,22 @@ describe('Owner repository', () => {
 
       expect(result).toBe(1);
 
-      const rows = await HousingOwners().where({
-        owner_id: owner.id,
-        housing_id: housing.id
-      });
+      const rows = await kysely
+        .selectFrom('ownersHousing')
+        .selectAll('ownersHousing')
+        .where('ownerId', '=', owner.id)
+        .where('housingId', '=', housing.id)
+        .execute();
       expect(rows).toHaveLength(1);
     });
   });
 
   describe('deleteHousingOwners', () => {
     it('should remove the housing_owner link and return the deleted count', async () => {
-      const owner = genOwnerApi();
-      const housing = genHousingApi();
+      const owner = await factories.owner.create();
+      const housing = await factories.housing.create();
 
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Owners().insert(formatOwnerApi(owner));
-      await HousingOwners().insert(
-        formatHousingOwnerApi({
-          ...genHousingOwnerApi(housing, owner),
-          rank: 1
-        })
-      );
+      await factories.housingOwner({ housing, owner }).create({ rank: 1 });
 
       const result = await ownerRepository.deleteHousingOwners(housing.id, [
         owner.id
@@ -604,10 +516,12 @@ describe('Owner repository', () => {
 
       expect(result).toBe(1);
 
-      const rows = await HousingOwners().where({
-        owner_id: owner.id,
-        housing_id: housing.id
-      });
+      const rows = await kysely
+        .selectFrom('ownersHousing')
+        .selectAll('ownersHousing')
+        .where('ownerId', '=', owner.id)
+        .where('housingId', '=', housing.id)
+        .execute();
       expect(rows).toHaveLength(0);
     });
   });
@@ -622,30 +536,36 @@ describe('Owner repository', () => {
         fullName: draft.fullName,
         email: draft.email
       });
-      const row = await Owners().where({ id: result.id }).first();
+      const row = await kysely
+        .selectFrom('owners')
+        .selectAll('owners')
+        .where('id', '=', result.id)
+        .executeTakeFirst();
       expect(row).toBeDefined();
-      expect(row?.full_name).toBe(draft.fullName);
+      expect(row?.fullName).toBe(draft.fullName);
     });
   });
 
   describe('update', () => {
     it('should update the owner fields and return the updated OwnerApi', async () => {
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
+      const owner = await factories.owner.create();
 
       const modified: OwnerApi = { ...owner, email: 'updated@example.com' };
       const result = await ownerRepository.update(modified);
 
       expect(result.email).toBe('updated@example.com');
-      const row = await Owners().where({ id: owner.id }).first();
+      const row = await kysely
+        .selectFrom('owners')
+        .selectAll('owners')
+        .where('id', '=', owner.id)
+        .executeTakeFirst();
       expect(row?.email).toBe('updated@example.com');
     });
   });
 
   describe('betterSave', () => {
     it('should update an existing row on conflict and not duplicate it', async () => {
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
+      const owner = await factories.owner.create();
 
       const updated: OwnerApi = { ...owner, email: 'bettersave@example.com' };
       await ownerRepository.betterSave(updated, {
@@ -653,7 +573,11 @@ describe('Owner repository', () => {
         merge: ['email']
       });
 
-      const rows = await Owners().where({ id: owner.id });
+      const rows = await kysely
+        .selectFrom('owners')
+        .selectAll('owners')
+        .where('id', '=', owner.id)
+        .execute();
       expect(rows).toHaveLength(1);
       expect(rows[0].email).toBe('bettersave@example.com');
     });
@@ -671,7 +595,11 @@ describe('Owner repository', () => {
         })
       ).rejects.toThrow('rollback');
 
-      const actual = await Owners().where({ id: owner.id }).first();
+      const actual = await kysely
+        .selectFrom('owners')
+        .selectAll('owners')
+        .where('id', '=', owner.id)
+        .executeTakeFirst();
       expect(actual).toBeUndefined();
     });
   });
@@ -686,9 +614,13 @@ describe('Owner repository', () => {
       });
 
       for (const owner of owners) {
-        const row = await Owners().where({ id: owner.id }).first();
+        const row = await kysely
+          .selectFrom('owners')
+          .selectAll('owners')
+          .where('id', '=', owner.id)
+          .executeTakeFirst();
         expect(row).toBeDefined();
-        expect(row?.full_name).toBe(owner.fullName);
+        expect(row?.fullName).toBe(owner.fullName);
       }
     });
 
@@ -707,54 +639,58 @@ describe('Owner repository', () => {
 
   describe('refreshMultiOwnerFlags', () => {
     it('should set is_multi_owner to true for owners with rank=1 in more than one housing', async () => {
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
-      const housings = [genHousingApi(), genHousingApi()];
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      await HousingOwners().insert(
+      const owner = await factories.owner.create();
+      const housings = await factories.housing.createList(2);
+      await Promise.all(
         housings.map((housing) =>
-          formatHousingOwnerApi({
-            ...genHousingOwnerApi(housing, owner),
-            rank: 1
-          })
+          factories.housingOwner({ housing, owner }).create({ rank: 1 })
         )
       );
 
       await ownerRepository.refreshMultiOwnerFlags([owner.id]);
 
-      const actual = await Owners().where({ id: owner.id }).first();
-      expect(actual?.is_multi_owner).toBe(true);
+      const actual = await kysely
+        .selectFrom('owners')
+        .selectAll('owners')
+        .where('id', '=', owner.id)
+        .executeTakeFirst();
+      expect(actual?.isMultiOwner).toBe(true);
     });
 
     it('should set is_multi_owner to false for owners with rank=1 in only one housing', async () => {
       const owner = genOwnerApi();
-      await Owners().insert({ ...formatOwnerApi(owner), is_multi_owner: true });
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
-      await HousingOwners().insert(
-        formatHousingOwnerApi({
-          ...genHousingOwnerApi(housing, owner),
-          rank: 1
-        })
-      );
+      await kysely
+        .insertInto('owners')
+        .values({ ...toOwnerInsert(owner), isMultiOwner: true })
+        .execute();
+      const housing = await factories.housing.create();
+      await factories.housingOwner({ housing, owner }).create({ rank: 1 });
 
       await ownerRepository.refreshMultiOwnerFlags([owner.id]);
 
-      const actual = await Owners().where({ id: owner.id }).first();
-      expect(actual?.is_multi_owner).toBe(false);
+      const actual = await kysely
+        .selectFrom('owners')
+        .selectAll('owners')
+        .where('id', '=', owner.id)
+        .executeTakeFirst();
+      expect(actual?.isMultiOwner).toBe(false);
     });
 
     it('should not update owners not in the list', async () => {
       const ownerToSkip = genOwnerApi();
-      await Owners().insert({
-        ...formatOwnerApi(ownerToSkip),
-        is_multi_owner: true
-      });
+      await kysely
+        .insertInto('owners')
+        .values({ ...toOwnerInsert(ownerToSkip), isMultiOwner: true })
+        .execute();
 
       await ownerRepository.refreshMultiOwnerFlags([]);
 
-      const actual = await Owners().where({ id: ownerToSkip.id }).first();
-      expect(actual?.is_multi_owner).toBe(true);
+      const actual = await kysely
+        .selectFrom('owners')
+        .selectAll('owners')
+        .where('id', '=', ownerToSkip.id)
+        .executeTakeFirst();
+      expect(actual?.isMultiOwner).toBe(true);
     });
 
     it('should handle batches larger than the pg uint16 parameter limit without protocol overflow', async () => {
@@ -774,11 +710,9 @@ describe('Owner repository', () => {
       // A token unique to this test, so pagination isn't polluted by owners
       // named "Dupont" et al. inserted by other tests in this file.
       const token = faker.string.alphanumeric(12);
-      const owners = faker.helpers.multiple(
-        () => ({ ...genOwnerApi(), fullName: `Jean ${token}` }),
-        { count: 5 }
-      );
-      await Owners().insert(owners.map(formatOwnerApi));
+      const owners = await factories.owner.createList(5, {
+        fullName: `Jean ${token}`
+      });
 
       const page1 = await ownerRepository.searchOwners(token, 1, 2);
       const page2 = await ownerRepository.searchOwners(token, 2, 2);

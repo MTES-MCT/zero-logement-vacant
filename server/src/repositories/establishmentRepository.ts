@@ -266,6 +266,17 @@ export const formatEstablishmentApi = (
   source: establishment.source
 });
 
+// Camel-case Insertable mirror of formatEstablishmentApi for the Kysely write
+// path (mirrors the snake→camel conversion done inline in `save`).
+export function toEstablishmentInsert(
+  establishment: EstablishmentApi
+): Insertable<DB['establishments']> {
+  return Record.mapKeys(
+    formatEstablishmentApi(establishment) as unknown as Record<string, unknown>,
+    snakeToCamel
+  ) as Insertable<DB['establishments']>;
+}
+
 export const parseEstablishmentApi = (
   establishment: EstablishmentDBO
 ): EstablishmentApi => ({

@@ -1,99 +1,82 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
-import db from '~/infra/database';
+import { kysely } from '~/infra/database/kysely';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { UserApi } from '~/models/UserApi';
 import campaignHousingRepository, {
-  CampaignsHousing,
   formatCampaignHousingApi
 } from '~/repositories/campaignHousingRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  formatHousingRecordApi,
-  Housing,
-  housingTable
-} from '~/repositories/housingRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { toHousingInsert } from '~/repositories/housingRepository';
 import { factories } from '~/test/factories';
-import {
-  genEstablishmentApi,
-  genHousingApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { genHousingApi } from '~/test/testFixtures';
 
 describe('Campaign housing repository', () => {
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let creator: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    creator = await factories.user.create({
+      establishmentId: establishment.id
+    });
   });
 
   describe('removeMany', () => {
     it('should remove housings from a campaign', async () => {
       const campaign = await factories
         .campaign(establishment)
-        .create({}, { associations: { createdBy: user } });
-      const housings = faker.helpers.multiple(() =>
-        genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
-      );
-      await Housing().insert(housings.map(formatHousingRecordApi));
+        .create({}, { associations: { createdBy: creator } });
+      const housings = await factories.housing.createList(3);
       const slice = housings.slice(0, 1);
 
       await campaignHousingRepository.removeMany(campaign, slice);
 
-      const campaignHousings = await CampaignsHousing()
-        .where({ campaign_id: campaign.id })
-        .whereIn(
-          ['housing_geo_code', 'housing_id'],
-          housings.map((housing) => [housing.geoCode, housing.id])
-        );
+      const campaignHousings = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .execute();
       expect(campaignHousings).toBeArrayOfSize(0);
     });
 
     it('should do nothing and leave count unchanged when housing list is empty', async () => {
       const campaign = await factories
         .campaign(establishment)
-        .create({}, { associations: { createdBy: user } });
-      const housings = faker.helpers.multiple(
-        () => genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
-        { count: { min: 1, max: 3 } }
-      );
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      await CampaignsHousing().insert(
-        housings.map((housing) => ({
-          campaign_id: campaign.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        }))
-      );
+        .create({}, { associations: { createdBy: creator } });
+      const housings = await factories.housing.createList(3);
+      await kysely
+        .insertInto('campaignsHousing')
+        .values(
+          housings.map((housing) => ({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
 
-      const countBefore = await CampaignsHousing()
-        .where({ campaign_id: campaign.id })
-        .count<{ count: string }>('*')
-        .first();
+      const rowsBefore = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .execute();
 
       await campaignHousingRepository.removeMany(campaign, []);
 
-      const countAfter = await CampaignsHousing()
-        .where({ campaign_id: campaign.id })
-        .count<{ count: string }>('*')
-        .first();
+      const rowsAfter = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .execute();
 
-      expect(Number(countAfter?.count)).toBe(Number(countBefore?.count));
+      expect(rowsAfter).toHaveLength(rowsBefore.length);
     });
 
     it('should remove only the specified subset, leaving others intact', async () => {
       const campaign = await factories
         .campaign(establishment)
-        .create({}, { associations: { createdBy: user } });
-      const housings = faker.helpers.multiple(
-        () => genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
-        { count: { min: 2, max: 4 } }
-      );
-      await Housing().insert(housings.map(formatHousingRecordApi));
+        .create({}, { associations: { createdBy: creator } });
+      const housings = await factories.housing.createList(3);
       await campaignHousingRepository.insertHousingList(campaign.id, housings);
 
       const toRemove = housings.slice(0, 1);
@@ -101,13 +84,15 @@ describe('Campaign housing repository', () => {
 
       await campaignHousingRepository.removeMany(campaign, toRemove);
 
-      const remaining = await CampaignsHousing().where({
-        campaign_id: campaign.id
-      });
-      const remainingIds = remaining.map((r) => r.housing_id);
+      const remaining = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .execute();
+      const remainingIds = remaining.map((row) => row.housingId);
       expect(remainingIds).not.toContain(toRemove[0].id);
-      toKeep.forEach((h) => {
-        expect(remainingIds).toContain(h.id);
+      toKeep.forEach((housing) => {
+        expect(remainingIds).toContain(housing.id);
       });
     });
   });
@@ -116,39 +101,39 @@ describe('Campaign housing repository', () => {
     it('should insert one row per housing with correct fields', async () => {
       const campaign = await factories
         .campaign(establishment)
-        .create({}, { associations: { createdBy: user } });
-      const housings = faker.helpers.multiple(
-        () => genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
-        { count: { min: 2, max: 5 } }
-      );
-      await Housing().insert(housings.map(formatHousingRecordApi));
+        .create({}, { associations: { createdBy: creator } });
+      const housings = await factories.housing.createList(3);
 
       await campaignHousingRepository.insertHousingList(campaign.id, housings);
 
-      const rows = await CampaignsHousing().where({ campaign_id: campaign.id });
+      const rows = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .execute();
       expect(rows).toBeArrayOfSize(housings.length);
       housings.forEach((housing) => {
-        const row = rows.find((r) => r.housing_id === housing.id);
+        const row = rows.find((r) => r.housingId === housing.id);
         expect(row).toBeDefined();
-        expect(row?.housing_geo_code).toBe(housing.geoCode);
-        expect(row?.campaign_id).toBe(campaign.id);
+        expect(row?.housingGeoCode).toBe(housing.geoCode);
+        expect(row?.campaignId).toBe(campaign.id);
       });
     });
 
     it('should deduplicate rows when called twice with the same housings', async () => {
       const campaign = await factories
         .campaign(establishment)
-        .create({}, { associations: { createdBy: user } });
-      const housings = faker.helpers.multiple(
-        () => genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
-        { count: { min: 2, max: 4 } }
-      );
-      await Housing().insert(housings.map(formatHousingRecordApi));
+        .create({}, { associations: { createdBy: creator } });
+      const housings = await factories.housing.createList(3);
 
       await campaignHousingRepository.insertHousingList(campaign.id, housings);
       await campaignHousingRepository.insertHousingList(campaign.id, housings);
 
-      const rows = await CampaignsHousing().where({ campaign_id: campaign.id });
+      const rows = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .execute();
       expect(rows).toBeArrayOfSize(housings.length);
     });
 
@@ -160,20 +145,24 @@ describe('Campaign housing repository', () => {
     it('should insert every row when the list spans multiple batches', async () => {
       const campaign = await factories
         .campaign(establishment)
-        .create({}, { associations: { createdBy: user } });
-      const housings = faker.helpers.multiple(
-        () => genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
-        { count: 1200 }
-      );
-      await db.batchInsert(
-        housingTable,
-        housings.map(formatHousingRecordApi),
-        500
-      );
+        .create({}, { associations: { createdBy: creator } });
+      const housings = faker.helpers.multiple(() => genHousingApi(), {
+        count: 1200
+      });
+      for (let index = 0; index < housings.length; index += 500) {
+        await kysely
+          .insertInto('fastHousing')
+          .values(housings.slice(index, index + 500).map(toHousingInsert))
+          .execute();
+      }
 
       await campaignHousingRepository.insertHousingList(campaign.id, housings);
 
-      const rows = await CampaignsHousing().where({ campaign_id: campaign.id });
+      const rows = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .execute();
       expect(rows).toBeArrayOfSize(housings.length);
     }, 30_000);
   });

@@ -155,7 +155,7 @@ function parseAddressRow(row: AddressRow): AddressApi {
   };
 }
 
-function toAddressInsert(address: AddressApi) {
+export function toAddressInsert(address: AddressApi) {
   return {
     refId: address.refId,
     banId: address.banId ?? null,

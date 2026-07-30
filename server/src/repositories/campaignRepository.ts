@@ -155,7 +155,9 @@ async function save(campaign: CampaignApi): Promise<void> {
   logger.debug('Campaign saved', campaign);
 }
 
-function toCampaignInsert(campaign: CampaignApi): Insertable<DB['campaigns']> {
+export function toCampaignInsert(
+  campaign: CampaignApi
+): Insertable<DB['campaigns']> {
   return {
     id: campaign.id,
     establishmentId: campaign.establishmentId,

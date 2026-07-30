@@ -84,7 +84,7 @@ async function insert(housingOwner: HousingOwnerApi): Promise<void> {
 }
 
 // Camel-case Insertable mirror of formatHousingOwnerApi.
-function toHousingOwnerInsert(
+export function toHousingOwnerInsert(
   housingOwner: Omit<HousingOwnerApi, keyof OwnerApi>
 ): Insertable<DB['ownersHousing']> {
   return {

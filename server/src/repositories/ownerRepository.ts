@@ -347,7 +347,7 @@ async function betterSaveMany(
 }
 
 // Camel-case Insertable mirror of formatOwnerApi for the Kysely write path.
-function toOwnerInsert(owner: OwnerApi): Insertable<DB['owners']> {
+export function toOwnerInsert(owner: OwnerApi): Insertable<DB['owners']> {
   return {
     id: owner.id,
     idpersonne: owner.idpersonne ?? null,

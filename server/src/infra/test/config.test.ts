@@ -1,4 +1,3 @@
-import { fc, test } from '@fast-check/vitest';
 import { describe, expect, it } from 'vitest';
 
 // We test the schema directly, not the exported singleton.
@@ -76,6 +75,7 @@ const validRaw = {
   },
   metabase: {
     domain: 'http://localhost:4000',
+    token: 'example-token',
     apiToken: 'example-api-token'
   },
   rateLimit: { max: '10000' },
@@ -103,29 +103,6 @@ describe('configSchema', () => {
     );
     expect(result.cerema.username).toBeNull();
     expect(result.log.level).toBe('info');
-  });
-
-  it('limits Metabase card queries to two concurrent requests by default', () => {
-    const result = configSchema.parse(validRaw);
-
-    expect(result.metabase.maxConcurrentQueries).toBe(2);
-  });
-
-  test.prop([
-    fc.oneof(
-      fc.integer({ max: 0 }),
-      fc.integer({ min: 0, max: 100 }).map((value) => value + 0.5)
-    )
-  ])('rejects invalid Metabase concurrency limits', (maxConcurrentQueries) => {
-    expect(() =>
-      configSchema.parse({
-        ...validRaw,
-        metabase: {
-          ...validRaw.metabase,
-          maxConcurrentQueries: String(maxConcurrentQueries)
-        }
-      })
-    ).toThrow();
   });
 
   it('normalizes allowed origins before CORS and CSRF checks', () => {

@@ -83,6 +83,7 @@ interface MetabaseRequestContext {
 }
 
 const logger = createLogger('metabase-api');
+const MAX_CONCURRENT_CARD_QUERIES = 2;
 
 class MetabaseAPI implements MetabaseService {
   private readonly http;
@@ -257,7 +258,7 @@ const baseMetabaseAPI = createMetabaseAPI({
 });
 const concurrencyLimitedMetabaseAPI = createConcurrencyLimitedMetabaseService(
   baseMetabaseAPI,
-  { maxConcurrency: config.metabase.maxConcurrentQueries }
+  { maxConcurrency: MAX_CONCURRENT_CARD_QUERIES }
 );
 
 export const metabaseAPI = createCachedMetabaseService(

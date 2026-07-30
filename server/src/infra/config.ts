@@ -190,8 +190,7 @@ export const configSchema = z.object({
       .int()
       .min(0)
       .default(60 * 60 * 1000),
-    cacheMaxEntries: z.coerce.number().int().min(1).default(10_000),
-    maxConcurrentQueries: z.coerce.number().int().min(1).default(2)
+    cacheMaxEntries: z.coerce.number().int().min(1).default(10_000)
   }),
   rateLimit: z.object({
     max: z.coerce.number().int().default(10_000)
@@ -347,8 +346,7 @@ const config = configSchema.parse({
     token: env('METABASE_TOKEN'),
     apiToken: env('METABASE_API_TOKEN'),
     cacheTtlMs: env('METABASE_CACHE_TTL_MS'),
-    cacheMaxEntries: env('METABASE_CACHE_MAX_ENTRIES'),
-    maxConcurrentQueries: env('METABASE_MAX_CONCURRENT_QUERIES')
+    cacheMaxEntries: env('METABASE_CACHE_MAX_ENTRIES')
   },
   rateLimit: {
     max: env('RATE_LIMIT_MAX')
@@ -382,6 +380,5 @@ export default config as Omit<Config, 'metabase'> & {
     apiToken: string;
     cacheTtlMs: number;
     cacheMaxEntries: number;
-    maxConcurrentQueries: number;
   };
 };

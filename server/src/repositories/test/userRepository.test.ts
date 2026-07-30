@@ -1,22 +1,19 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
+import { kysely } from '~/infra/database/kysely';
 import { UserApi } from '~/models/UserApi';
-import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
+import { factories } from '~/test/factories';
+import { genUserApi } from '~/test/testFixtures';
 
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '../establishmentRepository';
-import { UsersEstablishments } from '../user-establishment-repository';
-import userRepository, { toUserDBO, Users } from '../userRepository';
+import userRepository from '../userRepository';
 
 describe('User repository', () => {
   describe('get', () => {
     it('should return the user matching the id', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(user));
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
+      });
 
       const actual = await userRepository.get(user.id);
 
@@ -33,13 +30,11 @@ describe('User repository', () => {
     });
 
     it('should not return a deleted user', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = {
-        ...genUserApi(establishment.id),
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id,
         deletedAt: new Date().toJSON()
-      };
-      await Users().insert(toUserDBO(user));
+      });
 
       const actual = await userRepository.get(user.id);
 
@@ -49,10 +44,10 @@ describe('User repository', () => {
 
   describe('getByEmail', () => {
     it('should return the user matching the email, case-insensitively', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(user));
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
+      });
 
       const actual = await userRepository.getByEmail(user.email.toUpperCase());
 
@@ -66,13 +61,11 @@ describe('User repository', () => {
     });
 
     it('should not return a deleted user', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = {
-        ...genUserApi(establishment.id),
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id,
         deletedAt: new Date().toJSON()
-      };
-      await Users().insert(toUserDBO(user));
+      });
 
       const actual = await userRepository.getByEmail(user.email);
 
@@ -82,13 +75,11 @@ describe('User repository', () => {
 
   describe('getByEmailIncludingDeleted', () => {
     it('should return a deleted user', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = {
-        ...genUserApi(establishment.id),
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id,
         deletedAt: new Date().toJSON()
-      };
-      await Users().insert(toUserDBO(user));
+      });
 
       const actual = await userRepository.getByEmailIncludingDeleted(
         user.email
@@ -108,23 +99,26 @@ describe('User repository', () => {
 
   describe('update', () => {
     it('should update the user fields', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(user));
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
+      });
 
       await userRepository.update({ ...user, firstName: 'Updated' });
 
-      const actual = await userRepository.get(user.id);
+      const actual = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
       expect(actual?.firstName).toBe('Updated');
     });
 
     it('should not overwrite the account password from the legacy password field', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(user));
-      const before = await Users().where({ id: user.id }).first();
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
+      });
 
       await userRepository.update({
         ...user,
@@ -132,78 +126,99 @@ describe('User repository', () => {
         password: 'should-not-be-persisted'
       });
 
-      const after = await Users().where({ id: user.id }).first();
-      expect(after?.password).toBe(before?.password);
+      const after = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      expect(after?.password).toBe(user.password);
     });
   });
 
   describe('updateEstablishment', () => {
     it('should update the user establishment', async () => {
-      const establishment = genEstablishmentApi();
-      const otherEstablishment = genEstablishmentApi();
-      await Establishments().insert(
-        [establishment, otherEstablishment].map(formatEstablishmentApi)
-      );
-      const user = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(user));
+      const establishment = await factories.establishment.create();
+      const otherEstablishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
+      });
 
       await userRepository.updateEstablishment(user.id, otherEstablishment.id);
 
-      const actual = await userRepository.get(user.id);
+      const actual = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
       expect(actual?.establishmentId).toBe(otherEstablishment.id);
     });
   });
 
   describe('recordTwoFactorFailure', () => {
     it('should increment the failed attempts counter', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(user));
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
+      });
 
       await userRepository.recordTwoFactorFailure(user.id, 5, new Date());
 
-      const row = await Users().where({ id: user.id }).first();
-      expect(row?.two_factor_failed_attempts).toBe(1);
+      const row = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      expect(row?.twoFactorFailedAttempts).toBe(1);
     });
 
     it('should lock the account once the maximum attempts is reached', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(user));
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
+      });
       const lockedUntil = new Date(Date.now() + 60_000);
 
       await userRepository.recordTwoFactorFailure(user.id, 1, lockedUntil);
 
-      const row = await Users().where({ id: user.id }).first();
-      expect(row?.two_factor_failed_attempts).toBe(1);
-      expect(row?.two_factor_locked_until).not.toBeNull();
+      const row = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      expect(row?.twoFactorFailedAttempts).toBe(1);
+      expect(row?.twoFactorLockedUntil).not.toBeNull();
     });
 
     it('should not overwrite an existing lock once already set', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(user));
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
+      });
       const firstLock = new Date(Date.now() + 60_000);
       await userRepository.recordTwoFactorFailure(user.id, 1, firstLock);
-      const afterFirst = await Users().where({ id: user.id }).first();
+      const afterFirst = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
 
       const secondLock = new Date(Date.now() + 120_000);
       await userRepository.recordTwoFactorFailure(user.id, 1, secondLock);
 
-      const afterSecond = await Users().where({ id: user.id }).first();
-      expect(
-        new Date(afterSecond?.two_factor_locked_until ?? 0).getTime()
-      ).toBe(new Date(afterFirst?.two_factor_locked_until ?? 0).getTime());
+      const afterSecond = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      expect(new Date(afterSecond?.twoFactorLockedUntil ?? 0).getTime()).toBe(
+        new Date(afterFirst?.twoFactorLockedUntil ?? 0).getTime()
+      );
     });
   });
 
   describe('insert', () => {
     it('should insert and return the user', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      const establishment = await factories.establishment.create();
       const user = genUserApi(establishment.id);
 
       const actual = await userRepository.insert(user);
@@ -212,13 +227,16 @@ describe('User repository', () => {
         id: user.id,
         email: user.email
       });
-      const row = await Users().where({ id: user.id }).first();
+      const row = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
       expect(row).toBeDefined();
     });
 
     it('should round-trip the optional suspension and two-factor timestamps', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      const establishment = await factories.establishment.create();
       const now = new Date().toJSON();
       const user: UserApi = {
         ...genUserApi(establishment.id),
@@ -230,29 +248,28 @@ describe('User repository', () => {
         twoFactorLockedUntil: now
       };
 
-      await userRepository.insert(user);
-      const actual = await userRepository.get(user.id);
+      const actual = await userRepository.insert(user);
 
       expect(actual).toMatchObject<Partial<UserApi>>({
         suspendedCause: 'test'
       });
-      expect(actual?.suspendedAt).not.toBeNull();
-      expect(actual?.twoFactorEnabledAt).not.toBeNull();
-      expect(actual?.twoFactorCodeGeneratedAt).not.toBeNull();
-      expect(actual?.twoFactorLockedUntil).not.toBeNull();
+      expect(actual.suspendedAt).not.toBeNull();
+      expect(actual.twoFactorEnabledAt).not.toBeNull();
+      expect(actual.twoFactorCodeGeneratedAt).not.toBeNull();
+      expect(actual.twoFactorLockedUntil).not.toBeNull();
     });
   });
 
   describe('find', () => {
     it('should return all non-deleted users by default (paginated to 50)', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = genUserApi(establishment.id);
-      const deletedUser = {
-        ...genUserApi(establishment.id),
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
+      });
+      const deletedUser = await factories.user.create({
+        establishmentId: establishment.id,
         deletedAt: new Date().toJSON()
-      };
-      await Users().insert([user, deletedUser].map(toUserDBO));
+      });
 
       const actual = await userRepository.find();
 
@@ -262,22 +279,25 @@ describe('User repository', () => {
     });
 
     it('should filter by establishments with commitment', async () => {
-      const establishment = genEstablishmentApi();
-      const otherEstablishment = genEstablishmentApi();
-      await Establishments().insert(
-        [establishment, otherEstablishment].map(formatEstablishmentApi)
-      );
-      const user = genUserApi(establishment.id);
-      const otherUser = genUserApi(otherEstablishment.id);
-      await Users().insert([user, otherUser].map(toUserDBO));
-      await UsersEstablishments().insert({
-        user_id: user.id,
-        establishment_id: establishment.id,
-        establishment_siren: establishment.siren,
-        has_commitment: true,
-        created_at: new Date(),
-        updated_at: new Date()
+      const establishment = await factories.establishment.create();
+      const otherEstablishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
       });
+      const otherUser = await factories.user.create({
+        establishmentId: otherEstablishment.id
+      });
+      await kysely
+        .insertInto('usersEstablishments')
+        .values({
+          userId: user.id,
+          establishmentId: establishment.id,
+          establishmentSiren: establishment.siren,
+          hasCommitment: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .execute();
 
       const actual = await userRepository.find({
         filters: { establishments: [establishment.id] }
@@ -289,31 +309,32 @@ describe('User repository', () => {
     });
 
     it('should not duplicate users with multiple establishment commitments', async () => {
-      const establishment = genEstablishmentApi();
-      const otherEstablishment = genEstablishmentApi();
-      await Establishments().insert(
-        [establishment, otherEstablishment].map(formatEstablishmentApi)
-      );
-      const user = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(user));
-      await UsersEstablishments().insert([
-        {
-          user_id: user.id,
-          establishment_id: establishment.id,
-          establishment_siren: establishment.siren,
-          has_commitment: true,
-          created_at: new Date(),
-          updated_at: new Date()
-        },
-        {
-          user_id: user.id,
-          establishment_id: otherEstablishment.id,
-          establishment_siren: otherEstablishment.siren,
-          has_commitment: true,
-          created_at: new Date(),
-          updated_at: new Date()
-        }
-      ]);
+      const establishment = await factories.establishment.create();
+      const otherEstablishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
+      });
+      await kysely
+        .insertInto('usersEstablishments')
+        .values([
+          {
+            userId: user.id,
+            establishmentId: establishment.id,
+            establishmentSiren: establishment.siren,
+            hasCommitment: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          },
+          {
+            userId: user.id,
+            establishmentId: otherEstablishment.id,
+            establishmentSiren: otherEstablishment.siren,
+            hasCommitment: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        ])
+        .execute();
 
       const actual = await userRepository.find({
         filters: { establishments: [establishment.id, otherEstablishment.id] }
@@ -323,12 +344,8 @@ describe('User repository', () => {
     });
 
     it('should disable pagination when requested', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const users = faker.helpers.multiple(() => genUserApi(establishment.id), {
-        count: 3
-      });
-      await Users().insert(users.map(toUserDBO));
+      const establishment = await factories.establishment.create();
+      await factories.user.createList(3, { establishmentId: establishment.id });
 
       const actual = await userRepository.find({
         pagination: { paginate: false }
@@ -338,12 +355,8 @@ describe('User repository', () => {
     });
 
     it('should paginate explicitly', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const users = faker.helpers.multiple(() => genUserApi(establishment.id), {
-        count: 3
-      });
-      await Users().insert(users.map(toUserDBO));
+      const establishment = await factories.establishment.create();
+      await factories.user.createList(3, { establishmentId: establishment.id });
 
       const actual = await userRepository.find({
         pagination: { paginate: true, page: 1, perPage: 1 }
@@ -355,35 +368,36 @@ describe('User repository', () => {
 
   describe('count', () => {
     it('should count non-deleted users', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = genUserApi(establishment.id);
-      const deletedUser = {
-        ...genUserApi(establishment.id),
+      const establishment = await factories.establishment.create();
+      await factories.user.create({ establishmentId: establishment.id });
+      await factories.user.create({
+        establishmentId: establishment.id,
         deletedAt: new Date().toJSON()
-      };
-      await Users().insert([user, deletedUser].map(toUserDBO));
+      });
 
       const before = await userRepository.count();
-      await Users().insert(toUserDBO(genUserApi(establishment.id)));
+      await factories.user.create({ establishmentId: establishment.id });
       const after = await userRepository.count();
 
       expect(after).toBe(before + 1);
     });
 
     it('should count filtered by establishments with commitment', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(user));
-      await UsersEstablishments().insert({
-        user_id: user.id,
-        establishment_id: establishment.id,
-        establishment_siren: establishment.siren,
-        has_commitment: true,
-        created_at: new Date(),
-        updated_at: new Date()
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
       });
+      await kysely
+        .insertInto('usersEstablishments')
+        .values({
+          userId: user.id,
+          establishmentId: establishment.id,
+          establishmentSiren: establishment.siren,
+          hasCommitment: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .execute();
 
       const actual = await userRepository.count({
         filters: { establishments: [establishment.id] }
@@ -395,17 +409,19 @@ describe('User repository', () => {
 
   describe('remove', () => {
     it('should soft-delete the user', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      const user = genUserApi(establishment.id);
-      await Users().insert(toUserDBO(user));
+      const establishment = await factories.establishment.create();
+      const user = await factories.user.create({
+        establishmentId: establishment.id
+      });
 
       await userRepository.remove(user.id);
 
-      const row = await Users().where({ id: user.id }).first();
-      expect(row?.deleted_at).not.toBeNull();
-      const actual = await userRepository.get(user.id);
-      expect(actual).toBeNull();
+      const row = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      expect(row?.deletedAt).not.toBeNull();
     });
   });
 });

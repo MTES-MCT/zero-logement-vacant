@@ -1,42 +1,30 @@
 import { faker } from '@faker-js/faker/locale/fr';
 
+import { kysely } from '~/infra/database/kysely';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { HousingApi } from '~/models/HousingApi';
 import { HousingDocumentApi } from '~/models/HousingDocumentApi';
-import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
+import { UserApi } from '~/models/UserApi';
+import { toDocumentInsert } from '~/repositories/documentRepository';
 import housingDocumentRepository, {
   fromHousingDocumentDBO,
-  HousingDocuments,
-  toHousingDocumentDBO,
-  type HousingDocumentDBO
+  toHousingDocumentInsert
 } from '~/repositories/housingDocumentRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import {
-  genEstablishmentApi,
-  genHousingApi,
-  genHousingDocumentApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { factories } from '~/test/factories';
+import { genHousingDocumentApi } from '~/test/testFixtures';
 
 describe('Housing document repository', () => {
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('link', () => {
     it('should create document-housing link', async () => {
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create();
 
       const housingDocument = genHousingDocumentApi({
         createdBy: user.id,
@@ -44,24 +32,28 @@ describe('Housing document repository', () => {
         housingId: housing.id,
         housingGeoCode: housing.geoCode
       });
-      await Documents().insert(toDocumentDBO(housingDocument));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(housingDocument))
+        .execute();
 
       await housingDocumentRepository.link(housingDocument);
 
-      const actual = await HousingDocuments()
-        .where('document_id', housingDocument.id)
-        .first();
+      const actual = await kysely
+        .selectFrom('documentsHousings')
+        .selectAll('documentsHousings')
+        .where('documentId', '=', housingDocument.id)
+        .executeTakeFirst();
 
       expect(actual).toMatchObject({
-        document_id: housingDocument.id,
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
+        documentId: housingDocument.id,
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
       });
     });
 
     it('should be idempotent (ignore duplicate links)', async () => {
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create();
 
       const housingDocument = genHousingDocumentApi({
         createdBy: user.id,
@@ -69,23 +61,26 @@ describe('Housing document repository', () => {
         housingId: housing.id,
         housingGeoCode: housing.geoCode
       });
-      await Documents().insert(toDocumentDBO(housingDocument));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(housingDocument))
+        .execute();
 
       await housingDocumentRepository.link(housingDocument);
       await housingDocumentRepository.link(housingDocument); // Second call
 
-      const actual = await HousingDocuments().where(
-        'document_id',
-        housingDocument.id
-      );
+      const actual = await kysely
+        .selectFrom('documentsHousings')
+        .selectAll('documentsHousings')
+        .where('documentId', '=', housingDocument.id)
+        .execute();
       expect(actual).toHaveLength(1); // Still only 1 link
     });
   });
 
   describe('linkMany', () => {
     it('should create multiple document-housing links (cartesian product)', async () => {
-      const housings = [genHousingApi(), genHousingApi()];
-      await Housing().insert(housings.map(formatHousingRecordApi));
+      const housings = await factories.housing.createList(2);
 
       const housingDocuments = [
         genHousingDocumentApi({
@@ -99,7 +94,10 @@ describe('Housing document repository', () => {
       ];
 
       // Insert the documents
-      await Documents().insert(housingDocuments.map(toDocumentDBO));
+      await kysely
+        .insertInto('documents')
+        .values(housingDocuments.map(toDocumentInsert))
+        .execute();
 
       // Link 2 documents × 2 housings = 4 links (cartesian product)
       const links = housingDocuments.flatMap((d) =>
@@ -112,10 +110,15 @@ describe('Housing document repository', () => {
       await housingDocumentRepository.linkMany(links);
 
       // Should create 4 links
-      const allLinks = await HousingDocuments().whereIn(
-        'document_id',
-        housingDocuments.map((d) => d.id)
-      );
+      const allLinks = await kysely
+        .selectFrom('documentsHousings')
+        .selectAll('documentsHousings')
+        .where(
+          'documentId',
+          'in',
+          housingDocuments.map((d) => d.id)
+        )
+        .execute();
 
       expect(allLinks).toHaveLength(4);
     });
@@ -129,8 +132,7 @@ describe('Housing document repository', () => {
 
   describe('unlink', () => {
     it('should remove document-housing link', async () => {
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create();
 
       const housingDocument = genHousingDocumentApi({
         createdBy: user.id,
@@ -138,14 +140,15 @@ describe('Housing document repository', () => {
         housingId: housing.id,
         housingGeoCode: housing.geoCode
       });
-      await Documents().insert(toDocumentDBO(housingDocument));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(housingDocument))
+        .execute();
 
-      const linkDBO: HousingDocumentDBO = {
-        document_id: housingDocument.id,
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
-      };
-      await HousingDocuments().insert(linkDBO);
+      await kysely
+        .insertInto('documentsHousings')
+        .values(toHousingDocumentInsert(housingDocument))
+        .execute();
 
       await housingDocumentRepository.unlink({
         documentId: housingDocument.id,
@@ -153,29 +156,37 @@ describe('Housing document repository', () => {
         housingId: housing.id
       });
 
-      const actual = await HousingDocuments().where(
-        'document_id',
-        housingDocument.id
-      );
+      const actual = await kysely
+        .selectFrom('documentsHousings')
+        .selectAll('documentsHousings')
+        .where('documentId', '=', housingDocument.id)
+        .execute();
       expect(actual).toHaveLength(0);
     });
   });
 
   describe('get', () => {
-    const housing = genHousingApi();
-    const document = genHousingDocumentApi({
-      createdBy: user.id,
-      creator: user,
-      housingId: housing.id,
-      housingGeoCode: housing.geoCode
-    });
+    let housing: HousingApi;
+    let document: HousingDocumentApi;
 
     beforeAll(async () => {
-      await Housing().insert(formatHousingRecordApi(housing));
+      housing = await factories.housing.create();
+      document = genHousingDocumentApi({
+        createdBy: user.id,
+        creator: user,
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode
+      });
 
       // Insert document and link manually
-      await Documents().insert(toDocumentDBO(document));
-      await HousingDocuments().insert(toHousingDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
+      await kysely
+        .insertInto('documentsHousings')
+        .values(toHousingDocumentInsert(document))
+        .execute();
     });
 
     it('should return null if the document is missing', async () => {
@@ -210,8 +221,7 @@ describe('Housing document repository', () => {
     });
 
     it('should return null when housing does not match', async () => {
-      const differentHousing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(differentHousing));
+      const differentHousing = await factories.housing.create();
 
       // The document belongs to 'housing', not 'differentHousing'
       const actual = await housingDocumentRepository.get(document.id, {
@@ -224,31 +234,41 @@ describe('Housing document repository', () => {
 
   describe('remove', () => {
     it('should soft-delete the document', async () => {
-      const housing = genHousingApi();
+      const housing = await factories.housing.create();
       const document = genHousingDocumentApi({
         createdBy: user.id,
         creator: user,
         housingId: housing.id,
         housingGeoCode: housing.geoCode
       });
-      await Housing().insert(formatHousingRecordApi(housing));
 
       // Insert document and link manually
-      await Documents().insert(toDocumentDBO(document));
-      await HousingDocuments().insert(toHousingDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
+      await kysely
+        .insertInto('documentsHousings')
+        .values(toHousingDocumentInsert(document))
+        .execute();
 
       await housingDocumentRepository.remove(document);
 
-      const actualDocument = await Documents()
-        .where({ id: document.id })
-        .first();
+      const actualDocument = await kysely
+        .selectFrom('documents')
+        .select('deletedAt')
+        .where('id', '=', document.id)
+        .executeTakeFirst();
 
       expect(actualDocument).toBeDefined();
-      expect(actualDocument!.deleted_at).not.toBeNull();
+      expect(actualDocument!.deletedAt).not.toBeNull();
 
-      const actualLink = await HousingDocuments()
-        .where({ document_id: document.id, housing_id: housing.id })
-        .first();
+      const actualLink = await kysely
+        .selectFrom('documentsHousings')
+        .selectAll('documentsHousings')
+        .where('documentId', '=', document.id)
+        .where('housingId', '=', housing.id)
+        .executeTakeFirst();
 
       expect(actualLink).toBeDefined();
     });
@@ -256,7 +276,7 @@ describe('Housing document repository', () => {
 
   describe('unlinkMany', () => {
     it('should unlink multiple documents from all housings', async () => {
-      const housings = [genHousingApi(), genHousingApi()];
+      const housings = await factories.housing.createList(2);
       const housingDocuments = [
         genHousingDocumentApi({
           createdBy: user.id,
@@ -268,8 +288,10 @@ describe('Housing document repository', () => {
         })
       ];
 
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      await Documents().insert(housingDocuments.map(toDocumentDBO));
+      await kysely
+        .insertInto('documents')
+        .values(housingDocuments.map(toDocumentInsert))
+        .execute();
 
       // Link all documents to all housings (cartesian product)
       const links = housingDocuments.flatMap((doc) =>
@@ -282,20 +304,30 @@ describe('Housing document repository', () => {
       await housingDocumentRepository.linkMany(links);
 
       // Verify links were created (2 documents × 2 housings = 4 links)
-      const linksBefore = await HousingDocuments().whereIn(
-        'document_id',
-        housingDocuments.map((doc) => doc.id)
-      );
+      const linksBefore = await kysely
+        .selectFrom('documentsHousings')
+        .selectAll('documentsHousings')
+        .where(
+          'documentId',
+          'in',
+          housingDocuments.map((doc) => doc.id)
+        )
+        .execute();
       expect(linksBefore).toHaveLength(4);
 
       await housingDocumentRepository.unlinkMany({
         documentIds: housingDocuments.map((doc) => doc.id)
       });
 
-      const linksAfter = await HousingDocuments().whereIn(
-        'document_id',
-        housingDocuments.map((doc) => doc.id)
-      );
+      const linksAfter = await kysely
+        .selectFrom('documentsHousings')
+        .selectAll('documentsHousings')
+        .where(
+          'documentId',
+          'in',
+          housingDocuments.map((doc) => doc.id)
+        )
+        .execute();
       expect(linksAfter).toBeEmpty();
     });
 
@@ -305,7 +337,7 @@ describe('Housing document repository', () => {
     });
 
     it('should only unlink specified documents', async () => {
-      const housing = genHousingApi();
+      const housing = await factories.housing.create();
       const documents = [
         genHousingDocumentApi({
           createdBy: user.id,
@@ -321,8 +353,10 @@ describe('Housing document repository', () => {
         })
       ];
 
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Documents().insert(documents.map(toDocumentDBO));
+      await kysely
+        .insertInto('documents')
+        .values(documents.map(toDocumentInsert))
+        .execute();
 
       const links = documents.map((doc) => ({
         document_id: doc.id,
@@ -336,17 +370,19 @@ describe('Housing document repository', () => {
         documentIds: [documents[0].id]
       });
 
-      const remainingLinks = await HousingDocuments().where({
-        housing_id: housing.id
-      });
+      const remainingLinks = await kysely
+        .selectFrom('documentsHousings')
+        .selectAll('documentsHousings')
+        .where('housingId', '=', housing.id)
+        .execute();
       expect(remainingLinks).toHaveLength(1);
-      expect(remainingLinks[0].document_id).toBe(documents[1].id);
+      expect(remainingLinks[0].documentId).toBe(documents[1].id);
     });
   });
 
   describe('find', () => {
     it('should return linked documents with housingId, housingGeoCode, and creator populated (no filter)', async () => {
-      const housing = genHousingApi();
+      const housing = await factories.housing.create();
       const document = genHousingDocumentApi({
         createdBy: user.id,
         creator: user,
@@ -354,9 +390,14 @@ describe('Housing document repository', () => {
         housingGeoCode: housing.geoCode
       });
 
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Documents().insert(toDocumentDBO(document));
-      await HousingDocuments().insert(toHousingDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
+      await kysely
+        .insertInto('documentsHousings')
+        .values(toHousingDocumentInsert(document))
+        .execute();
 
       const results = await housingDocumentRepository.find();
 
@@ -373,8 +414,8 @@ describe('Housing document repository', () => {
     });
 
     it('should filter by documentIds', async () => {
-      const housing1 = genHousingApi();
-      const housing2 = genHousingApi();
+      const housing1 = await factories.housing.create();
+      const housing2 = await factories.housing.create();
       const document1 = genHousingDocumentApi({
         createdBy: user.id,
         creator: user,
@@ -388,18 +429,17 @@ describe('Housing document repository', () => {
         housingGeoCode: housing2.geoCode
       });
 
-      await Housing().insert([
-        formatHousingRecordApi(housing1),
-        formatHousingRecordApi(housing2)
-      ]);
-      await Documents().insert([
-        toDocumentDBO(document1),
-        toDocumentDBO(document2)
-      ]);
-      await HousingDocuments().insert([
-        toHousingDocumentDBO(document1),
-        toHousingDocumentDBO(document2)
-      ]);
+      await kysely
+        .insertInto('documents')
+        .values([toDocumentInsert(document1), toDocumentInsert(document2)])
+        .execute();
+      await kysely
+        .insertInto('documentsHousings')
+        .values([
+          toHousingDocumentInsert(document1),
+          toHousingDocumentInsert(document2)
+        ])
+        .execute();
 
       const results = await housingDocumentRepository.find({
         filters: { documentIds: [document1.id] }
@@ -411,8 +451,8 @@ describe('Housing document repository', () => {
     });
 
     it('should filter by housingIds composite key', async () => {
-      const housing1 = genHousingApi();
-      const housing2 = genHousingApi();
+      const housing1 = await factories.housing.create();
+      const housing2 = await factories.housing.create();
       const document1 = genHousingDocumentApi({
         createdBy: user.id,
         creator: user,
@@ -426,18 +466,17 @@ describe('Housing document repository', () => {
         housingGeoCode: housing2.geoCode
       });
 
-      await Housing().insert([
-        formatHousingRecordApi(housing1),
-        formatHousingRecordApi(housing2)
-      ]);
-      await Documents().insert([
-        toDocumentDBO(document1),
-        toDocumentDBO(document2)
-      ]);
-      await HousingDocuments().insert([
-        toHousingDocumentDBO(document1),
-        toHousingDocumentDBO(document2)
-      ]);
+      await kysely
+        .insertInto('documents')
+        .values([toDocumentInsert(document1), toDocumentInsert(document2)])
+        .execute();
+      await kysely
+        .insertInto('documentsHousings')
+        .values([
+          toHousingDocumentInsert(document1),
+          toHousingDocumentInsert(document2)
+        ])
+        .execute();
 
       const results = await housingDocumentRepository.find({
         filters: {
@@ -451,8 +490,8 @@ describe('Housing document repository', () => {
     });
 
     it('should return only soft-deleted documents when deleted: true', async () => {
-      const housingLive = genHousingApi();
-      const housingDeleted = genHousingApi();
+      const housingLive = await factories.housing.create();
+      const housingDeleted = await factories.housing.create();
       const liveDoc = genHousingDocumentApi({
         createdBy: user.id,
         creator: user,
@@ -466,23 +505,24 @@ describe('Housing document repository', () => {
         housingGeoCode: housingDeleted.geoCode
       });
 
-      await Housing().insert([
-        formatHousingRecordApi(housingLive),
-        formatHousingRecordApi(housingDeleted)
-      ]);
-      await Documents().insert([
-        toDocumentDBO(liveDoc),
-        toDocumentDBO(deletedDoc)
-      ]);
-      await HousingDocuments().insert([
-        toHousingDocumentDBO(liveDoc),
-        toHousingDocumentDBO(deletedDoc)
-      ]);
+      await kysely
+        .insertInto('documents')
+        .values([toDocumentInsert(liveDoc), toDocumentInsert(deletedDoc)])
+        .execute();
+      await kysely
+        .insertInto('documentsHousings')
+        .values([
+          toHousingDocumentInsert(liveDoc),
+          toHousingDocumentInsert(deletedDoc)
+        ])
+        .execute();
 
       // Soft-delete one document
-      await Documents()
-        .where('id', deletedDoc.id)
-        .update({ deleted_at: new Date() });
+      await kysely
+        .updateTable('documents')
+        .set({ deletedAt: new Date() })
+        .where('id', '=', deletedDoc.id)
+        .execute();
 
       const results = await housingDocumentRepository.find({
         filters: {
@@ -497,8 +537,8 @@ describe('Housing document repository', () => {
     });
 
     it('should return only live documents when deleted: false', async () => {
-      const housingLive = genHousingApi();
-      const housingDeleted = genHousingApi();
+      const housingLive = await factories.housing.create();
+      const housingDeleted = await factories.housing.create();
       const liveDoc = genHousingDocumentApi({
         createdBy: user.id,
         creator: user,
@@ -512,23 +552,24 @@ describe('Housing document repository', () => {
         housingGeoCode: housingDeleted.geoCode
       });
 
-      await Housing().insert([
-        formatHousingRecordApi(housingLive),
-        formatHousingRecordApi(housingDeleted)
-      ]);
-      await Documents().insert([
-        toDocumentDBO(liveDoc),
-        toDocumentDBO(deletedDoc)
-      ]);
-      await HousingDocuments().insert([
-        toHousingDocumentDBO(liveDoc),
-        toHousingDocumentDBO(deletedDoc)
-      ]);
+      await kysely
+        .insertInto('documents')
+        .values([toDocumentInsert(liveDoc), toDocumentInsert(deletedDoc)])
+        .execute();
+      await kysely
+        .insertInto('documentsHousings')
+        .values([
+          toHousingDocumentInsert(liveDoc),
+          toHousingDocumentInsert(deletedDoc)
+        ])
+        .execute();
 
       // Soft-delete one document
-      await Documents()
-        .where('id', deletedDoc.id)
-        .update({ deleted_at: new Date() });
+      await kysely
+        .updateTable('documents')
+        .set({ deletedAt: new Date() })
+        .where('id', '=', deletedDoc.id)
+        .execute();
 
       const results = await housingDocumentRepository.find({
         filters: {
@@ -543,8 +584,8 @@ describe('Housing document repository', () => {
     });
 
     it('should return only live documents when deleted filter is absent', async () => {
-      const housingLive = genHousingApi();
-      const housingDeleted = genHousingApi();
+      const housingLive = await factories.housing.create();
+      const housingDeleted = await factories.housing.create();
       const liveDoc = genHousingDocumentApi({
         createdBy: user.id,
         creator: user,
@@ -558,23 +599,24 @@ describe('Housing document repository', () => {
         housingGeoCode: housingDeleted.geoCode
       });
 
-      await Housing().insert([
-        formatHousingRecordApi(housingLive),
-        formatHousingRecordApi(housingDeleted)
-      ]);
-      await Documents().insert([
-        toDocumentDBO(liveDoc),
-        toDocumentDBO(deletedDoc)
-      ]);
-      await HousingDocuments().insert([
-        toHousingDocumentDBO(liveDoc),
-        toHousingDocumentDBO(deletedDoc)
-      ]);
+      await kysely
+        .insertInto('documents')
+        .values([toDocumentInsert(liveDoc), toDocumentInsert(deletedDoc)])
+        .execute();
+      await kysely
+        .insertInto('documentsHousings')
+        .values([
+          toHousingDocumentInsert(liveDoc),
+          toHousingDocumentInsert(deletedDoc)
+        ])
+        .execute();
 
       // Soft-delete one document
-      await Documents()
-        .where('id', deletedDoc.id)
-        .update({ deleted_at: new Date() });
+      await kysely
+        .updateTable('documents')
+        .set({ deletedAt: new Date() })
+        .where('id', '=', deletedDoc.id)
+        .execute();
 
       const results = await housingDocumentRepository.find({
         filters: { documentIds: [liveDoc.id, deletedDoc.id] }

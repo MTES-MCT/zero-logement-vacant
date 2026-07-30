@@ -1,24 +1,21 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { PROPERTY_RIGHT_VALUES } from '@zerologementvacant/models';
+import type { Selectable } from 'kysely';
 
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import { OwnerApi } from '~/models/OwnerApi';
 import housingOwnerRepository, {
   formatHousingOwnerApi,
   formatHousingOwnersApi,
   fromRelativeLocationDBO,
-  HousingOwnerDBO,
-  HousingOwners,
   parseOwnerHousingApi,
   relativeLocationFilterToDBO,
   toRelativeLocationDBO
 } from '~/repositories/housingOwnerRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
+import { formatHousingRecordApi } from '~/repositories/housingRepository';
+import { factories } from '~/test/factories';
 import {
   genHousingApi,
   genHousingOwnerApi,
@@ -28,14 +25,13 @@ import {
 describe('housingOwnerRepository', () => {
   describe('findByOwner', () => {
     it('should return a housing owner with their housings', async () => {
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
-      const housings = faker.helpers.multiple(() => genHousingApi());
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      const housingOwners: ReadonlyArray<HousingOwnerApi> = housings.map(
-        (housing) => genHousingOwnerApi(housing, owner)
+      const owner = await factories.owner.create();
+      const housings = await factories.housing.createList(3);
+      const housingOwners = await Promise.all(
+        housings.map((housing) =>
+          factories.housingOwner({ housing, owner }).create()
+        )
       );
-      await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
 
       const actuals = await housingOwnerRepository.findByOwner(owner);
 
@@ -55,12 +51,11 @@ describe('housingOwnerRepository', () => {
     });
 
     it('should return startDate as a YYYY-MM-DD string, not a Date instance', async () => {
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
-      const housingOwner = genHousingOwnerApi(housing, owner);
-      await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
+      const owner = await factories.owner.create();
+      const housing = await factories.housing.create();
+      const housingOwner = await factories
+        .housingOwner({ housing, owner })
+        .create();
 
       const [actual] = await housingOwnerRepository.findByOwner(owner);
 
@@ -70,17 +65,9 @@ describe('housingOwnerRepository', () => {
 
     describe('geoCodes filter', () => {
       it('should return empty array when geoCodes is empty (whereRaw 1=0 path)', async () => {
-        const owner = genOwnerApi();
-        const housing = genHousingApi();
-        await Promise.all([
-          Owners().insert(formatOwnerApi(owner)),
-          Housing().insert(formatHousingRecordApi(housing))
-        ]);
-        const housingOwner: HousingOwnerApi = genHousingOwnerApi(
-          housing,
-          owner
-        );
-        await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
+        const owner = await factories.owner.create();
+        const housing = await factories.housing.create();
+        await factories.housingOwner({ housing, owner }).create();
 
         const actuals = await housingOwnerRepository.findByOwner(owner, {
           geoCodes: []
@@ -90,17 +77,9 @@ describe('housingOwnerRepository', () => {
       });
 
       it('should return linked housing when geoCodes matches housing geoCode', async () => {
-        const owner = genOwnerApi();
-        const housing = genHousingApi();
-        await Promise.all([
-          Owners().insert(formatOwnerApi(owner)),
-          Housing().insert(formatHousingRecordApi(housing))
-        ]);
-        const housingOwner: HousingOwnerApi = genHousingOwnerApi(
-          housing,
-          owner
-        );
-        await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
+        const owner = await factories.owner.create();
+        const housing = await factories.housing.create();
+        await factories.housingOwner({ housing, owner }).create();
 
         const actuals = await housingOwnerRepository.findByOwner(owner, {
           geoCodes: [housing.geoCode]
@@ -114,17 +93,9 @@ describe('housingOwnerRepository', () => {
       });
 
       it('should return empty array when geoCodes does not match housing geoCode', async () => {
-        const owner = genOwnerApi();
-        const housing = genHousingApi();
-        await Promise.all([
-          Owners().insert(formatOwnerApi(owner)),
-          Housing().insert(formatHousingRecordApi(housing))
-        ]);
-        const housingOwner: HousingOwnerApi = genHousingOwnerApi(
-          housing,
-          owner
-        );
-        await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
+        const owner = await factories.owner.create();
+        const housing = await factories.housing.create();
+        await factories.housingOwner({ housing, owner }).create();
 
         const actuals = await housingOwnerRepository.findByOwner(owner, {
           geoCodes: ['00000']
@@ -137,18 +108,11 @@ describe('housingOwnerRepository', () => {
 
   describe('insert', () => {
     it('should ignore the conflict if the same owner is inserted twice at the same rank', async () => {
-      const owner = genOwnerApi();
-      const housing = genHousingApi();
-      await Promise.all([
-        Owners().insert(formatOwnerApi(owner)),
-        Housing().insert(formatHousingRecordApi(housing))
-      ]);
-      const housingOwner: HousingOwnerApi = {
-        ...genHousingOwnerApi(housing, owner),
-        rank: -2,
-        propertyRight: null
-      };
-      await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
+      const owner = await factories.owner.create();
+      const housing = await factories.housing.create();
+      await factories
+        .housingOwner({ housing, owner })
+        .create({ rank: -2, propertyRight: null });
 
       await housingOwnerRepository.insert({
         ...genHousingOwnerApi(housing, owner),
@@ -158,18 +122,11 @@ describe('housingOwnerRepository', () => {
     });
 
     it('should ignore the conflict if the same owner is inserted at two different ranks', async () => {
-      const owner = genOwnerApi();
-      const housing = genHousingApi();
-      await Promise.all([
-        Owners().insert(formatOwnerApi(owner)),
-        Housing().insert(formatHousingRecordApi(housing))
-      ]);
-      const housingOwner: HousingOwnerApi = {
-        ...genHousingOwnerApi(housing, owner),
-        rank: -2,
-        propertyRight: null
-      };
-      await HousingOwners().insert(formatHousingOwnerApi(housingOwner));
+      const owner = await factories.owner.create();
+      const housing = await factories.housing.create();
+      await factories
+        .housingOwner({ housing, owner })
+        .create({ rank: -2, propertyRight: null });
 
       await housingOwnerRepository.insert({
         ...genHousingOwnerApi(housing, owner),
@@ -177,25 +134,21 @@ describe('housingOwnerRepository', () => {
         propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES)
       });
 
-      const actual = await HousingOwners()
-        .where({
-          owner_id: owner.id,
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id
-        })
-        .first();
+      const actual = await kysely
+        .selectFrom('ownersHousing')
+        .selectAll('ownersHousing')
+        .where('ownerId', '=', owner.id)
+        .where('housingGeoCode', '=', housing.geoCode)
+        .where('housingId', '=', housing.id)
+        .executeTakeFirst();
       expect(actual).toMatchObject({
         rank: -2
       });
     });
 
     it('should join an ambient transaction and roll back with it', async () => {
-      const owner = genOwnerApi();
-      const housing = genHousingApi();
-      await Promise.all([
-        Owners().insert(formatOwnerApi(owner)),
-        Housing().insert(formatHousingRecordApi(housing))
-      ]);
+      const owner = await factories.owner.create();
+      const housing = await factories.housing.create();
       const housingOwner = genHousingOwnerApi(housing, owner);
 
       await expect(
@@ -205,13 +158,13 @@ describe('housingOwnerRepository', () => {
         })
       ).rejects.toThrow('rollback');
 
-      const actual = await HousingOwners()
-        .where({
-          owner_id: owner.id,
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id
-        })
-        .first();
+      const actual = await kysely
+        .selectFrom('ownersHousing')
+        .selectAll('ownersHousing')
+        .where('ownerId', '=', owner.id)
+        .where('housingGeoCode', '=', housing.geoCode)
+        .where('housingId', '=', housing.id)
+        .executeTakeFirst();
       expect(actual).toBeUndefined();
     });
   });
@@ -423,78 +376,64 @@ describe('housingOwnerRepository', () => {
 
   describe('saveMany', () => {
     it('should return empty array and write nothing when called with empty array', async () => {
-      const before = await HousingOwners()
-        .count<{ count: string }>('*')
-        .first();
+      const before = await kysely
+        .selectFrom('ownersHousing')
+        .select((eb) => eb.fn.countAll().as('count'))
+        .executeTakeFirst();
 
       const result = await housingOwnerRepository.saveMany([]);
 
-      const after = await HousingOwners().count<{ count: string }>('*').first();
+      const after = await kysely
+        .selectFrom('ownersHousing')
+        .select((eb) => eb.fn.countAll().as('count'))
+        .executeTakeFirst();
       expect(result).toEqual([]);
       expect(after?.count).toBe(before?.count);
     });
 
     it('should replace housing owners', async () => {
-      const existingOwner = genOwnerApi();
-      const housing = genHousingApi();
-      await Promise.all([
-        Owners().insert(formatOwnerApi(existingOwner)),
-        Housing().insert(formatHousingRecordApi(housing))
-      ]);
-      const existingHousingOwner: HousingOwnerApi = {
-        ...genHousingOwnerApi(housing, existingOwner),
-        rank: 1
-      };
-      await HousingOwners().insert(formatHousingOwnerApi(existingHousingOwner));
+      const housing = await factories.housing.create();
+      const existingOwner = await factories.owner.create();
+      const newOwner = await factories.owner.create();
+      const existingHousingOwner = await factories
+        .housingOwner({ housing, owner: existingOwner })
+        .create({ rank: 1 });
 
-      const newOwner: OwnerApi = genOwnerApi();
-      const newHousingOwner: HousingOwnerApi = {
-        ...genHousingOwnerApi(housing, newOwner),
-        rank: 1
-      };
-      await Owners().insert(formatOwnerApi(newOwner));
       const newHousingOwners: HousingOwnerApi[] = [
         { ...existingHousingOwner, rank: -2 },
-        { ...newHousingOwner, rank: 1 }
+        { ...genHousingOwnerApi(housing, newOwner), rank: 1 }
       ];
 
       await housingOwnerRepository.saveMany(newHousingOwners);
 
-      const actual = await HousingOwners().where({
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
-      });
+      const actual = await kysely
+        .selectFrom('ownersHousing')
+        .selectAll('ownersHousing')
+        .where('housingGeoCode', '=', housing.geoCode)
+        .where('housingId', '=', housing.id)
+        .execute();
       expect(actual).toHaveLength(newHousingOwners.length);
-      expect(actual).toIncludeAllPartialMembers<Partial<HousingOwnerDBO>>([
+      expect(actual).toIncludeAllPartialMembers<
+        Partial<Selectable<DB['ownersHousing']>>
+      >([
         {
-          owner_id: existingHousingOwner.ownerId,
+          ownerId: existingHousingOwner.ownerId,
           rank: -2
         },
         {
-          owner_id: newHousingOwner.ownerId,
+          ownerId: newOwner.id,
           rank: 1
         }
       ]);
     });
 
     it('should return affected owner IDs (existing and incoming)', async () => {
-      const existingOwner = genOwnerApi();
-      const newOwner = genOwnerApi();
-      const housing = genHousingApi();
-
-      await Promise.all([
-        Owners().insert([
-          formatOwnerApi(existingOwner),
-          formatOwnerApi(newOwner)
-        ]),
-        Housing().insert(formatHousingRecordApi(housing))
-      ]);
-      await HousingOwners().insert(
-        formatHousingOwnerApi({
-          ...genHousingOwnerApi(housing, existingOwner),
-          rank: 1
-        })
-      );
+      const housing = await factories.housing.create();
+      const existingOwner = await factories.owner.create();
+      const newOwner = await factories.owner.create();
+      await factories
+        .housingOwner({ housing, owner: existingOwner })
+        .create({ rank: 1 });
 
       const affectedOwnerIds = await housingOwnerRepository.saveMany([
         { ...genHousingOwnerApi(housing, newOwner), rank: 1 }

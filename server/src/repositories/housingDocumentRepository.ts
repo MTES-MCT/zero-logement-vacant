@@ -246,7 +246,7 @@ export function toHousingDocumentDBO(
   };
 }
 
-function toHousingDocumentInsert(
+export function toHousingDocumentInsert(
   document: HousingDocumentApi
 ): Insertable<DB['documentsHousings']> {
   return {

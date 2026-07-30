@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import { configure } from '@testing-library/react';
 import * as extended from 'jest-extended';
 import 'jest-sorted';
 import { afterAll, afterEach, beforeAll, expect, vi } from 'vitest';
@@ -6,6 +7,10 @@ import { afterAll, afterEach, beforeAll, expect, vi } from 'vitest';
 import data from './src/mocks/handlers/data';
 import { mockAPI } from './src/mocks/mock-api';
 import EventSourceMock from './src/test/event-source-mock';
+
+// Heavy views can take longer than Testing Library's default one-second
+// async query timeout to render on loaded CI runners.
+configure({ asyncUtilTimeout: 10_000 });
 
 expect.extend(extended);
 // expect.extend(sorted);

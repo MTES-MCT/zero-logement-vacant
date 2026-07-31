@@ -341,6 +341,24 @@ describe('Establishment repository', () => {
         (user) => user.deletedAt === null
       );
     });
+
+    it('should not throw when siren is null', async () => {
+      const establishmentWithoutSiren = await factories.establishment.create();
+      await kysely
+        .updateTable('establishments')
+        .set({ siren: null })
+        .where('id', '=', establishmentWithoutSiren.id)
+        .execute();
+
+      const actual = await establishmentRepository.get(
+        establishmentWithoutSiren.id
+      );
+
+      expect(actual).toMatchObject<Partial<EstablishmentApi>>({
+        id: establishmentWithoutSiren.id,
+        siren: ''
+      });
+    });
   });
 
   describe('findOne', () => {

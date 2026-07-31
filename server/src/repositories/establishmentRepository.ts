@@ -220,7 +220,7 @@ function parseEstablishmentRow(row: EstablishmentRow): EstablishmentApi {
     id: row.id,
     name: row.name,
     shortName: row.name,
-    siren: (row.siren as number).toString(),
+    siren: row.siren !== null ? row.siren.toString() : '',
     available: row.available,
     geoCodes: row.localitiesGeoCode as string[],
     kind: row.kind as EstablishmentKind,

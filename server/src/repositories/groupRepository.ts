@@ -1,10 +1,9 @@
-import { Array } from 'effect';
 import { Knex } from 'knex';
 import type { Insertable, Selectable } from 'kysely';
 import { sql } from 'kysely';
-import pMap from 'p-map';
 
 import db from '~/infra/database';
+import { runInBatches } from '~/infra/database/batch';
 import type { DB } from '~/infra/database/db';
 import { kysely } from '~/infra/database/kysely';
 import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
@@ -16,10 +15,6 @@ import { fromUserDBO, UserDBO } from './userRepository';
 
 export const GROUPS_TABLE = 'groups';
 export const GROUPS_HOUSING_TABLE = 'groups_housing';
-
-// Matches Knex's batchInsert default chunk size, which the Kysely insert
-// below must replicate manually to stay under Postgres's 65535 bind-parameter limit.
-const INSERT_BATCH_SIZE = 1000;
 
 export const Groups = (transaction: Knex<GroupDBO> = db) =>
   transaction(GROUPS_TABLE);
@@ -146,16 +141,12 @@ async function save(group: GroupApi, housings?: HousingApi[]): Promise<void> {
         .where('groupId', '=', group.id)
         .execute();
       if (housings.length > 0) {
-        await pMap(
-          Array.chunksOf(housings, INSERT_BATCH_SIZE),
-          async (batch) => {
-            await trx
-              .insertInto('groupsHousing')
-              .values(toGroupHousingDBOs(group, batch))
-              .execute();
-          },
-          { concurrency: 1 }
-        );
+        await runInBatches(housings, async (batch) => {
+          await trx
+            .insertInto('groupsHousing')
+            .values(toGroupHousingDBOs(group, batch))
+            .execute();
+        });
       }
     }
     logger.info('Saved group', {

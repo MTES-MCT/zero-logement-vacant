@@ -261,7 +261,7 @@ describe('User repository', () => {
   });
 
   describe('find', () => {
-    it('should return all non-deleted users by default (paginated to 50)', async () => {
+    it('should exclude deleted users by default', async () => {
       const establishment = await factories.establishment.create();
       const user = await factories.user.create({
         establishmentId: establishment.id
@@ -271,7 +271,11 @@ describe('User repository', () => {
         deletedAt: new Date().toJSON()
       });
 
-      const actual = await userRepository.find();
+      // Bypasses the default 50-row pagination cap so the assertion below
+      // isn't racy against however many other users already exist.
+      const actual = await userRepository.find({
+        pagination: { paginate: false }
+      });
 
       const ids = actual.map((u) => u.id);
       expect(ids).toContain(user.id);

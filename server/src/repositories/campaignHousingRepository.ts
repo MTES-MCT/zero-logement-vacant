@@ -1,7 +1,5 @@
-import { Array } from 'effect';
-import pMap from 'p-map';
-
 import db from '~/infra/database';
+import { runInBatches } from '~/infra/database/batch';
 import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { CampaignApi } from '~/models/CampaignApi';
 import { HousingApi } from '~/models/HousingApi';
@@ -9,10 +7,6 @@ import { HousingApi } from '~/models/HousingApi';
 export const campaignsHousingTable = 'campaigns_housing';
 export const CampaignsHousing = (transaction = db) =>
   transaction<CampaignHousingDBO>(campaignsHousingTable);
-
-// Matches Knex's batchInsert default chunk size, replicated manually to keep the
-// bulk delete under Postgres's 65535 bind-parameter limit (2 params per housing).
-const INSERT_BATCH_SIZE = 1000;
 
 const insertHousingList = async (
   campaignId: string,
@@ -23,27 +17,21 @@ const insertHousingList = async (
   }
 
   await withinKyselyTransaction(async (trx) => {
-    await pMap(
-      Array.chunksOf(housingList, INSERT_BATCH_SIZE),
-      async (batch) => {
-        await trx
-          .insertInto('campaignsHousing')
-          .values(
-            batch.map((housing) => ({
-              campaignId,
-              housingId: housing.id,
-              housingGeoCode: housing.geoCode
-            }))
-          )
-          .onConflict((oc) =>
-            oc
-              .columns(['campaignId', 'housingId', 'housingGeoCode'])
-              .doNothing()
-          )
-          .execute();
-      },
-      { concurrency: 1 }
-    );
+    await runInBatches(housingList, async (batch) => {
+      await trx
+        .insertInto('campaignsHousing')
+        .values(
+          batch.map((housing) => ({
+            campaignId,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .onConflict((oc) =>
+          oc.columns(['campaignId', 'housingId', 'housingGeoCode']).doNothing()
+        )
+        .execute();
+    });
   });
 };
 
@@ -56,26 +44,22 @@ async function removeMany(
   }
 
   await withinKyselyTransaction(async (trx) => {
-    await pMap(
-      Array.chunksOf(housings, INSERT_BATCH_SIZE),
-      async (batch) => {
-        await trx
-          .deleteFrom('campaignsHousing')
-          .where('campaignId', '=', campaign.id)
-          .where((eb) =>
-            eb.or(
-              batch.map((housing) =>
-                eb.and([
-                  eb('housingGeoCode', '=', housing.geoCode),
-                  eb('housingId', '=', housing.id)
-                ])
-              )
+    await runInBatches(housings, async (batch) => {
+      await trx
+        .deleteFrom('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .where((eb) =>
+          eb.or(
+            batch.map((housing) =>
+              eb.and([
+                eb('housingGeoCode', '=', housing.geoCode),
+                eb('housingId', '=', housing.id)
+              ])
             )
           )
-          .execute();
-      },
-      { concurrency: 1 }
-    );
+        )
+        .execute();
+    });
   });
 }
 

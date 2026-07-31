@@ -1,5 +1,4 @@
 import { EventPayloads, EventType } from '@zerologementvacant/models';
-import { Array } from 'effect';
 import type {
   ExpressionBuilder,
   Insertable,
@@ -7,9 +6,9 @@ import type {
   Transaction
 } from 'kysely';
 import { sql } from 'kysely';
-import pMap from 'p-map';
 
 import db from '~/infra/database';
+import { runInBatches } from '~/infra/database/batch';
 import type { DB } from '~/infra/database/db';
 import { kysely } from '~/infra/database/kysely';
 import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
@@ -34,10 +33,6 @@ import { OwnerApi } from '~/models/OwnerApi';
 import { fromUserDBO, UserDBO } from '~/repositories/userRepository';
 
 const logger = createLogger('eventRepository');
-
-// Matches Knex's batchInsert default chunk size, which the Kysely inserts below
-// must replicate manually to stay under Postgres's 65535 bind-parameter limit.
-const INSERT_BATCH_SIZE = 1000;
 
 export const EVENTS_TABLE = 'events';
 export const OWNER_EVENTS_TABLE = 'owner_events';
@@ -78,9 +73,8 @@ export const CampaignDocumentEvents = (transaction = db) =>
   transaction<CampaignDocumentEventDBO>(CAMPAIGN_DOCUMENT_EVENTS_TABLE);
 
 // Shared control flow for every insertMany*Events function below: skip on
-// empty input, chunk to stay under Postgres's 65535 bind-parameter limit,
-// and insert chunks serially (concurrency: 1) within the ambient transaction.
-// Each call site supplies its own table-specific inserts (and onConflict
+// empty input, then insert in batches within the ambient transaction. Each
+// call site supplies its own table-specific inserts (and onConflict
 // behaviour, which intentionally differs by event type).
 async function insertEventsInBatches<T>(
   events: ReadonlyArray<T>,
@@ -96,11 +90,7 @@ async function insertEventsInBatches<T>(
 
   logger.debug(`Inserting ${options.label}...`, { events: events.length });
   await withinKyselyTransaction(async (trx) => {
-    await pMap(
-      Array.chunksOf(events, INSERT_BATCH_SIZE),
-      (batch) => insertBatch(trx, batch),
-      { concurrency: 1 }
-    );
+    await runInBatches(events, (batch) => insertBatch(trx, batch));
   });
 }
 

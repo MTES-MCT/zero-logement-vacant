@@ -8,8 +8,10 @@ import data from './src/mocks/handlers/data';
 import { mockAPI } from './src/mocks/mock-api';
 import EventSourceMock from './src/test/event-source-mock';
 
-// Heavy views can take longer than Testing Library's default one-second
-// async query timeout to render on loaded CI runners.
+// Heavy views (CampaignView, HousingOwnersView, …) can take longer than the
+// default 1s `findBy*` timeout just to mount and render. This addresses render
+// latency, which is distinct from data determinism; it only raises the ceiling,
+// so fast queries still resolve immediately.
 configure({ asyncUtilTimeout: 10_000 });
 
 expect.extend(extended);

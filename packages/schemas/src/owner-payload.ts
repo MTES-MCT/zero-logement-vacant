@@ -1,4 +1,4 @@
-import { array, mixed, object, string } from 'yup';
+import { array, boolean, mixed, object, string } from 'yup';
 
 const banIdMessage =
   "L'adresse BAN doit avoir un identifiant BAN. Veuillez sélectionner une adresse depuis la liste de suggestions.";
@@ -14,7 +14,7 @@ const cityMessage =
 // instead of being stripped by validator-next's `stripUnknown: true`. The custom test
 // replicates the legacy express-validator `.custom()` check faithfully, including the
 // French error messages on each missing field.
-export const ownerPayload = object({
+const ownerPayloadShape = {
   fullName: string().required(),
   birthDate: string().nullable().notRequired(),
   rawAddress: array().of(string().required()).nullable().notRequired(),
@@ -64,4 +64,16 @@ export const ownerPayload = object({
       }
     }),
   additionalAddress: string().nullable().notRequired()
+};
+
+// A new owner has no "do not contact" preference yet: the server defaults it
+// to `false`, so the creation payload does not carry the field at all.
+export const ownerCreationPayload = object(ownerPayloadShape);
+
+// `doNotContact` is required here (not optional/nullable) because
+// `PUT /owners/{id}` must be idempotent: callers that don't touch it must
+// always send the owner's existing value.
+export const ownerUpdatePayload = object({
+  ...ownerPayloadShape,
+  doNotContact: boolean().required()
 });

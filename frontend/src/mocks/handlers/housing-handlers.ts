@@ -281,6 +281,7 @@ export const housingHandlers: RequestHandler[] = [
               'kind',
               'siren',
               'username',
+              'doNotContact',
               'createdAt',
               'updatedAt'
             )

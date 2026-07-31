@@ -1,18 +1,12 @@
 import { render, screen, within } from '@testing-library/react';
-import {
-  genGroupDTO,
-  genHousingDTO,
-  genUserDTO
-} from '@zerologementvacant/models/fixtures';
 import { Provider } from 'react-redux';
 
 import { createCampaignFromGroupModal } from '~/components/Group/CreateCampaignFromGroupModal';
-import { fromGroupDTO } from '~/models/Group';
+import { genGroup } from '~/test/fixtures';
 import configureTestStore from '~/utils/storeUtils';
 
 const modal = createCampaignFromGroupModal();
-const creator = genUserDTO();
-const group = fromGroupDTO(genGroupDTO(creator, [genHousingDTO()]));
+const group = genGroup();
 
 describe('CreateCampaignFromGroupModal', () => {
   function renderModal(stepper?: { currentStep: number; stepCount: number }) {
@@ -80,6 +74,19 @@ describe('CreateCampaignFromGroupModal', () => {
     // are omitted. This guards the always-mounted usage in SaveCampaignFlow,
     // where the step-2 modal is rendered with a null group until one is picked.
     expect(within(dialog).getByText('Étape 2 sur 2')).toBeInTheDocument();
-    expect(within(dialog).queryByText(/propriétaire/)).not.toBeInTheDocument();
+    expect(
+      within(dialog).queryByText(/\d+ propriétaires?/)
+    ).not.toBeInTheDocument();
+  });
+
+  it('should warn that do-not-contact owners are excluded from the campaign', async () => {
+    renderModal();
+
+    const dialog = await screen.findByRole('dialog');
+    expect(
+      within(dialog).getByText(
+        /ne seront pas inclus comme destinataires de cette campagne/i
+      )
+    ).toBeInTheDocument();
   });
 });

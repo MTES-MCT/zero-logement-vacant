@@ -1,3 +1,5 @@
+import { fr } from '@codegouvfr/react-dsfr';
+import Alert from '@codegouvfr/react-dsfr/Alert';
 import Stepper from '@codegouvfr/react-dsfr/Stepper';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Box from '@mui/material/Box';
@@ -120,6 +122,18 @@ export function createCampaignFromGroupModal(
                 </Stack>
               </Stack>
             )}
+
+            <Alert
+              severity="warning"
+              small
+              className={fr.cx('fr-mb-2w')}
+              description="Les propriétaires marqués « À ne pas contacter » ne seront pas inclus comme destinataires de cette campagne."
+            />
+
+            <Typography variant="body2" sx={{ mb: '0.25rem' }}>
+              Une fois la campagne créée, les logements « Non suivi » passeront
+              « En attente de retour ».
+            </Typography>
 
             <Box sx={{ '& .fr-input-group': { marginBottom: '0.75rem' } }}>
               <AppTextInputNext<FormSchema>

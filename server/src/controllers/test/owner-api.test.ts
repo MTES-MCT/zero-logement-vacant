@@ -348,13 +348,38 @@ describe('Owner API', () => {
       });
     });
 
+    it('should set the do not contact flag', async () => {
+      const payload: OwnerUpdatePayload = {
+        ...owner,
+        doNotContact: true
+      };
+
+      const { body, status } = await request(url)
+        .put(testRoute(owner.id))
+        .send(payload)
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toMatchObject<Partial<OwnerDTO>>({
+        id: owner.id,
+        doNotContact: true
+      });
+      const actual = await kysely
+        .selectFrom('owners')
+        .selectAll()
+        .where('id', '=', owner.id)
+        .executeTakeFirst();
+      expect(actual).toMatchObject({ doNotContact: true });
+    });
+
     describe('validation', () => {
       const validId = uuidv4();
 
       it('should return 400 when :id is not a UUID', async () => {
         const { status, body } = await request(url)
           .put(testRoute('not-a-uuid'))
-          .send({ fullName: 'Jane Doe' })
+          .send({ fullName: 'Jane Doe', doNotContact: false })
           .set('Content-Type', 'application/json')
           .use(tokenProvider(user));
 
@@ -379,6 +404,7 @@ describe('Owner API', () => {
           .put(testRoute(validId))
           .send({
             fullName: 'Jane Doe',
+            doNotContact: false,
             banAddress: {
               banId: 'ban-123',
               postalCode: '75001',
@@ -403,7 +429,9 @@ describe('Owner API', () => {
         phone: faker.phone.number(),
         email: faker.internet.email(),
         banAddress: genAddressDTO(),
-        additionalAddress: 'Les Cabannes'
+        additionalAddress: 'Les Cabannes',
+        // Unchanged: send the existing value so it stays out of the event diff.
+        doNotContact: original.doNotContact
       } satisfies OwnerUpdatePayload;
 
       const { status } = await request(url)
@@ -438,6 +466,51 @@ describe('Owner API', () => {
           email: payload.email,
           address: payload.banAddress.label,
           additionalAddress: payload.additionalAddress
+        },
+        createdBy: user.id
+      });
+    });
+
+    it('should create an event when the do not contact flag changes', async () => {
+      const original = await factories.owner.create({
+        banAddress: null,
+        doNotContact: false
+      });
+
+      // Only the "do not contact" flag changes: every other field is identical.
+      const payload = {
+        fullName: original.fullName,
+        birthDate: original.birthDate,
+        phone: original.phone,
+        email: original.email,
+        banAddress: null,
+        additionalAddress: original.additionalAddress,
+        doNotContact: true
+      } satisfies OwnerUpdatePayload;
+
+      const { status } = await request(url)
+        .put(testRoute(original.id))
+        .send(payload)
+        .set('Content-Type', 'application/json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin('ownerEvents', 'ownerEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('ownerEvents.ownerId', '=', original.id)
+        .where('events.type', '=', 'owner:updated')
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
+        type: 'owner:updated',
+        nextOld: {
+          name: original.fullName,
+          doNotContact: false
+        },
+        nextNew: {
+          name: original.fullName,
+          doNotContact: true
         },
         createdBy: user.id
       });

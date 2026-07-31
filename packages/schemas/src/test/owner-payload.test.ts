@@ -1,22 +1,22 @@
 import { fc, test } from '@fast-check/vitest';
 
-import { ownerPayload } from '../owner-payload';
+import { ownerCreationPayload, ownerUpdatePayload } from '../owner-payload';
 
-describe('Owner payload', () => {
+describe('Owner creation payload', () => {
   test.prop([
     fc.record({
       fullName: fc.string({ minLength: 1 })
     })
   ])('should accept a payload with only fullName', (payload) => {
-    expect(() => ownerPayload.validateSync(payload)).not.toThrow();
+    expect(() => ownerCreationPayload.validateSync(payload)).not.toThrow();
   });
 
   it('should reject when fullName is missing', () => {
-    expect(() => ownerPayload.validateSync({})).toThrow(/fullName/i);
+    expect(() => ownerCreationPayload.validateSync({})).toThrow(/fullName/i);
   });
 
   it('should accept an empty-string email (treated as absent)', () => {
-    const result = ownerPayload.validateSync({
+    const result = ownerCreationPayload.validateSync({
       fullName: 'Jane Doe',
       email: ''
     });
@@ -25,7 +25,7 @@ describe('Owner payload', () => {
 
   it('should reject a malformed email', () => {
     expect(() =>
-      ownerPayload.validateSync({
+      ownerCreationPayload.validateSync({
         fullName: 'Jane Doe',
         email: 'not-an-email'
       })
@@ -34,7 +34,7 @@ describe('Owner payload', () => {
 
   it('should reject banAddress when all required fields are missing', () => {
     expect(() =>
-      ownerPayload.validateSync({
+      ownerCreationPayload.validateSync({
         fullName: 'Jane Doe',
         banAddress: {}
       })
@@ -43,7 +43,7 @@ describe('Owner payload', () => {
 
   it('should accept banAddress: null', () => {
     expect(() =>
-      ownerPayload.validateSync({
+      ownerCreationPayload.validateSync({
         fullName: 'Jane Doe',
         banAddress: null
       })
@@ -62,7 +62,7 @@ describe('Owner payload', () => {
       longitude: 2.35,
       score: 0.95
     };
-    const result = ownerPayload.validateSync({
+    const result = ownerCreationPayload.validateSync({
       fullName: 'Jane Doe',
       banAddress
     });
@@ -72,7 +72,7 @@ describe('Owner payload', () => {
 
   it('should reject banAddress missing label', () => {
     expect(() =>
-      ownerPayload.validateSync({
+      ownerCreationPayload.validateSync({
         fullName: 'Jane Doe',
         banAddress: {
           banId: 'ban-123',
@@ -85,7 +85,7 @@ describe('Owner payload', () => {
 
   it('should reject banAddress missing postalCode', () => {
     expect(() =>
-      ownerPayload.validateSync({
+      ownerCreationPayload.validateSync({
         fullName: 'Jane Doe',
         banAddress: {
           banId: 'ban-123',
@@ -98,7 +98,7 @@ describe('Owner payload', () => {
 
   it('should reject banAddress missing city', () => {
     expect(() =>
-      ownerPayload.validateSync({
+      ownerCreationPayload.validateSync({
         fullName: 'Jane Doe',
         banAddress: {
           banId: 'ban-123',
@@ -107,5 +107,48 @@ describe('Owner payload', () => {
         }
       })
     ).toThrow(/ville/i);
+  });
+});
+
+describe('Owner update payload', () => {
+  test.prop([
+    fc.record({
+      fullName: fc.string({ minLength: 1 }),
+      doNotContact: fc.boolean()
+    })
+  ])('should accept a payload with the required fields', (payload) => {
+    expect(() => ownerUpdatePayload.validateSync(payload)).not.toThrow();
+  });
+
+  it('should reject when fullName is missing', () => {
+    expect(() =>
+      ownerUpdatePayload.validateSync({ doNotContact: false })
+    ).toThrow(/fullName/i);
+  });
+
+  test.prop([fc.boolean()])(
+    'should accept a boolean doNotContact',
+    (doNotContact) => {
+      const result = ownerUpdatePayload.validateSync({
+        fullName: 'Jane Doe',
+        doNotContact
+      });
+      expect(result.doNotContact).toBe(doNotContact);
+    }
+  );
+
+  it('should reject a payload without doNotContact', () => {
+    expect(() =>
+      ownerUpdatePayload.validateSync({ fullName: 'Jane Doe' })
+    ).toThrow(/doNotContact/i);
+  });
+
+  it('should reject a non-boolean doNotContact', () => {
+    expect(() =>
+      ownerUpdatePayload.validateSync({
+        fullName: 'Jane Doe',
+        doNotContact: 'yes'
+      })
+    ).toThrow();
   });
 });

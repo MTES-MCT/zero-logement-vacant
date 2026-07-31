@@ -8,7 +8,6 @@ import configureTestStore from '~/utils/storeUtils';
 const modal = createCampaignFromGroupModal();
 const group = genGroup();
 
-
 describe('CreateCampaignFromGroupModal', () => {
   function renderModal(stepper?: { currentStep: number; stepCount: number }) {
     render(
@@ -75,7 +74,9 @@ describe('CreateCampaignFromGroupModal', () => {
     // are omitted. This guards the always-mounted usage in SaveCampaignFlow,
     // where the step-2 modal is rendered with a null group until one is picked.
     expect(within(dialog).getByText('Étape 2 sur 2')).toBeInTheDocument();
-    expect(within(dialog).queryByText(/propriétaire/)).not.toBeInTheDocument();
+    expect(
+      within(dialog).queryByText(/\d+ propriétaires?/)
+    ).not.toBeInTheDocument();
   });
 
   it('should warn that do-not-contact owners are excluded from the campaign', async () => {

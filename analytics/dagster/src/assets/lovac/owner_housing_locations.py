@@ -18,6 +18,7 @@ from dagster import (
     String,
     asset,
 )
+from psycopg2.extensions import make_dsn
 
 from ...owner_housing_locations import (
     LocationComputationError,
@@ -281,10 +282,12 @@ def lovac_owner_housing_locations(
             ),
         )
     limit = config["limit"] or None
+    connection = context.resources.psycopg2_connection
+    db_url = make_dsn(connection.dsn, password=connection.info.password)
 
     try:
         report = calculate_owner_housing_locations(
-            db_url=context.resources.psycopg2_connection.dsn,
+            db_url=db_url,
             data_file_year=config["data_file_year"],
             establishment_id=establishment_id,
             geo_codes=geo_codes,

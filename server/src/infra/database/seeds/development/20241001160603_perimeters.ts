@@ -2,21 +2,31 @@ import { faker } from '@faker-js/faker/locale/fr';
 import async from 'async';
 import { Knex } from 'knex';
 
-import { Establishments } from '~/repositories/establishmentRepository';
+import {
+  EstablishmentDBO,
+  establishmentsTable
+} from '~/repositories/establishmentRepository';
 import {
   formatGeoPerimeterApi,
-  GeoPerimeters
+  GeoPerimeterDBO,
+  geoPerimetersTable
 } from '~/repositories/geoRepository';
-import { fromUserDBO, Users } from '~/repositories/userRepository';
+import {
+  fromUserDBO,
+  USERS_TABLE,
+  UserDBO
+} from '~/repositories/userRepository';
 import { genGeoPerimeterApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
   console.time('20241001160603_perimeters');
-  await GeoPerimeters(knex).delete();
+  await knex<GeoPerimeterDBO>(geoPerimetersTable).delete();
 
-  const establishments = await Establishments(knex).where({ available: true });
+  const establishments = await knex<EstablishmentDBO>(
+    establishmentsTable
+  ).where({ available: true });
   await async.forEachSeries(establishments, async (establishment) => {
-    const users = await Users(knex).where({
+    const users = await knex<UserDBO>(USERS_TABLE).where({
       establishment_id: establishment.id
     });
     const perimeters = faker.helpers.multiple(
@@ -33,7 +43,9 @@ export async function seed(knex: Knex): Promise<void> {
     console.log(`Inserting ${perimeters.length} perimeters...`, {
       establishment: establishment.name
     });
-    await GeoPerimeters(knex).insert(perimeters.map(formatGeoPerimeterApi));
+    await knex<GeoPerimeterDBO>(geoPerimetersTable).insert(
+      perimeters.map(formatGeoPerimeterApi)
+    );
   });
   console.timeEnd('20241001160603_perimeters');
   console.log('\n');

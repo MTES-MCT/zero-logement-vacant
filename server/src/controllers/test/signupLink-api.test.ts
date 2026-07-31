@@ -1,46 +1,40 @@
 import { constants } from 'http2';
 
 import { subHours } from 'date-fns';
+import { Record } from 'effect';
+import { snakeToCamel } from 'effect/String';
+import type { Insertable } from 'kysely';
 import request from 'supertest';
 import { vi } from 'vitest';
 
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { SignupLinkApi } from '~/models/SignupLinkApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  formatProspectApi,
-  Prospects
-} from '~/repositories/prospectRepository';
-import {
-  formatSignupLinkApi,
-  SignupLinks
-} from '~/repositories/signupLinkRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { UserApi } from '~/models/UserApi';
+import { formatProspectApi } from '~/repositories/prospectRepository';
+import signupLinkRepository from '~/repositories/signupLinkRepository';
 import ceremaService from '~/services/ceremaService';
+import { factories } from '~/test/factories';
 import {
   genEmail,
-  genEstablishmentApi,
   genProspectApi,
-  genSignupLinkApi,
-  genUserApi
+  genSignupLinkApi
 } from '~/test/testFixtures';
 
 describe('Signup link API', () => {
   let url: string;
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
     url = await createServer().testing();
   });
 
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
-
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('POST /signup-links', () => {
@@ -111,10 +105,11 @@ describe('Signup link API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
 
-      const actualLink = await SignupLinks()
-        .select()
-        .where('prospect_email', email)
-        .first();
+      const actualLink = await kysely
+        .selectFrom('signupLinks')
+        .where('prospectEmail', '=', email)
+        .selectAll()
+        .executeTakeFirst();
       expect(actualLink).toBeDefined();
     });
   });
@@ -124,9 +119,17 @@ describe('Signup link API', () => {
 
     it('should get a signup link', async () => {
       const prospect = genProspectApi(establishment);
-      await Prospects().insert(formatProspectApi(prospect));
+      await kysely
+        .insertInto('prospects')
+        .values(
+          Record.mapKeys(
+            formatProspectApi(prospect) as unknown as Record<string, unknown>,
+            snakeToCamel
+          ) as Insertable<DB['prospects']>
+        )
+        .execute();
       const link = genSignupLinkApi(prospect.email);
-      await SignupLinks().insert(formatSignupLinkApi(link));
+      await signupLinkRepository.insert(link);
 
       const { body, status } = await request(url).get(testRoute(link.id));
 
@@ -149,7 +152,7 @@ describe('Signup link API', () => {
         ...genSignupLinkApi(email),
         expiresAt: subHours(new Date(), 24)
       };
-      await SignupLinks().insert(formatSignupLinkApi(link));
+      await signupLinkRepository.insert(link);
 
       const { status } = await request(url).get(testRoute(link.id));
 

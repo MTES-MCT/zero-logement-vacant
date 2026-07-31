@@ -3,9 +3,10 @@ import { Knex } from 'knex';
 import { v4 as uuidv4 } from 'uuid';
 
 import { PRECISION_TREE_VALUES, PrecisionApi } from '~/models/PrecisionApi';
-import { Precisions } from '~/repositories/precisionRepository';
-
-const PRECISION_TABLE = 'precisions';
+import {
+  PRECISION_TABLE,
+  PrecisionDBO
+} from '~/repositories/precisionRepository';
 
 export async function seed(knex: Knex): Promise<void> {
   console.time('20250113145122_precisions');
@@ -25,7 +26,7 @@ export async function seed(knex: Knex): Promise<void> {
       .flatMap((_) => _)
       .toArray();
   console.log(`Inserting ${precisions.length} precisions...`);
-  await Precisions(knex).insert(precisions);
+  await knex<PrecisionDBO>(PRECISION_TABLE).insert(precisions);
 
   console.timeEnd('20250113145122_precisions');
   console.log('\n');

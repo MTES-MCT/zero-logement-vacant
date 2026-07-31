@@ -8,7 +8,10 @@ import {
   formatGroupHousingEventApi,
   GROUP_HOUSING_EVENTS_TABLE
 } from '~/repositories/eventRepository';
-import { GroupHousingDBO, GroupsHousing } from '~/repositories/groupRepository';
+import {
+  GROUPS_HOUSING_TABLE,
+  GroupHousingDBO
+} from '~/repositories/groupRepository';
 import { genEventApi } from '~/test/testFixtures';
 
 import { batchedWhereIn, getAdmin, getHousings } from './lib/events-helpers';
@@ -21,7 +24,7 @@ export async function seed(knex: Knex): Promise<void> {
   const groupHousings: ReadonlyArray<GroupHousingDBO> =
     await batchedWhereIn<GroupHousingDBO>(
       knex,
-      (k) => GroupsHousing(k),
+      (k) => k<GroupHousingDBO>(GROUPS_HOUSING_TABLE),
       ['housing_geo_code', 'housing_id'],
       housingKeys
     );

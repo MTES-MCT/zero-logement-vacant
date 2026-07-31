@@ -1,65 +1,35 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { CampaignDTO, HousingStatus } from '@zerologementvacant/models';
+import type { Selectable } from 'kysely';
 
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import {
   CampaignEventApi,
   CampaignHousingEventApi,
   HousingEventApi
 } from '~/models/EventApi';
-import { CampaignsDrafts } from '~/repositories/campaignDraftRepository';
-import { CampaignsHousing } from '~/repositories/campaignHousingRepository';
-import campaignRepository, {
-  Campaigns
-} from '~/repositories/campaignRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  CampaignEvents,
-  CampaignHousingEventDBO,
-  CampaignHousingEvents,
-  Events,
-  formatCampaignEventApi,
-  formatCampaignHousingEventApi,
-  formatEventApi,
-  formatHousingEventApi,
-  HousingEvents
-} from '~/repositories/eventRepository';
-import {
-  formatHousingOwnerApi,
-  HousingOwners
-} from '~/repositories/housingOwnerRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { UserApi } from '~/models/UserApi';
+import campaignRepository from '~/repositories/campaignRepository';
+import { toEventInsert } from '~/repositories/eventRepository';
 import { factories } from '~/test/factories';
-import {
-  genEstablishmentApi,
-  genEventApi,
-  genHousingApi,
-  genHousingOwnerApi,
-  genOwnerApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { genEventApi } from '~/test/testFixtures';
 
 describe('Campaign repository', () => {
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('find', () => {
-    const establishment2 = genEstablishmentApi();
+    let establishment2: EstablishmentApi;
 
     beforeAll(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment2));
+      establishment2 = await factories.establishment.create();
     });
 
     describe('geoCodes filter', () => {
@@ -67,13 +37,17 @@ describe('Campaign repository', () => {
         const campaign = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: user } });
-        const housing = genHousingApi(establishment.geoCodes[0]);
-        await Housing().insert(formatHousingRecordApi(housing));
-        await CampaignsHousing().insert({
-          campaign_id: campaign.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
+        const housing = await factories.housing.create({
+          geoCode: establishment.geoCodes[0]
         });
+        await kysely
+          .insertInto('campaignsHousing')
+          .values({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         const result = await campaignRepository.find({
           filters: { establishmentId: establishment.id }
@@ -86,13 +60,17 @@ describe('Campaign repository', () => {
         const campaign = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: user } });
-        const housing = genHousingApi(establishment.geoCodes[0]);
-        await Housing().insert(formatHousingRecordApi(housing));
-        await CampaignsHousing().insert({
-          campaign_id: campaign.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
+        const housing = await factories.housing.create({
+          geoCode: establishment.geoCodes[0]
         });
+        await kysely
+          .insertInto('campaignsHousing')
+          .values({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         const result = await campaignRepository.find({
           filters: { establishmentId: establishment.id, geoCodes: [] }
@@ -111,25 +89,28 @@ describe('Campaign repository', () => {
         const campaignOut = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: user } });
-        const housingIn = genHousingApi(inGeoCode);
-        const housingOut = genHousingApi(outGeoCode);
+        const housingIn = await factories.housing.create({
+          geoCode: inGeoCode
+        });
+        const housingOut = await factories.housing.create({
+          geoCode: outGeoCode
+        });
 
-        await Housing().insert([
-          formatHousingRecordApi(housingIn),
-          formatHousingRecordApi(housingOut)
-        ]);
-        await CampaignsHousing().insert([
-          {
-            campaign_id: campaignIn.id,
-            housing_id: housingIn.id,
-            housing_geo_code: housingIn.geoCode
-          },
-          {
-            campaign_id: campaignOut.id,
-            housing_id: housingOut.id,
-            housing_geo_code: housingOut.geoCode
-          }
-        ]);
+        await kysely
+          .insertInto('campaignsHousing')
+          .values([
+            {
+              campaignId: campaignIn.id,
+              housingId: housingIn.id,
+              housingGeoCode: housingIn.geoCode
+            },
+            {
+              campaignId: campaignOut.id,
+              housingId: housingOut.id,
+              housingGeoCode: housingOut.geoCode
+            }
+          ])
+          .execute();
 
         const result = await campaignRepository.find({
           filters: { establishmentId: establishment.id, geoCodes: [inGeoCode] }
@@ -147,25 +128,28 @@ describe('Campaign repository', () => {
         const campaign = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: user } });
-        const housingIn = genHousingApi(inGeoCode);
-        const housingOut = genHousingApi(outGeoCode);
+        const housingIn = await factories.housing.create({
+          geoCode: inGeoCode
+        });
+        const housingOut = await factories.housing.create({
+          geoCode: outGeoCode
+        });
 
-        await Housing().insert([
-          formatHousingRecordApi(housingIn),
-          formatHousingRecordApi(housingOut)
-        ]);
-        await CampaignsHousing().insert([
-          {
-            campaign_id: campaign.id,
-            housing_id: housingIn.id,
-            housing_geo_code: housingIn.geoCode
-          },
-          {
-            campaign_id: campaign.id,
-            housing_id: housingOut.id,
-            housing_geo_code: housingOut.geoCode
-          }
-        ]);
+        await kysely
+          .insertInto('campaignsHousing')
+          .values([
+            {
+              campaignId: campaign.id,
+              housingId: housingIn.id,
+              housingGeoCode: housingIn.geoCode
+            },
+            {
+              campaignId: campaign.id,
+              housingId: housingOut.id,
+              housingGeoCode: housingOut.geoCode
+            }
+          ])
+          .execute();
 
         const result = await campaignRepository.find({
           filters: { establishmentId: establishment.id, geoCodes: [inGeoCode] }
@@ -203,10 +187,16 @@ describe('Campaign repository', () => {
       // (trg_recompute_return_count_on_sent_at_change) recomputes return_count
       // whenever sent_at changes, so updating both in one statement would
       // overwrite the seeded return_count.
-      await Campaigns()
-        .where({ id: campaign.id })
-        .update({ sent_at: new Date() });
-      await Campaigns().where({ id: campaign.id }).update({ return_count: 5 });
+      await kysely
+        .updateTable('campaigns')
+        .set({ sentAt: new Date() })
+        .where('id', '=', campaign.id)
+        .execute();
+      await kysely
+        .updateTable('campaigns')
+        .set({ returnCount: 5 })
+        .where('id', '=', campaign.id)
+        .execute();
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -220,7 +210,11 @@ describe('Campaign repository', () => {
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await Campaigns().where({ id: campaign.id }).update({ return_count: 0 });
+      await kysely
+        .updateTable('campaigns')
+        .set({ returnCount: 0 })
+        .where('id', '=', campaign.id)
+        .execute();
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -234,7 +228,11 @@ describe('Campaign repository', () => {
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await Campaigns().where({ id: campaign.id }).update({ housing_count: 3 });
+      await kysely
+        .updateTable('campaigns')
+        .set({ housingCount: 3 })
+        .where('id', '=', campaign.id)
+        .execute();
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -248,7 +246,11 @@ describe('Campaign repository', () => {
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await Campaigns().where({ id: campaign.id }).update({ owner_count: 2 });
+      await kysely
+        .updateTable('campaigns')
+        .set({ ownerCount: 2 })
+        .where('id', '=', campaign.id)
+        .execute();
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -266,13 +268,16 @@ describe('Campaign repository', () => {
       // (trg_recompute_return_count_on_sent_at_change) recomputes return_count
       // whenever sent_at changes, so updating both in one statement would
       // overwrite the seeded return_count.
-      await Campaigns()
-        .where({ id: campaign.id })
-        .update({ sent_at: new Date() });
-      await Campaigns().where({ id: campaign.id }).update({
-        housing_count: 10,
-        return_count: 4
-      });
+      await kysely
+        .updateTable('campaigns')
+        .set({ sentAt: new Date() })
+        .where('id', '=', campaign.id)
+        .execute();
+      await kysely
+        .updateTable('campaigns')
+        .set({ housingCount: 10, returnCount: 4 })
+        .where('id', '=', campaign.id)
+        .execute();
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -286,10 +291,11 @@ describe('Campaign repository', () => {
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await Campaigns().where({ id: campaign.id }).update({
-        housing_count: 10,
-        return_count: 0
-      });
+      await kysely
+        .updateTable('campaigns')
+        .set({ housingCount: 10, returnCount: 0 })
+        .where('id', '=', campaign.id)
+        .execute();
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -304,13 +310,17 @@ describe('Campaign repository', () => {
         const campaign = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: user } });
-        const housing = genHousingApi(establishment.geoCodes[0]);
-        await Housing().insert(formatHousingRecordApi(housing));
-        await CampaignsHousing().insert({
-          campaign_id: campaign.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
+        const housing = await factories.housing.create({
+          geoCode: establishment.geoCodes[0]
         });
+        await kysely
+          .insertInto('campaignsHousing')
+          .values({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         const result = await campaignRepository.findOne({
           id: campaign.id,
@@ -322,17 +332,21 @@ describe('Campaign repository', () => {
       });
 
       it('should return null when campaign has housing outside geoCodes', async () => {
-        const establishment2 = genEstablishmentApi();
+        const establishment2 = await factories.establishment.create();
         const campaign = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: user } });
-        const outsideHousing = genHousingApi(establishment2.geoCodes[0]);
-        await Housing().insert(formatHousingRecordApi(outsideHousing));
-        await CampaignsHousing().insert({
-          campaign_id: campaign.id,
-          housing_id: outsideHousing.id,
-          housing_geo_code: outsideHousing.geoCode
+        const outsideHousing = await factories.housing.create({
+          geoCode: establishment2.geoCodes[0]
         });
+        await kysely
+          .insertInto('campaignsHousing')
+          .values({
+            campaignId: campaign.id,
+            housingId: outsideHousing.id,
+            housingGeoCode: outsideHousing.geoCode
+          })
+          .execute();
 
         const result = await campaignRepository.findOne({
           id: campaign.id,
@@ -348,13 +362,17 @@ describe('Campaign repository', () => {
         const campaign = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: user } });
-        const housing = genHousingApi(inGeoCode);
-        await Housing().insert(formatHousingRecordApi(housing));
-        await CampaignsHousing().insert({
-          campaign_id: campaign.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
+        const housing = await factories.housing.create({
+          geoCode: inGeoCode
         });
+        await kysely
+          .insertInto('campaignsHousing')
+          .values({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         const result = await campaignRepository.findOne({
           id: campaign.id,
@@ -369,12 +387,13 @@ describe('Campaign repository', () => {
   });
 
   describe('remove', () => {
-    const housings = faker.helpers.multiple(() => genHousingApi());
+    let housings: Awaited<ReturnType<typeof factories.housing.createList>>;
     let campaign: CampaignDTO;
     let campaignEvents: ReadonlyArray<CampaignEventApi>;
     let campaignHousingEvents: ReadonlyArray<CampaignHousingEventApi>;
 
     beforeAll(async () => {
+      housings = await factories.housing.createList(3);
       campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
@@ -401,69 +420,112 @@ describe('Campaign repository', () => {
         housingId: housing.id
       }));
 
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      await Events().insert(
-        [...campaignEvents, ...campaignHousingEvents].map(formatEventApi)
-      );
-      await CampaignEvents().insert(campaignEvents.map(formatCampaignEventApi));
-      await CampaignHousingEvents().insert(
-        campaignHousingEvents.map(formatCampaignHousingEventApi)
-      );
+      await kysely
+        .insertInto('events')
+        .values([
+          ...campaignEvents.map(toEventInsert),
+          ...campaignHousingEvents.map(toEventInsert)
+        ])
+        .execute();
+      await kysely
+        .insertInto('campaignEvents')
+        .values(
+          campaignEvents.map((event) => ({
+            eventId: event.id,
+            campaignId: event.campaignId
+          }))
+        )
+        .execute();
+      await kysely
+        .insertInto('campaignHousingEvents')
+        .values(
+          campaignHousingEvents.map((event) => ({
+            eventId: event.id,
+            campaignId: event.campaignId,
+            housingGeoCode: event.housingGeoCode,
+            housingId: event.housingId
+          }))
+        )
+        .execute();
 
       await campaignRepository.remove(campaign.id);
     });
 
     it('should remove a campaign', async () => {
-      const actual = await Campaigns().where({ id: campaign.id }).first();
+      const actual = await kysely
+        .selectFrom('campaigns')
+        .selectAll('campaigns')
+        .where('id', '=', campaign.id)
+        .executeTakeFirst();
       expect(actual).toBeUndefined();
     });
 
     it('should unlink the associated housings', async () => {
-      const actual = await CampaignsHousing().where({
-        campaign_id: campaign.id
-      });
+      const actual = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .execute();
       expect(actual).toBeArrayOfSize(0);
     });
 
     it('should remove the associated events', async () => {
-      const actual = await Events().whereIn(
-        'id',
-        campaignEvents.map((event) => event.id)
-      );
+      const actual = await kysely
+        .selectFrom('events')
+        .selectAll('events')
+        .where(
+          'id',
+          'in',
+          campaignEvents.map((event) => event.id)
+        )
+        .execute();
       expect(actual).toBeArrayOfSize(0);
     });
 
     it('should remove the associated campaign events', async () => {
-      const actual = await CampaignEvents().where({ campaign_id: campaign.id });
+      const actual = await kysely
+        .selectFrom('campaignEvents')
+        .selectAll('campaignEvents')
+        .where('campaignId', '=', campaign.id)
+        .execute();
       expect(actual).toBeArrayOfSize(0);
     });
 
     it('should unlink the associated drafts', async () => {
-      const actual = await CampaignsDrafts().where({
-        campaign_id: campaign.id
-      });
+      const actual = await kysely
+        .selectFrom('campaignsDrafts')
+        .selectAll('campaignsDrafts')
+        .where('campaignId', '=', campaign.id)
+        .execute();
       expect(actual).toBeArrayOfSize(0);
     });
 
     it('should set the associated housing events foreign key to null', async () => {
-      const actual = await CampaignHousingEvents().whereIn(
-        ['housing_geo_code', 'housing_id'],
-        housings.map((housing) => [housing.geoCode, housing.id])
-      );
+      const actual = await kysely
+        .selectFrom('campaignHousingEvents')
+        .selectAll('campaignHousingEvents')
+        .where((eb) =>
+          eb(
+            eb.refTuple('housingGeoCode', 'housingId'),
+            'in',
+            housings.map((housing) => eb.tuple(housing.geoCode, housing.id))
+          )
+        )
+        .execute();
       expect(actual.length).toBeGreaterThan(0);
-      expect(actual).toSatisfyAll<CampaignHousingEventDBO>(
-        (event) => event.campaign_id === null
+      expect(actual).toSatisfyAll<Selectable<DB['campaignHousingEvents']>>(
+        (event) => event.campaignId === null
       );
     });
   });
 
   describe('triggers', () => {
-    const establishment = genEstablishmentApi();
-    const user = genUserApi(establishment.id);
+    let establishment: EstablishmentApi;
+    let user: UserApi;
 
     beforeAll(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(toUserDBO(user));
+      establishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
     });
 
     it('should increment housing_count when housing is added to campaign', async () => {
@@ -471,14 +533,16 @@ describe('Campaign repository', () => {
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
 
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create();
 
-      await CampaignsHousing().insert({
-        campaign_id: campaign.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode
-      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -493,18 +557,22 @@ describe('Campaign repository', () => {
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
 
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create();
 
-      await CampaignsHousing().insert({
-        campaign_id: campaign.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode
-      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
 
-      await CampaignsHousing()
-        .where({ campaign_id: campaign.id, housing_id: housing.id })
-        .delete();
+      await kysely
+        .deleteFrom('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .where('housingId', '=', housing.id)
+        .execute();
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -519,22 +587,20 @@ describe('Campaign repository', () => {
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
 
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create();
 
-      await CampaignsHousing().insert({
-        campaign_id: campaign.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode
-      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
 
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
+      const owner = await factories.owner.create();
 
-      const housingOwner = genHousingOwnerApi(housing, owner);
-      await HousingOwners().insert(
-        formatHousingOwnerApi({ ...housingOwner, rank: 1 })
-      );
+      await factories.housingOwner({ housing, owner }).create({ rank: 1 });
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -549,26 +615,26 @@ describe('Campaign repository', () => {
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
 
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create();
 
-      await CampaignsHousing().insert({
-        campaign_id: campaign.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode
-      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
 
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
+      const owner = await factories.owner.create();
 
-      const housingOwner = genHousingOwnerApi(housing, owner);
-      await HousingOwners().insert(
-        formatHousingOwnerApi({ ...housingOwner, rank: 1 })
-      );
+      await factories.housingOwner({ housing, owner }).create({ rank: 1 });
 
-      await HousingOwners()
-        .where({ owner_id: owner.id, housing_id: housing.id })
-        .delete();
+      await kysely
+        .deleteFrom('ownersHousing')
+        .where('ownerId', '=', owner.id)
+        .where('housingId', '=', housing.id)
+        .execute();
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -583,26 +649,27 @@ describe('Campaign repository', () => {
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
 
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create();
 
-      await CampaignsHousing().insert({
-        campaign_id: campaign.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode
-      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
 
-      const owner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(owner));
+      const owner = await factories.owner.create();
 
-      const housingOwner = genHousingOwnerApi(housing, owner);
-      await HousingOwners().insert(
-        formatHousingOwnerApi({ ...housingOwner, rank: 1 })
-      );
+      await factories.housingOwner({ housing, owner }).create({ rank: 1 });
 
-      await HousingOwners()
-        .where({ owner_id: owner.id, housing_id: housing.id })
-        .update({ rank: 2 });
+      await kysely
+        .updateTable('ownersHousing')
+        .set({ rank: 2 })
+        .where('ownerId', '=', owner.id)
+        .where('housingId', '=', housing.id)
+        .execute();
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -617,32 +684,33 @@ describe('Campaign repository', () => {
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
 
-      const housing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create();
 
-      await CampaignsHousing().insert({
-        campaign_id: campaign.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode
-      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
 
-      const primaryOwner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(primaryOwner));
-      const primaryHousingOwner = genHousingOwnerApi(housing, primaryOwner);
-      await HousingOwners().insert(
-        formatHousingOwnerApi({ ...primaryHousingOwner, rank: 1 })
-      );
+      const primaryOwner = await factories.owner.create();
+      await factories
+        .housingOwner({ housing, owner: primaryOwner })
+        .create({ rank: 1 });
 
-      const secondaryOwner = genOwnerApi();
-      await Owners().insert(formatOwnerApi(secondaryOwner));
-      const secondaryHousingOwner = genHousingOwnerApi(housing, secondaryOwner);
-      await HousingOwners().insert(
-        formatHousingOwnerApi({ ...secondaryHousingOwner, rank: 2 })
-      );
+      const secondaryOwner = await factories.owner.create();
+      await factories
+        .housingOwner({ housing, owner: secondaryOwner })
+        .create({ rank: 2 });
 
-      await HousingOwners()
-        .where({ owner_id: secondaryOwner.id, housing_id: housing.id })
-        .update({ rank: 3 });
+      await kysely
+        .updateTable('ownersHousing')
+        .set({ rank: 3 })
+        .where('ownerId', '=', secondaryOwner.id)
+        .where('housingId', '=', housing.id)
+        .execute();
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -657,19 +725,24 @@ describe('Campaign repository', () => {
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await Campaigns().where({ id: campaign.id }).update({ sent_at: sentAt });
+      await kysely
+        .updateTable('campaigns')
+        .set({ sentAt })
+        .where('id', '=', campaign.id)
+        .execute();
 
-      const housing = {
-        ...genHousingApi(),
+      const housing = await factories.housing.create({
         status: HousingStatus.FIRST_CONTACT
-      };
-      await Housing().insert(formatHousingRecordApi(housing));
-
-      await CampaignsHousing().insert({
-        campaign_id: campaign.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode
       });
+
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
 
       const event = genEventApi({
         creator: user,
@@ -677,19 +750,27 @@ describe('Campaign repository', () => {
         nextOld: {},
         nextNew: {}
       });
-      await Events().insert({
-        ...formatEventApi(event),
-        created_at: new Date(sentAt.getTime() + 1000)
-      });
-      await HousingEvents().insert({
-        event_id: event.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode
-      });
+      await kysely
+        .insertInto('events')
+        .values({
+          ...toEventInsert(event),
+          createdAt: new Date(sentAt.getTime() + 1000)
+        })
+        .execute();
+      await kysely
+        .insertInto('housingEvents')
+        .values({
+          eventId: event.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
 
-      await CampaignsHousing()
-        .where({ campaign_id: campaign.id, housing_id: housing.id })
-        .delete();
+      await kysely
+        .deleteFrom('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .where('housingId', '=', housing.id)
+        .execute();
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -704,19 +785,24 @@ describe('Campaign repository', () => {
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await Campaigns().where({ id: campaign.id }).update({ sent_at: sentAt });
-      const housings = faker.helpers.multiple(
-        () => ({ ...genHousingApi(), status: HousingStatus.FIRST_CONTACT }),
-        { count: 10 }
-      );
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      await CampaignsHousing().insert(
-        housings.map((housing) => ({
-          campaign_id: campaign.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        }))
-      );
+      await kysely
+        .updateTable('campaigns')
+        .set({ sentAt })
+        .where('id', '=', campaign.id)
+        .execute();
+      const housings = await factories.housing.createList(10, {
+        status: HousingStatus.FIRST_CONTACT
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values(
+          housings.map((housing) => ({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
       // 4 out of 10 housings get a qualifying event created after sentAt
       const housingEvents = housings
         .slice(0, 4)
@@ -734,13 +820,25 @@ describe('Campaign repository', () => {
           };
         });
       const afterSentAt = new Date(sentAt.getTime() + 1000);
-      await Events().insert(
-        housingEvents.map((e) => ({
-          ...formatEventApi(e),
-          created_at: afterSentAt
-        }))
-      );
-      await HousingEvents().insert(housingEvents.map(formatHousingEventApi));
+      await kysely
+        .insertInto('events')
+        .values(
+          housingEvents.map((e) => ({
+            ...toEventInsert(e),
+            createdAt: afterSentAt
+          }))
+        )
+        .execute();
+      await kysely
+        .insertInto('housingEvents')
+        .values(
+          housingEvents.map((e) => ({
+            eventId: e.id,
+            housingGeoCode: e.housingGeoCode,
+            housingId: e.housingId
+          }))
+        )
+        .execute();
 
       const result = await campaignRepository.findOne({
         id: campaign.id,
@@ -756,17 +854,21 @@ describe('Campaign repository', () => {
         const campaign = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: user } });
-        await Campaigns()
-          .where({ id: campaign.id })
-          .update({ sent_at: sentAt });
+        await kysely
+          .updateTable('campaigns')
+          .set({ sentAt })
+          .where('id', '=', campaign.id)
+          .execute();
 
-        const housing = { ...genHousingApi(), status };
-        await Housing().insert(formatHousingRecordApi(housing));
-        await CampaignsHousing().insert({
-          campaign_id: campaign.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        });
+        const housing = await factories.housing.create({ status });
+        await kysely
+          .insertInto('campaignsHousing')
+          .values({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         const event = genEventApi({
           creator: user,
@@ -774,15 +876,21 @@ describe('Campaign repository', () => {
           nextOld: {},
           nextNew: {}
         });
-        await Events().insert({
-          ...formatEventApi(event),
-          created_at: new Date(sentAt.getTime() + 1000)
-        });
-        await HousingEvents().insert({
-          event_id: event.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        });
+        await kysely
+          .insertInto('events')
+          .values({
+            ...toEventInsert(event),
+            createdAt: new Date(sentAt.getTime() + 1000)
+          })
+          .execute();
+        await kysely
+          .insertInto('housingEvents')
+          .values({
+            eventId: event.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         return { campaign, housing };
       }
@@ -815,20 +923,23 @@ describe('Campaign repository', () => {
         const campaign = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: user } });
-        await Campaigns()
-          .where({ id: campaign.id })
-          .update({ sent_at: sentAt });
+        await kysely
+          .updateTable('campaigns')
+          .set({ sentAt })
+          .where('id', '=', campaign.id)
+          .execute();
 
-        const housing = {
-          ...genHousingApi(),
+        const housing = await factories.housing.create({
           status: HousingStatus.FIRST_CONTACT
-        };
-        await Housing().insert(formatHousingRecordApi(housing));
-        await CampaignsHousing().insert({
-          campaign_id: campaign.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
         });
+        await kysely
+          .insertInto('campaignsHousing')
+          .values({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         const event = genEventApi({
           creator: user,
@@ -836,15 +947,21 @@ describe('Campaign repository', () => {
           nextOld: {},
           nextNew: {}
         });
-        await Events().insert({
-          ...formatEventApi(event),
-          created_at: new Date(sentAt.getTime() + 1000)
-        });
-        await HousingEvents().insert({
-          event_id: event.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        });
+        await kysely
+          .insertInto('events')
+          .values({
+            ...toEventInsert(event),
+            createdAt: new Date(sentAt.getTime() + 1000)
+          })
+          .execute();
+        await kysely
+          .insertInto('housingEvents')
+          .values({
+            eventId: event.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         // Verify housing is counted before status change
         const before = await campaignRepository.findOne({
@@ -854,9 +971,12 @@ describe('Campaign repository', () => {
         expect(before?.returnCount).toBe(1);
 
         // Move status out of qualifying range
-        await Housing()
-          .where({ id: housing.id, geo_code: housing.geoCode })
-          .update({ status: HousingStatus.WAITING });
+        await kysely
+          .updateTable('fastHousing')
+          .set({ status: HousingStatus.WAITING })
+          .where('id', '=', housing.id)
+          .where('geoCode', '=', housing.geoCode)
+          .execute();
 
         const after = await campaignRepository.findOne({
           id: campaign.id,
@@ -870,17 +990,23 @@ describe('Campaign repository', () => {
         const campaign = await factories
           .campaign(establishment)
           .create({}, { associations: { createdBy: user } });
-        await Campaigns()
-          .where({ id: campaign.id })
-          .update({ sent_at: sentAt });
+        await kysely
+          .updateTable('campaigns')
+          .set({ sentAt })
+          .where('id', '=', campaign.id)
+          .execute();
 
-        const housing = { ...genHousingApi(), status: HousingStatus.WAITING };
-        await Housing().insert(formatHousingRecordApi(housing));
-        await CampaignsHousing().insert({
-          campaign_id: campaign.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
+        const housing = await factories.housing.create({
+          status: HousingStatus.WAITING
         });
+        await kysely
+          .insertInto('campaignsHousing')
+          .values({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         const event = genEventApi({
           creator: user,
@@ -888,15 +1014,21 @@ describe('Campaign repository', () => {
           nextOld: {},
           nextNew: {}
         });
-        await Events().insert({
-          ...formatEventApi(event),
-          created_at: new Date(sentAt.getTime() + 1000)
-        });
-        await HousingEvents().insert({
-          event_id: event.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        });
+        await kysely
+          .insertInto('events')
+          .values({
+            ...toEventInsert(event),
+            createdAt: new Date(sentAt.getTime() + 1000)
+          })
+          .execute();
+        await kysely
+          .insertInto('housingEvents')
+          .values({
+            eventId: event.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         // Verify housing is not counted before status change
         const before = await campaignRepository.findOne({
@@ -906,9 +1038,12 @@ describe('Campaign repository', () => {
         expect(before?.returnCount).toBe(0);
 
         // Move status into qualifying range
-        await Housing()
-          .where({ id: housing.id, geo_code: housing.geoCode })
-          .update({ status: HousingStatus.FIRST_CONTACT });
+        await kysely
+          .updateTable('fastHousing')
+          .set({ status: HousingStatus.FIRST_CONTACT })
+          .where('id', '=', housing.id)
+          .where('geoCode', '=', housing.geoCode)
+          .execute();
 
         const after = await campaignRepository.findOne({
           id: campaign.id,

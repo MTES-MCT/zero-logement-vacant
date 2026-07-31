@@ -6,8 +6,11 @@ import {
 import type { Geometry } from 'geojson';
 import type { Knex } from 'knex';
 
-import { Buildings } from '~/repositories/buildingRepository';
-import { Establishments } from '~/repositories/establishmentRepository';
+import { BUILDING_TABLE, BuildingDBO } from '~/repositories/buildingRepository';
+import {
+  EstablishmentDBO,
+  establishmentsTable
+} from '~/repositories/establishmentRepository';
 
 const TABLE = 'df_housing_nat_2024';
 
@@ -16,8 +19,8 @@ export async function seed(knex: Knex): Promise<void> {
   await knex(TABLE).truncate();
 
   const [buildings, establishments] = await Promise.all([
-    Buildings(knex),
-    Establishments().where({ available: true })
+    knex<BuildingDBO>(BUILDING_TABLE),
+    knex<EstablishmentDBO>(establishmentsTable).where({ available: true })
   ]);
 
   const datafoncierHousings = establishments.flatMap((establishment) => {

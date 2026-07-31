@@ -8,7 +8,7 @@ import {
   formatOwnerEventApi,
   OWNER_EVENTS_TABLE
 } from '~/repositories/eventRepository';
-import { OwnerDBO, Owners } from '~/repositories/ownerRepository';
+import { OwnerDBO, ownerTable } from '~/repositories/ownerRepository';
 import { genEventApi } from '~/test/testFixtures';
 
 import { getAdmin, LIMIT } from './lib/events-helpers';
@@ -17,7 +17,8 @@ export async function seed(knex: Knex): Promise<void> {
   console.time('20250528170443_owner-events');
   const admin = await getAdmin(knex);
 
-  const owners: ReadonlyArray<OwnerDBO> = await Owners().limit(LIMIT);
+  const owners: ReadonlyArray<OwnerDBO> =
+    await knex<OwnerDBO>(ownerTable).limit(LIMIT);
 
   const ownerEvents: ReadonlyArray<OwnerEventApi> = faker.helpers
     .arrayElements(owners)

@@ -20,6 +20,25 @@ export const isPaginationEnabled = (
   pagination?: PaginationApi
 ): pagination is PaginationEnabled => pagination?.paginate !== false;
 
+// Repositories default to this when no pagination is provided, so unpaginated
+// find() calls are still capped at 50 rows (matches the legacy paginate()
+// default below).
+export const DEFAULT_PAGINATION: PaginationEnabled = {
+  paginate: true,
+  page: 1,
+  perPage: 50
+};
+
+export function toLimitOffset(pagination: PaginationEnabled): {
+  limit: number;
+  offset: number;
+} {
+  return {
+    limit: pagination.perPage,
+    offset: (pagination.page - 1) * pagination.perPage
+  };
+}
+
 export const paginationSchema = schemas.pagination;
 
 /**

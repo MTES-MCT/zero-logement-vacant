@@ -8,8 +8,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 import config from '~/infra/config';
 import { SALT_LENGTH, UserApi } from '~/models/UserApi';
-import { Establishments } from '~/repositories/establishmentRepository';
-import { toUserDBO, Users, USERS_TABLE } from '~/repositories/userRepository';
+import {
+  type EstablishmentDBO,
+  establishmentsTable
+} from '~/repositories/establishmentRepository';
+import { toUserDBO, USERS_TABLE, UserDBO } from '~/repositories/userRepository';
 import { genUserApi } from '~/test/testFixtures';
 
 import {
@@ -21,13 +24,13 @@ import {
 // Types
 interface EstablishmentsData {
   strasbourg: NonNullable<
-    Awaited<ReturnType<ReturnType<typeof Establishments>['first']>>
+    Awaited<ReturnType<Knex.QueryBuilder<EstablishmentDBO>['first']>>
   >;
   saintLo: NonNullable<
-    Awaited<ReturnType<ReturnType<typeof Establishments>['first']>>
+    Awaited<ReturnType<Knex.QueryBuilder<EstablishmentDBO>['first']>>
   >;
   zlv: NonNullable<
-    Awaited<ReturnType<ReturnType<typeof Establishments>['first']>>
+    Awaited<ReturnType<Knex.QueryBuilder<EstablishmentDBO>['first']>>
   >;
 }
 
@@ -52,7 +55,7 @@ async function clearExistingData(knex: Knex): Promise<void> {
   await knex('account').delete();
   await knex('session').delete();
   await knex('auth_users').delete();
-  await Users(knex).delete();
+  await knex<UserDBO>(USERS_TABLE).delete();
 }
 
 function validateEnvironmentVariables(): void {
@@ -63,9 +66,15 @@ function validateEnvironmentVariables(): void {
 
 async function fetchEstablishments(knex: Knex): Promise<EstablishmentsData> {
   const [strasbourg, saintLo, zlv] = await Promise.all([
-    Establishments(knex).where('siren', SirenStrasbourg).first(),
-    Establishments(knex).where('siren', SirenSaintLo).first(),
-    Establishments(knex).where('name', ZeroLogementVacantEstablishment).first()
+    knex<EstablishmentDBO>(establishmentsTable)
+      .where('siren', SirenStrasbourg)
+      .first(),
+    knex<EstablishmentDBO>(establishmentsTable)
+      .where('siren', SirenSaintLo)
+      .first(),
+    knex<EstablishmentDBO>(establishmentsTable)
+      .where('name', ZeroLogementVacantEstablishment)
+      .first()
   ]);
 
   if (!strasbourg || !saintLo || !zlv) {
@@ -272,7 +281,7 @@ async function insertBaseUsers(
   baseUsers: UserApi[]
 ): Promise<void> {
   console.log(`Inserting ${baseUsers.length} base users...`);
-  await Users()
+  await knex<UserDBO>(USERS_TABLE)
     .insert(baseUsers.map(toUserDBO))
     .onConflict('email')
     .merge(['establishment_id']);
@@ -280,7 +289,9 @@ async function insertBaseUsers(
 }
 
 async function generateRandomUsers(knex: Knex): Promise<void> {
-  const establishments = await Establishments(knex).where({ available: true });
+  const establishments = await knex<EstablishmentDBO>(
+    establishmentsTable
+  ).where({ available: true });
   const users = establishments.flatMap((establishments) => {
     return faker.helpers.multiple(() => genUserApi(establishments.id), {
       count: { min: 1, max: 10 }
@@ -310,7 +321,7 @@ async function syncUserEstablishments(
     ON CONFLICT (user_id, establishment_id) DO NOTHING
   `);
 
-  const strasbourgUser = await Users(knex)
+  const strasbourgUser = await knex<UserDBO>(USERS_TABLE)
     .where({ email: 'test.strasbourg@zlv.fr' })
     .first();
   if (strasbourgUser) {

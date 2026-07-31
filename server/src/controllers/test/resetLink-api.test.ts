@@ -4,37 +4,28 @@ import { subDays } from 'date-fns';
 import request from 'supertest';
 import { vi, type MockedFunction } from 'vitest';
 
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { ResetLinkApi } from '~/models/ResetLinkApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import resetLinkRepository, {
-  formatResetLinkApi,
-  ResetLinks
-} from '~/repositories/resetLinkRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { UserApi } from '~/models/UserApi';
+import resetLinkRepository from '~/repositories/resetLinkRepository';
 import mailService from '~/services/mailService';
-import {
-  genEstablishmentApi,
-  genResetLinkApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { factories } from '~/test/factories';
+import { genResetLinkApi } from '~/test/testFixtures';
 
 describe('Reset link API', () => {
   let url: string;
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
     url = await createServer().testing();
   });
 
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
-
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('POST /reset-links', () => {
@@ -83,10 +74,11 @@ describe('Reset link API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
-      const link = await ResetLinks()
-        .select()
-        .where('user_id', user.id)
-        .first();
+      const link = await kysely
+        .selectFrom('resetLinks')
+        .where('userId', '=', user.id)
+        .selectAll()
+        .executeTakeFirst();
       expect(link).toBeDefined();
     });
 
@@ -125,7 +117,7 @@ describe('Reset link API', () => {
         ...genResetLinkApi(user.id),
         expiresAt: subDays(new Date(), 1)
       };
-      await ResetLinks().insert(formatResetLinkApi(link));
+      await resetLinkRepository.insert(link);
 
       const { status } = await request(url).get(testRoute(link.id));
 
@@ -137,7 +129,7 @@ describe('Reset link API', () => {
         ...genResetLinkApi(user.id),
         usedAt: new Date()
       };
-      await ResetLinks().insert(formatResetLinkApi(link));
+      await resetLinkRepository.insert(link);
 
       const { status } = await request(url).get(testRoute(link.id));
 
@@ -146,7 +138,7 @@ describe('Reset link API', () => {
 
     it('should return a valid reset link', async () => {
       const link = genResetLinkApi(user.id);
-      await ResetLinks().insert(formatResetLinkApi(link));
+      await resetLinkRepository.insert(link);
 
       const { status } = await request(url).get(testRoute(link.id));
 

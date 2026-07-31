@@ -8,13 +8,14 @@ import {
 import { Factory } from 'fishery';
 
 import type { PersistenceAdapter } from '../persistence-adapter';
+import { genGeoCode } from './geo-code';
 
 export function createBuildingFactory(adapter: PersistenceAdapter) {
   return Factory.define<BuildingDTO>(() => {
     const hasEnergyConsumption = faker.datatype.boolean({ probability: 0.8 });
     return {
       id:
-        faker.location.zipCode() +
+        genGeoCode() +
         faker.string.alphanumeric({ length: 7, casing: 'upper' }),
       housingCount: 0,
       vacantHousingCount: 0,

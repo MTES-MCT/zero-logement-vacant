@@ -4,21 +4,10 @@ import { faker } from '@faker-js/faker/locale/fr';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
-import { toBuildingDTO } from '~/models/BuildingApi';
-import {
-  Buildings,
-  formatBuildingApi
-} from '~/repositories/buildingRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import {
-  genBuildingApi,
-  genEstablishmentApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { BuildingApi, toBuildingDTO } from '~/models/BuildingApi';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { UserApi } from '~/models/UserApi';
+import { factories } from '~/test/factories';
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Building API', () => {
@@ -27,23 +16,24 @@ describe('Building API', () => {
   beforeAll(async () => {
     url = await createServer().testing();
   });
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('GET /buildings', () => {
     const testRoute = '/buildings';
 
-    const buildings = faker.helpers.multiple(genBuildingApi, {
-      count: { min: 3, max: 10 }
-    });
+    let buildings: BuildingApi[];
 
     beforeAll(async () => {
-      await Buildings().insert(buildings.map(formatBuildingApi));
+      buildings = await factories.building.createList(
+        faker.number.int({ min: 3, max: 10 })
+      );
     });
 
     it('should be forbidden for non-authenticated users', async () => {
@@ -79,10 +69,10 @@ describe('Building API', () => {
   describe('GET /buildings/:id', () => {
     const testRoute = (id: string) => `/buildings/${id}`;
 
-    const building = genBuildingApi();
+    let building: BuildingApi;
 
     beforeAll(async () => {
-      await Buildings().insert(formatBuildingApi(building));
+      building = await factories.building.create();
     });
 
     it('should be forbidden for non-authenticated users', async () => {

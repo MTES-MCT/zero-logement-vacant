@@ -3,23 +3,11 @@ import { constants } from 'http2';
 import request from 'supertest';
 
 import { createServer } from '~/infra/server';
-import { fromCampaignDTO } from '~/models/CampaignApi';
-import {
-  Campaigns,
-  formatCampaignApi
-} from '~/repositories/campaignRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { formatGroupApi, Groups } from '~/repositories/groupRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { CampaignApi } from '~/models/CampaignApi';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { GroupApi } from '~/models/GroupApi';
+import { UserApi } from '~/models/UserApi';
 import { factories } from '~/test/factories';
-import {
-  genEstablishmentApi,
-  genGroupApi,
-  genUserApi
-} from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
 const XLSX_CONTENT_TYPE =
@@ -32,21 +20,23 @@ describe('Housing export API', () => {
     url = await createServer().testing();
   });
 
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('GET /groups/{id}/export', () => {
     const testRoute = (id: string): string => `/groups/${id}/export`;
 
-    const group = genGroupApi(user, establishment);
+    let group: GroupApi;
 
     beforeAll(async () => {
-      await Groups().insert(formatGroupApi(group));
+      group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -79,16 +69,16 @@ describe('Housing export API', () => {
   describe('GET /campaigns/{id}/export', () => {
     const testRoute = (id: string): string => `/campaigns/${id}/export`;
 
-    const group = genGroupApi(user, establishment);
-    const campaign = factories
-      .campaign(establishment)
-      .build({ groupId: group.id }, { associations: { createdBy: user } });
+    let group: GroupApi;
+    let campaign: CampaignApi;
 
     beforeAll(async () => {
-      await Groups().insert(formatGroupApi(group));
-      await Campaigns().insert(
-        formatCampaignApi(fromCampaignDTO(campaign, establishment))
-      );
+      group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      campaign = await factories
+        .campaign(establishment)
+        .create({ groupId: group.id }, { associations: { createdBy: user } });
     });
 
     it('should be forbidden for a non-authenticated user', async () => {

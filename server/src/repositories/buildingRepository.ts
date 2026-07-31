@@ -1,11 +1,17 @@
 import type { EnergyConsumption } from '@zerologementvacant/models';
 import { Array, Predicate } from 'effect';
+import { snakeToCamel } from 'effect/String';
+import type { Insertable, Selectable } from 'kysely';
 import { match, Pattern } from 'ts-pattern';
 
-import db, { ConflictOptions, onConflict } from '~/infra/database';
+import db, { ConflictOptions } from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { BuildingApi } from '~/models/BuildingApi';
 
 export const BUILDING_TABLE = 'buildings';
+// Knex accessor — re-exported for backward compatibility with seeds and tests.
 export const Buildings = (transaction = db) =>
   transaction<BuildingDBO>(BUILDING_TABLE);
 
@@ -39,20 +45,33 @@ interface FindOptions {
 export async function find(
   options?: FindOptions
 ): Promise<ReadonlyArray<BuildingApi>> {
-  const buildings = await Buildings().modify((query) => {
-    if (options?.filters?.id?.length) {
-      query.whereIn('id', options.filters.id);
-    }
-  });
-  return buildings.map(parseBuildingApi);
+  let query = kysely.selectFrom('buildings').selectAll('buildings');
+  if (options?.filters?.id?.length) {
+    query = query.where('buildings.id', 'in', options.filters.id);
+  }
+  const buildings = await query.execute();
+  return buildings.map(parseBuildingRow);
 }
 
 export async function get(id: string): Promise<BuildingApi | null> {
-  const building = await Buildings().where({ id }).first();
-  return building ? parseBuildingApi(building) : null;
+  const building = await kysely
+    .selectFrom('buildings')
+    .selectAll('buildings')
+    .where('buildings.id', '=', id)
+    .executeTakeFirst();
+  return building ? parseBuildingRow(building) : null;
 }
 
 type SaveOptions = ConflictOptions<BuildingDBO>;
+
+// Default columns updated on conflict, mirroring the previous Knex `.merge(...)`.
+const DEFAULT_MERGE_COLUMNS: ReadonlyArray<keyof BuildingDBO> = [
+  'housing_count',
+  'vacant_housing_count',
+  'rent_housing_count',
+  'rnb_id',
+  'rnb_id_score'
+];
 
 export async function save(
   building: BuildingApi,
@@ -65,20 +84,63 @@ export async function saveMany(
   buildings: ReadonlyArray<BuildingApi>,
   options?: SaveOptions
 ): Promise<void> {
-  await Buildings()
-    .insert(buildings.map(formatBuildingApi))
-    .modify(
-      onConflict({
-        onConflict: options?.onConflict ?? ['id'],
-        merge: options?.merge ?? [
-          'housing_count',
-          'vacant_housing_count',
-          'rent_housing_count',
-          'rnb_id',
-          'rnb_id_score'
-        ]
+  if (buildings.length === 0) {
+    return;
+  }
+
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('buildings')
+      .values(buildings.map(toBuildingInsert))
+      .onConflict((oc) => {
+        const conflictColumns = (options?.onConflict ?? ['id']).map((column) =>
+          snakeToCamel(column as string)
+        );
+        const conflict = oc.columns(conflictColumns as any);
+
+        const merge = options?.merge ?? DEFAULT_MERGE_COLUMNS;
+        if (merge === false) {
+          return conflict.doNothing();
+        }
+        const columns = (
+          merge === true
+            ? Object.keys(toBuildingInsert({} as BuildingApi))
+            : merge.map((column) => snakeToCamel(column as string))
+        ).filter((column) => !conflictColumns.includes(column));
+        // An explicit empty merge list means "update nothing on conflict".
+        if (columns.length === 0) {
+          return conflict.doNothing();
+        }
+        return conflict.doUpdateSet((eb: any) =>
+          Object.fromEntries(
+            columns.map((column) => [column, eb.ref(`excluded.${column}`)])
+          )
+        );
       })
-    );
+      .execute();
+  });
+}
+
+// Camel-case Insertable mirror of formatBuildingApi for the Kysely write path.
+export function toBuildingInsert(
+  building: BuildingApi
+): Insertable<DB['buildings']> {
+  return {
+    id: building.id,
+    housingCount: building.housingCount,
+    vacantHousingCount: building.vacantHousingCount,
+    rentHousingCount: building.rentHousingCount,
+    rnbId: building.rnb?.id ?? null,
+    rnbIdScore: building.rnb?.score ?? null,
+    rnbFootprint: null,
+    dpeId: building.dpe?.id ?? null,
+    classDpe: building.dpe?.class ?? null,
+    classGes: building.ges?.class ?? null,
+    dpeDateAt: building.dpe?.doneAt ?? null,
+    dpeType: building.dpe?.type ?? null,
+    heatingBuilding: building.heating ?? null,
+    dpeImportMatch: building.dpe?.match ?? null
+  };
 }
 
 export function formatBuildingApi(building: BuildingApi): BuildingDBO {
@@ -144,6 +206,27 @@ export function parseBuildingApi(building: BuildingDBO): BuildingApi {
     ges,
     heating: building.heating_building
   };
+}
+
+// Camel-case Kysely mirror of parseBuildingApi: maps the CamelCasePlugin row
+// back to the snake-case BuildingDBO so the nullable branching lives in one place.
+function parseBuildingRow(row: Selectable<DB['buildings']>): BuildingApi {
+  return parseBuildingApi({
+    id: row.id,
+    housing_count: row.housingCount,
+    vacant_housing_count: row.vacantHousingCount,
+    rent_housing_count: row.rentHousingCount,
+    rnb_id: row.rnbId,
+    rnb_id_score: row.rnbIdScore,
+    rnb_footprint: row.rnbFootprint,
+    dpe_id: row.dpeId,
+    class_dpe: row.classDpe as EnergyConsumption | null,
+    class_ges: row.classGes as EnergyConsumption | null,
+    dpe_date_at: row.dpeDateAt,
+    dpe_type: row.dpeType,
+    heating_building: row.heatingBuilding,
+    dpe_import_match: row.dpeImportMatch
+  });
 }
 
 const buildingRepository = {

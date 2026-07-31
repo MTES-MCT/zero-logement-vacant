@@ -1,44 +1,57 @@
 import { constants } from 'http2';
 
 import { faker } from '@faker-js/faker';
+import type { DatafoncierHousing } from '@zerologementvacant/models';
 import {
   genDatafoncierHousing,
+  genGeoCode,
   genIdprocpte
 } from '@zerologementvacant/models/fixtures';
+import { sql } from 'kysely';
 import request from 'supertest';
 
-import db from '~/infra/database';
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
-import {
-  Buildings,
-  formatBuildingApi
-} from '~/repositories/buildingRepository';
-import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import {
-  genBuildingApi,
-  genEstablishmentApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { UserApi } from '~/models/UserApi';
+import { factories } from '~/test/factories';
 import { tokenProvider } from '~/test/testUtils';
+
+// Kysely raw insert for df_housing_nat_2024: the codegen key `dfHousingNat2024`
+// doesn't round-trip through CamelCasePlugin to the real table name, and
+// insertInto() only accepts a literal table key — so build the statement with a
+// literal table reference and ST_GeomFromGeoJson() for the PostGIS columns.
+async function insertDatafoncierHousing(
+  datafoncierHousing: DatafoncierHousing
+): Promise<void> {
+  const { ban_geom, geomloc, geomrnb, ...rest } = datafoncierHousing;
+  const columns = Object.keys(rest);
+  const columnRefs = [...columns, 'ban_geom', 'geomloc', 'geomrnb'].map(
+    (column) => sql.ref(column)
+  );
+  const values = [
+    ...columns.map(
+      (column) => sql`${(rest as Record<string, unknown>)[column]}`
+    ),
+    sql`ST_GeomFromGeoJson(${JSON.stringify(ban_geom)})`,
+    sql`ST_GeomFromGeoJson(${JSON.stringify(geomloc)})`,
+    sql`ST_GeomFromGeoJson(${JSON.stringify(geomrnb)})`
+  ];
+  await sql`
+    insert into df_housing_nat_2024 (${sql.join(columnRefs)})
+    values (${sql.join(values)})
+  `.execute(kysely);
+}
 
 describe('Datafoncier housing controller', () => {
   let url: string;
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
     url = await createServer().testing();
-  });
-
-  const establishment = genEstablishmentApi('54321');
-  const user = genUserApi(establishment.id);
-
-  beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('findOne', () => {
@@ -48,21 +61,9 @@ describe('Datafoncier housing controller', () => {
       const idprocpte = genIdprocpte(
         faker.helpers.arrayElement(establishment.geoCodes)
       );
-      const building = genBuildingApi();
+      const building = await factories.building.create();
       const housing = genDatafoncierHousing(idprocpte, building.id);
-      await Buildings().insert(formatBuildingApi(building));
-      await DatafoncierHouses().insert({
-        ...housing,
-        ban_geom: db.raw('ST_GeomFromGeoJSON(?)', [
-          JSON.stringify(housing.ban_geom)
-        ]),
-        geomloc: db.raw('ST_GeomFromGeoJSON(?)', [
-          JSON.stringify(housing.geomloc)
-        ]),
-        geomrnb: db.raw('ST_GeomFromGeoJSON(?)', [
-          JSON.stringify(housing.geomrnb)
-        ])
-      });
+      await insertDatafoncierHousing(housing);
 
       const { body, status } = await request(url)
         .get(testRoute(housing.idlocal))
@@ -73,22 +74,14 @@ describe('Datafoncier housing controller', () => {
     });
 
     it('should return "not found" if the given local id does not belong to the user’s establishment', async () => {
-      const idprocpte = genIdprocpte('12345');
-      const building = genBuildingApi();
+      let geoCode = genGeoCode();
+      while (establishment.geoCodes.includes(geoCode)) {
+        geoCode = genGeoCode();
+      }
+      const idprocpte = genIdprocpte(geoCode);
+      const building = await factories.building.create();
       const housing = genDatafoncierHousing(idprocpte, building.id);
-      await Buildings().insert(formatBuildingApi(building));
-      await DatafoncierHouses().insert({
-        ...housing,
-        ban_geom: db.raw('ST_GeomFromGeoJSON(?)', [
-          JSON.stringify(housing.ban_geom)
-        ]),
-        geomloc: db.raw('ST_GeomFromGeoJSON(?)', [
-          JSON.stringify(housing.geomloc)
-        ]),
-        geomrnb: db.raw('ST_GeomFromGeoJSON(?)', [
-          JSON.stringify(housing.geomrnb)
-        ])
-      });
+      await insertDatafoncierHousing(housing);
 
       const { status } = await request(url)
         .get(testRoute(housing.idlocal))

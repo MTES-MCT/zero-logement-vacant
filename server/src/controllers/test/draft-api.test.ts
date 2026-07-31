@@ -9,37 +9,21 @@ import {
 import { CampaignDTO } from '@zerologementvacant/models';
 import request from 'supertest';
 
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 
 import { DraftApi } from '../../models/DraftApi';
+import { EstablishmentApi } from '../../models/EstablishmentApi';
 import { SenderApi } from '../../models/SenderApi';
-import { CampaignsDrafts } from '../../repositories/campaignDraftRepository';
-import {
-  Documents,
-  toDocumentDBO
-} from '../../repositories/documentRepository';
-import {
-  DraftRecordDBO,
-  Drafts,
-  formatDraftApi
-} from '../../repositories/draftRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '../../repositories/establishmentRepository';
-import {
-  formatSenderApi,
-  SenderDBO,
-  Senders
-} from '../../repositories/senderRepository';
-import { toUserDBO, Users } from '../../repositories/userRepository';
+import { UserApi } from '../../models/UserApi';
+import { toDocumentInsert } from '../../repositories/documentRepository';
+import { toDraftInsert } from '../../repositories/draftRepository';
+import { toSenderInsert } from '../../repositories/senderRepository';
 import { factories } from '../../test/factories';
 import {
   genDocumentApi,
   genDraftApi,
-  genEstablishmentApi,
-  genSenderApi,
-  genUserApi
+  genSenderApi
 } from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
 
@@ -50,32 +34,41 @@ describe('Draft API', () => {
     url = await createServer().testing();
   });
 
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
-  const anotherEstablishment = genEstablishmentApi();
-  const anotherUser = genUserApi(anotherEstablishment.id);
+  let establishment: EstablishmentApi;
+  let user: UserApi;
+  let anotherEstablishment: EstablishmentApi;
 
   beforeAll(async () => {
-    await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi)
-    );
-    await Users().insert([user, anotherUser].map(toUserDBO));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
+    anotherEstablishment = await factories.establishment.create();
+    await factories.user.create({
+      establishmentId: anotherEstablishment.id
+    });
   });
 
   describe('GET /drafts', () => {
     const testRoute = '/drafts';
 
-    const sender = genSenderApi(establishment);
-    const drafts: DraftApi[] = [
-      ...Array.from({ length: 4 }, () => genDraftApi(establishment, sender)),
-      ...Array.from({ length: 2 }, () =>
-        genDraftApi(anotherEstablishment, sender)
-      )
-    ];
+    let sender: SenderApi;
+    let drafts: DraftApi[];
 
     beforeAll(async () => {
-      await Senders().insert(formatSenderApi(sender));
-      await Drafts().insert(drafts.map(formatDraftApi));
+      sender = genSenderApi(establishment);
+      drafts = [
+        ...Array.from({ length: 4 }, () => genDraftApi(establishment, sender)),
+        ...Array.from({ length: 2 }, () =>
+          genDraftApi(anotherEstablishment, sender)
+        )
+      ];
+      await kysely
+        .insertInto('senders')
+        .values(toSenderInsert(sender))
+        .execute();
+      await kysely
+        .insertInto('drafts')
+        .values(drafts.map(toDraftInsert))
+        .execute();
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -91,12 +84,16 @@ describe('Draft API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
-      const actual = await Drafts()
-        .where('establishment_id', establishment.id)
-        .whereIn(
+      const actual = await kysely
+        .selectFrom('drafts')
+        .selectAll('drafts')
+        .where('establishmentId', '=', establishment.id)
+        .where(
           'id',
+          'in',
           body.map((draft: DraftDTO) => draft.id)
-        );
+        )
+        .execute();
       expect(body).toHaveLength(actual.length);
     });
 
@@ -105,10 +102,13 @@ describe('Draft API', () => {
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await CampaignsDrafts().insert({
-        campaign_id: campaign.id,
-        draft_id: firstDraft.id
-      });
+      await kysely
+        .insertInto('campaignsDrafts')
+        .values({
+          campaignId: campaign.id,
+          draftId: firstDraft.id
+        })
+        .execute();
 
       const { body, status } = await request(url)
         .get(testRoute)
@@ -149,12 +149,12 @@ describe('Draft API', () => {
   });
 
   describe('POST /drafts', () => {
-    const establishment = genEstablishmentApi();
-    const user = genUserApi(establishment.id);
+    let establishment: EstablishmentApi;
+    let user: UserApi;
 
     beforeAll(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(toUserDBO(user));
+      establishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
     });
 
     const testRoute = '/drafts';
@@ -194,15 +194,21 @@ describe('Draft API', () => {
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
       expect(body).toMatchObject({ logoNext: [null, null] });
 
-      const actualSender = await Senders()
-        .where({ id: body.sender.id })
-        .first();
-      expect(actualSender!.signatory_one_document_id).toBeNull();
-      expect(actualSender!.signatory_two_document_id).toBeNull();
+      const actualSender = await kysely
+        .selectFrom('senders')
+        .selectAll('senders')
+        .where('id', '=', body.sender.id)
+        .executeTakeFirst();
+      expect(actualSender!.signatoryOneDocumentId).toBeNull();
+      expect(actualSender!.signatoryTwoDocumentId).toBeNull();
 
-      const actualDraft = await Drafts().where({ id: body.id }).first();
-      expect(actualDraft!.logo_next_one).toBeNull();
-      expect(actualDraft!.logo_next_two).toBeNull();
+      const actualDraft = await kysely
+        .selectFrom('drafts')
+        .selectAll('drafts')
+        .where('id', '=', body.id)
+        .executeTakeFirst();
+      expect(actualDraft!.logoNextOne).toBeNull();
+      expect(actualDraft!.logoNextTwo).toBeNull();
     });
 
     it('should link signatory document', async () => {
@@ -210,7 +216,10 @@ describe('Draft API', () => {
         establishmentId: establishment.id,
         creator: user
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const payload: DraftCreationPayload = {
         campaign: campaign.id,
@@ -246,11 +255,13 @@ describe('Draft API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
 
-      const actualSender = (await Senders()
-        .where({ id: body.sender.id })
-        .first()) as SenderDBO;
-      expect(actualSender.signatory_one_document_id).toBe(document.id);
-      expect(actualSender.signatory_two_document_id).toBeNull();
+      const actualSender = await kysely
+        .selectFrom('senders')
+        .selectAll('senders')
+        .where('id', '=', body.sender.id)
+        .executeTakeFirst();
+      expect(actualSender!.signatoryOneDocumentId).toBe(document.id);
+      expect(actualSender!.signatoryTwoDocumentId).toBeNull();
     });
 
     it('should link logo documents', async () => {
@@ -258,7 +269,10 @@ describe('Draft API', () => {
         establishmentId: establishment.id,
         creator: user
       });
-      await Documents().insert(toDocumentDBO(logoDoc));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(logoDoc))
+        .execute();
 
       const payload: DraftCreationPayload = {
         campaign: campaign.id,
@@ -277,21 +291,23 @@ describe('Draft API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
 
-      const actualDraft = (await Drafts()
-        .where({ id: body.id })
-        .first()) as DraftRecordDBO;
-      expect(actualDraft.logo_next_one).toBe(logoDoc.id);
-      expect(actualDraft.logo_next_two).toBeNull();
+      const actualDraft = await kysely
+        .selectFrom('drafts')
+        .selectAll('drafts')
+        .where('id', '=', body.id)
+        .executeTakeFirst();
+      expect(actualDraft!.logoNextOne).toBe(logoDoc.id);
+      expect(actualDraft!.logoNextTwo).toBeNull();
     });
   });
 
   describe('PUT /drafts/:id', () => {
-    const establishment = genEstablishmentApi();
-    const user = genUserApi(establishment.id);
+    let establishment: EstablishmentApi;
+    let user: UserApi;
 
     beforeAll(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(toUserDBO(user));
+      establishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
     });
 
     const testRoute = (id: string) => `/drafts/${id}`;
@@ -301,8 +317,11 @@ describe('Draft API', () => {
     beforeEach(async () => {
       sender = genSenderApi(establishment);
       draft = genDraftApi(establishment, sender);
-      await Senders().insert(formatSenderApi(sender));
-      await Drafts().insert(formatDraftApi(draft));
+      await kysely
+        .insertInto('senders')
+        .values(toSenderInsert(sender))
+        .execute();
+      await kysely.insertInto('drafts').values(toDraftInsert(draft)).execute();
     });
 
     it('should update logoNext and signatory document', async () => {
@@ -310,7 +329,10 @@ describe('Draft API', () => {
         establishmentId: establishment.id,
         creator: user
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const payload: DraftUpdatePayload = {
         id: draft.id,
@@ -346,15 +368,19 @@ describe('Draft API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
-      const actualDraft = (await Drafts()
-        .where({ id: draft.id })
-        .first()) as DraftRecordDBO;
-      expect(actualDraft.logo_next_one).toBe(document.id);
+      const actualDraft = await kysely
+        .selectFrom('drafts')
+        .selectAll('drafts')
+        .where('id', '=', draft.id)
+        .executeTakeFirst();
+      expect(actualDraft!.logoNextOne).toBe(document.id);
 
-      const actualSender = (await Senders()
-        .where({ id: body.sender.id })
-        .first()) as SenderDBO;
-      expect(actualSender.signatory_one_document_id).toBe(document.id);
+      const actualSender = await kysely
+        .selectFrom('senders')
+        .selectAll('senders')
+        .where('id', '=', body.sender.id)
+        .executeTakeFirst();
+      expect(actualSender!.signatoryOneDocumentId).toBe(document.id);
     });
   });
 });

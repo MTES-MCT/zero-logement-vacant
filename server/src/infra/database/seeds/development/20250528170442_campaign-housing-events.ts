@@ -3,8 +3,8 @@ import { Knex } from 'knex';
 
 import { CampaignHousingEventApi } from '~/models/EventApi';
 import {
-  CampaignHousingDBO,
-  CampaignsHousing
+  campaignsHousingTable,
+  CampaignHousingDBO
 } from '~/repositories/campaignHousingRepository';
 import {
   CAMPAIGN_HOUSING_EVENTS_TABLE,
@@ -24,7 +24,7 @@ export async function seed(knex: Knex): Promise<void> {
   const campaignHousings: ReadonlyArray<CampaignHousingDBO> =
     await batchedWhereIn<CampaignHousingDBO>(
       knex,
-      (k) => CampaignsHousing(k),
+      (k) => k<CampaignHousingDBO>(campaignsHousingTable),
       ['housing_geo_code', 'housing_id'],
       housingKeys
     );

@@ -67,10 +67,9 @@ function CardGridContent({
 
 interface DashboardTabsProps {
   dashboard: { id: number; tabs: ReadonlyArray<Tab> };
-  label: string;
 }
 
-function DashboardTabs({ dashboard, label }: Readonly<DashboardTabsProps>) {
+function DashboardTabs({ dashboard }: Readonly<DashboardTabsProps>) {
   const [selectedTabId, setSelectedTabId] = useState(
     String(dashboard.tabs[0]?.id)
   );
@@ -84,7 +83,6 @@ function DashboardTabs({ dashboard, label }: Readonly<DashboardTabsProps>) {
 
   return (
     <Tabs
-      label={label}
       tabs={dashboard.tabs.map((tab) => ({
         tabId: String(tab.id),
         label: tab.title
@@ -125,7 +123,6 @@ function AnalysisViewNext({
       {isLoading && (
         <Skeleton
           data-testid="dashboard-skeleton"
-          animation={false}
           variant="rectangular"
           width="100%"
           height="20rem"
@@ -133,7 +130,6 @@ function AnalysisViewNext({
       )}
       {isError && (
         <Alert
-          as="h2"
           severity="error"
           title="Impossible de charger le tableau de bord"
           description=""
@@ -141,11 +137,7 @@ function AnalysisViewNext({
       )}
       {dashboard &&
         ('tabs' in dashboard ? (
-          <DashboardTabs
-            key={dashboard.id}
-            dashboard={dashboard}
-            label={title}
-          />
+          <DashboardTabs key={dashboard.id} dashboard={dashboard} />
         ) : (
           <CardGridContent cards={dashboard.cards} dashboardId={dashboard.id} />
         ))}

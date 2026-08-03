@@ -111,9 +111,7 @@ describe('AnalysisViewNext', () => {
     );
 
     expect(await screen.findByText('Logements vacants')).toBeInTheDocument();
-    expect(
-      screen.getByRole('tablist', { name: 'Analyse du parc vacant' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
     expect(requestedCards).toEqual([929]);
 
     await user.click(screen.getByRole('tab', { name: 'Évolution' }));

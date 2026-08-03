@@ -62,7 +62,9 @@ describe('AnalysisCard', () => {
 
     setup({ card, dashboardId });
 
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Impossible de charger ce graphique')
+    ).toBeInTheDocument();
     expect(attempts).toBe(1);
   });
 

@@ -151,4 +151,51 @@ describe('ConcurrencyLimitedMetabaseService', () => {
     await expect(replacement).resolves.toBe(42);
     expect(inner.getCardValue).toHaveBeenCalledTimes(2);
   });
+
+  it('waits 30 seconds by default before expiring a queued card query', async () => {
+    vi.useFakeTimers();
+    const started = Promise.withResolvers<void>();
+    const release = Promise.withResolvers<void>();
+    const inner: MetabaseService = {
+      fetchDashboardRaw: vi.fn(),
+      getDashboard: vi.fn(),
+      findDashcard: vi.fn(),
+      getCardValue: vi.fn(async () => {
+        started.resolve();
+        await release.promise;
+        return 42 as CardValue;
+      })
+    };
+    const limited = createConcurrencyLimitedMetabaseService(inner, {
+      maxConcurrency: 1
+    });
+
+    try {
+      const running = getCardValue(limited, 1);
+      await started.promise;
+      const queued = getCardValue(limited, 2);
+      let state: 'pending' | 'rejected' = 'pending';
+      void queued.catch(() => {
+        state = 'rejected';
+      });
+
+      await vi.advanceTimersByTimeAsync(29_999);
+
+      expect(state).toBe('pending');
+      expect(inner.getCardValue).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(1);
+
+      await expect(queued).rejects.toMatchObject({
+        name: 'ExternalServiceUnavailableError',
+        status: 503
+      });
+
+      release.resolve();
+      await expect(running).resolves.toBe(42);
+    } finally {
+      release.resolve();
+      vi.useRealTimers();
+    }
+  });
 });

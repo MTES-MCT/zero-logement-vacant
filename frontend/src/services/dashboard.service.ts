@@ -16,6 +16,26 @@ interface FindOneCardOptions {
 }
 
 const ONE_HOUR_SECONDS = 60 * 60;
+const DEFAULT_CARD_RETRY_DELAY_MS = 500;
+const MAX_CARD_RETRY_DELAY_MS = 2_000;
+
+function getRetryDelayMs(response: Response | undefined): number {
+  const retryAfter = response?.headers.get('Retry-After');
+  if (!retryAfter) return DEFAULT_CARD_RETRY_DELAY_MS;
+
+  const seconds = Number(retryAfter);
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return Math.min(seconds * 1_000, MAX_CARD_RETRY_DELAY_MS);
+  }
+
+  const date = Date.parse(retryAfter);
+  if (Number.isNaN(date)) return DEFAULT_CARD_RETRY_DELAY_MS;
+  return Math.min(Math.max(date - Date.now(), 0), MAX_CARD_RETRY_DELAY_MS);
+}
+
+function wait(delayMs: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, delayMs));
+}
 
 export const dashboardApi = zlvApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -25,7 +45,18 @@ export const dashboardApi = zlvApi.injectEndpoints({
       providesTags: (_result, _error, arg) => [{ type: 'Stats', id: arg.id }]
     }),
     findOneCard: builder.query<CardDataDTO, FindOneCardOptions>({
-      query: (opts) => `dashboards/${opts.did}/cards/${opts.cid}`,
+      queryFn: async (opts, _api, _extraOptions, baseQuery) => {
+        const path = `dashboards/${opts.did}/cards/${opts.cid}`;
+        let result = await baseQuery(path);
+
+        if (result.error?.status === 503) {
+          await wait(getRetryDelayMs(result.meta?.response));
+          result = await baseQuery(path);
+        }
+
+        if (result.error) return { error: result.error };
+        return { data: result.data as CardDataDTO };
+      },
       keepUnusedDataFor: ONE_HOUR_SECONDS,
       providesTags: (_result, _error, arg) => [
         { type: 'Stats', id: `${arg.did}-card-${arg.cid}` }

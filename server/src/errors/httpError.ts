@@ -8,18 +8,21 @@ interface HttpErrorOptions {
   message: string;
   status: number;
   data?: Record<string, unknown>;
+  headers?: Readonly<Record<string, string>>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export abstract class HttpError extends Error implements HttpError {
   status: number;
   data?: Record<string, unknown>;
+  headers?: Readonly<Record<string, string>>;
 
   protected constructor(options: HttpErrorOptions) {
     super(options.message);
     this.name = options.name;
     this.status = options.status;
     this.data = options.data;
+    this.headers = options.headers;
   }
 
   toJSON(): Record<string, unknown> {

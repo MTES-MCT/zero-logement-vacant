@@ -17,7 +17,14 @@ interface CardQuery {
 }
 
 const DEFAULT_MAX_QUEUED_QUERIES = 20;
-const DEFAULT_MAX_QUEUE_WAIT_MS = 10_000;
+const DEFAULT_MAX_QUEUE_WAIT_MS = 30_000;
+const RETRY_AFTER_SECONDS = 1;
+
+function createUnavailableError(): ExternalServiceUnavailableError {
+  return new ExternalServiceUnavailableError('Metabase', {
+    retryAfterSeconds: RETRY_AFTER_SECONDS
+  });
+}
 
 function assertPositiveInteger(value: number, name: string): void {
   if (!Number.isInteger(value) || value < 1) {
@@ -45,7 +52,7 @@ export function createConcurrencyLimitedMetabaseService(
 
   function enqueue(execute: () => Promise<CardValue>): Promise<CardValue> {
     if (cardQueries.length() >= maxQueuedQueries) {
-      return Promise.reject(new ExternalServiceUnavailableError('Metabase'));
+      return Promise.reject(createUnavailableError());
     }
 
     return new Promise<CardValue>((resolve, reject) => {
@@ -54,7 +61,7 @@ export function createConcurrencyLimitedMetabaseService(
         if (query.started) return;
 
         cardQueries.remove(({ data }) => data === query);
-        reject(new ExternalServiceUnavailableError('Metabase'));
+        reject(createUnavailableError());
       }, maxQueueWaitMs);
 
       cardQueries.push<CardValue>(query, (error, value) => {

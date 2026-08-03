@@ -250,7 +250,7 @@ describe('campaign-housing-service', () => {
       await Campaigns().insert(formatCampaignApi(campaign));
       const housing = await setupWaitingHousing(campaign);
 
-      const count = await startTransaction(() =>
+      const count = await startKyselyTransaction(() =>
         revertCampaignHousingsToNeverContacted(campaign, system, TODAY)
       );
 
@@ -274,7 +274,7 @@ describe('campaign-housing-service', () => {
         housing_geo_code: housing.geoCode
       });
 
-      const count = await startTransaction(() =>
+      const count = await startKyselyTransaction(() =>
         revertCampaignHousingsToNeverContacted(campaign, system, TODAY)
       );
 
@@ -290,7 +290,7 @@ describe('campaign-housing-service', () => {
         nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.IN_PROGRESS] }
       });
 
-      const count = await startTransaction(() =>
+      const count = await startKyselyTransaction(() =>
         revertCampaignHousingsToNeverContacted(campaign, system, TODAY)
       );
 
@@ -303,7 +303,7 @@ describe('campaign-housing-service', () => {
       await Campaigns().insert(formatCampaignApi(campaign));
       const housing = await setupWaitingHousing(campaign, user);
 
-      const count = await startTransaction(() =>
+      const count = await startKyselyTransaction(() =>
         revertCampaignHousingsToNeverContacted(campaign, system, TODAY)
       );
 
@@ -326,7 +326,7 @@ describe('campaign-housing-service', () => {
         housing_geo_code: housing.geoCode
       });
 
-      const count = await startTransaction(() =>
+      const count = await startKyselyTransaction(() =>
         revertCampaignHousingsToNeverContacted(campaign, system, TODAY)
       );
 

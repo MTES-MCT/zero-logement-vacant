@@ -41,14 +41,7 @@ function AccountDropdown() {
     <Dropdown
       label={displayName()}
       popoverProps={{
-        anchorOrigin: {
-          vertical: 'bottom',
-          horizontal: 'right'
-        },
-        transformOrigin: {
-          vertical: 'top',
-          horizontal: 'right'
-        }
+        placement: 'bottom-end'
       }}
       open={open}
       onOpen={doOpen}

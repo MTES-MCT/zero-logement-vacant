@@ -63,6 +63,7 @@ function Aside(props: AsideProps) {
           <Grid size="auto">
             <Button
               iconId="fr-icon-close-line"
+              nativeButtonProps={{ autoFocus: true }}
               priority="tertiary no outline"
               onClick={props.onClose}
               size="small"

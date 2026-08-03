@@ -12,7 +12,7 @@ import {
 import { toUserDBO, USERS_TABLE } from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
 
-import { syncToAuthUsers } from '../sync-auth-users';
+import { seedBetterAuthIdentities } from '../seed-better-auth-identities';
 import {
   SirenSaintLo,
   SirenStrasbourg,
@@ -97,7 +97,7 @@ export async function seed(knex: Knex): Promise<void> {
   }));
   console.log(`Inserting ${users.length} users...\n`);
   await knex.batchInsert(USERS_TABLE, users.map(toUserDBO));
-  await syncToAuthUsers(knex, users);
+  await seedBetterAuthIdentities(knex, users);
 
   console.timeEnd('20240404235457_users');
 }

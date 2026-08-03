@@ -5,12 +5,12 @@ import type { Knex } from 'knex';
 import type { UserApi } from '~/models/UserApi';
 
 /**
- * Mirror seeded legacy users into Better Auth's tables.
+ * Seed Better Auth identities for users created by a database seed.
  *
  * The shared UUID keeps the legacy profile and authentication identity linked,
  * while credential accounts reuse the existing bcrypt hash.
  */
-export async function syncToAuthUsers(
+export async function seedBetterAuthIdentities(
   knex: Knex,
   users: ReadonlyArray<UserApi>
 ): Promise<void> {

@@ -13,7 +13,7 @@ import {
 import { toUserDBO, USERS_TABLE, UserDBO } from '~/repositories/userRepository';
 import { genUserApi } from '~/test/testFixtures';
 
-import { syncToAuthUsers } from '../sync-auth-users';
+import { seedBetterAuthIdentities } from '../seed-better-auth-identities';
 import {
   SirenSaintLo,
   SirenStrasbourg,
@@ -284,7 +284,7 @@ async function insertBaseUsers(
     .insert(baseUsers.map(toUserDBO))
     .onConflict('email')
     .merge(['establishment_id']);
-  await syncToAuthUsers(knex, baseUsers);
+  await seedBetterAuthIdentities(knex, baseUsers);
 }
 
 async function generateRandomUsers(knex: Knex): Promise<void> {
@@ -298,7 +298,7 @@ async function generateRandomUsers(knex: Knex): Promise<void> {
   });
   console.log(`Inserting ${users.length} random users...`);
   await knex.batchInsert(USERS_TABLE, users.map(toUserDBO));
-  await syncToAuthUsers(knex, users);
+  await seedBetterAuthIdentities(knex, users);
   console.log('\n');
 }
 

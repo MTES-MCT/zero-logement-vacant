@@ -187,9 +187,11 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
       });
     }
   });
+  const tableRef = useRef<HTMLTableElement>(null);
   const paginationRef = useRef<HTMLDivElement>(null);
   const pageToFocusRef = useRef<number | null>(null);
   const currentPage = table.getState().pagination.pageIndex + 1;
+  const pageCount = table.getPageCount();
   const headers = table.getLeafHeaders();
   const rows = table.getRowModel().rows;
 
@@ -202,14 +204,18 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
       return;
     }
 
+    if (pageCount > 0 && currentPage > pageCount) {
+      pageToFocusRef.current = pageCount;
+      table.setPageIndex(pageCount - 1);
+      return;
+    }
+
     const currentPageLink = paginationRef.current?.querySelector<HTMLElement>(
       '[aria-current="true"]'
     );
-    if (currentPageLink) {
-      pageToFocusRef.current = null;
-      currentPageLink.focus();
-    }
-  }, [currentPage, props.isLoading]);
+    pageToFocusRef.current = null;
+    (currentPageLink ?? tableRef.current)?.focus();
+  }, [currentPage, pageCount, props.isLoading]);
 
   const rowRefs: Record<string, React.RefObject<HTMLTableRowElement>> = {};
   rows.forEach((row) => {
@@ -258,7 +264,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
         <div className={fr.cx('fr-table__wrapper')}>
           <div className={fr.cx('fr-table__container')}>
             <div className={fr.cx('fr-table__content')}>
-              <table>
+              <table ref={tableRef} tabIndex={-1}>
                 {props.caption ? <caption>{props.caption}</caption> : null}
                 <thead>
                   <tr>
@@ -393,7 +399,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
         </div>
       </div>
 
-      {paginate && table.getPageCount() > 0 ? (
+      {paginate && pageCount > 0 ? (
         <PaginationFooter
           direction="row"
           spacing="1rem"
@@ -428,7 +434,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
 
           <TablePagination
             ref={paginationRef}
-            count={table.getPageCount()}
+            count={pageCount}
             defaultPage={currentPage}
             getPageLinkProps={(page: number) => ({
               to: '#',

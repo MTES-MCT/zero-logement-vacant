@@ -1,6 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
 
@@ -17,6 +18,35 @@ function buildRows(count: number): Row[] {
     id: String(i),
     name: `Row ${i}`
   }));
+}
+
+interface ShrinkingPaginationTableProps {
+  pageCountAfterNavigation: number;
+}
+
+function ShrinkingPaginationTable(
+  props: Readonly<ShrinkingPaginationTableProps>
+) {
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 1
+  });
+  const [hasNavigated, setHasNavigated] = useState(false);
+  const pageCount = hasNavigated ? props.pageCountAfterNavigation : 2;
+
+  return (
+    <AdvancedTable
+      columns={columns}
+      data={pageCount > 0 ? buildRows(1) : []}
+      manualPagination
+      pageCount={pageCount}
+      state={{ pagination }}
+      onPaginationChange={(updater) => {
+        setHasNavigated(true);
+        setPagination(updater);
+      }}
+    />
+  );
 }
 
 describe('AdvancedTable', () => {
@@ -74,6 +104,34 @@ describe('AdvancedTable', () => {
     expect(
       screen.getByRole('combobox', { name: 'Résultats par page' })
     ).toBeInTheDocument();
+  });
+
+  it('should preserve focus when pagination disappears after navigation', async () => {
+    render(<ShrinkingPaginationTable pageCountAfterNavigation={0} />);
+    const table = await screen.findByRole('table');
+    const nextPageLink = screen.getByRole('link', { name: 'Page suivante' });
+
+    nextPageLink.focus();
+    await user.click(nextPageLink);
+
+    expect(
+      screen.queryByRole('navigation', { name: 'Pagination' })
+    ).not.toBeInTheDocument();
+    expect(table).toHaveFocus();
+  });
+
+  it('should focus the last available page when the current page disappears', async () => {
+    render(<ShrinkingPaginationTable pageCountAfterNavigation={1} />);
+    const nextPageLink = await screen.findByRole('link', {
+      name: 'Page suivante'
+    });
+
+    nextPageLink.focus();
+    await user.click(nextPageLink);
+
+    await waitFor(() => {
+      expect(screen.getByTitle('Page 1')).toHaveFocus();
+    });
   });
 
   it('should render every row when pagination is disabled', async () => {

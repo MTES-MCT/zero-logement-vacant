@@ -128,14 +128,7 @@ function DocumentCard(props: Readonly<DocumentCardProps>) {
               label="Options"
               buttonProps={{ size: 'small' }}
               popoverProps={{
-                anchorOrigin: {
-                  vertical: 'bottom',
-                  horizontal: 'right'
-                },
-                transformOrigin: {
-                  vertical: 'top',
-                  horizontal: 'right'
-                }
+                placement: 'bottom-end'
               }}
               open={dropdownOpen}
               onOpen={onOpen}

@@ -1,5 +1,7 @@
 import Button, { type ButtonProps } from '@codegouvfr/react-dsfr/Button';
-import Popover, { type PopoverProps } from '@mui/material/Popover';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
+import Paper from '@mui/material/Paper';
+import Popper, { type PopperProps } from '@mui/material/Popper';
 import classNames from 'classnames';
 import { useId, useState, type ReactNode } from 'react';
 import type { MarkOptional } from 'ts-essentials';
@@ -13,7 +15,7 @@ type DropdownProps = {
     Exclude<ButtonProps, ButtonProps.AsAnchor>,
     'children'
   >;
-  popoverProps?: Omit<PopoverProps, 'id' | 'anchorEl' | 'open' | 'onClose'>;
+  popoverProps?: Omit<PopperProps, 'id' | 'anchorEl' | 'open'>;
   /**
    * The state of the dropdown, in controlled mode.
    */
@@ -36,6 +38,11 @@ function Dropdown(props: DropdownProps) {
   const isOpen = isControlled(props.open) ? props.open && !!anchor : !!anchor;
 
   function onClick(event: React.MouseEvent<HTMLButtonElement>): void {
+    if (isOpen) {
+      onClose();
+      return;
+    }
+
     setAnchor(event.currentTarget);
     props.onOpen?.();
   }
@@ -43,6 +50,18 @@ function Dropdown(props: DropdownProps) {
   function onClose(): void {
     setAnchor(null);
     props.onClose?.();
+  }
+
+  function closeAndRestoreFocus(): void {
+    onClose();
+    anchor?.focus();
+  }
+
+  function onKeyDown(event: React.KeyboardEvent): void {
+    if (event.key === 'Escape' && isOpen) {
+      event.preventDefault();
+      closeAndRestoreFocus();
+    }
   }
 
   return (
@@ -65,21 +84,41 @@ function Dropdown(props: DropdownProps) {
         {...buttonProps}
         // Fixed props
         id={buttonId}
-        aria-describedby={popoverId}
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? popoverId : undefined}
         onClick={onClick}
+        nativeButtonProps={{
+          ...buttonProps?.nativeButtonProps,
+          onKeyDown(event) {
+            buttonProps?.nativeButtonProps?.onKeyDown?.(event);
+            if (!event.defaultPrevented) {
+              onKeyDown(event);
+            }
+          }
+        }}
       >
         {label}
       </Button>
 
-      <Popover
+      <Popper
+        placement="bottom-start"
+        sx={{ zIndex: 'modal' }}
         {...popoverProps}
         id={popoverId}
         anchorEl={anchor}
         open={isOpen}
-        onClose={onClose}
       >
-        {props.children}
-      </Popover>
+        <ClickAwayListener onClickAway={onClose}>
+          <Paper
+            aria-labelledby={buttonId}
+            elevation={8}
+            role="region"
+            onKeyDown={onKeyDown}
+          >
+            {props.children}
+          </Paper>
+        </ClickAwayListener>
+      </Popper>
     </>
   );
 }

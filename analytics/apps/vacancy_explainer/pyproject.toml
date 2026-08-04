@@ -12,5 +12,5 @@ dependencies = [
     "pyarrow>=21.0.0",
     "scikit-learn>=1.7.0",
     "scipy>=1.11.0",
-    "streamlit>=1.52.2",
+    "streamlit>=1.54.0",
 ]

@@ -1,14 +1,20 @@
+import userEvent from '@testing-library/user-event';
+
 import { registerPreloadErrorRecovery } from '../preloadError';
 
 describe('Preload error recovery', () => {
   let unregister: (() => void) | undefined;
+  let releaseModalFocusTrap: (() => void) | undefined;
 
   afterEach(() => {
     unregister?.();
     unregister = undefined;
+    releaseModalFocusTrap?.();
+    releaseModalFocusTrap = undefined;
     sessionStorage.clear();
     document.getElementById('vite-preload-error-recovery')?.remove();
     document.getElementById('preload-error-existing-control')?.remove();
+    document.getElementById('preload-error-modal')?.remove();
   });
 
   it('should offer recovery only once when a stale dynamic import fails', () => {
@@ -209,5 +215,56 @@ describe('Preload error recovery', () => {
     button?.click();
 
     expect(reload).toHaveBeenCalledOnce();
+  });
+
+  it('should keep the reload action keyboard-reachable when a DSFR modal is open', async () => {
+    const user = userEvent.setup();
+    const modal = document.createElement('dialog');
+    const modalContent = document.createElement('div');
+    const modalControl = document.createElement('button');
+    modal.id = 'preload-error-modal';
+    modal.className = 'fr-modal';
+    modal.setAttribute('open', 'true');
+    modalContent.className = 'fr-modal__content';
+    modalControl.type = 'button';
+    modalControl.textContent = 'Action de la modale';
+    modalContent.append(modalControl);
+    modal.append(modalContent);
+    document.body.append(modal);
+    const trapTabulation = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+
+      const focusables = Array.from(
+        modal.querySelectorAll<HTMLButtonElement>('button:not([disabled])')
+      );
+      const first = focusables[0];
+      const last = focusables.at(-1);
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+    window.addEventListener('keydown', trapTabulation);
+    releaseModalFocusTrap = () => {
+      window.removeEventListener('keydown', trapTabulation);
+    };
+    unregister = registerPreloadErrorRecovery({ now: () => 100_000 });
+    modalControl.focus();
+
+    window.dispatchEvent(new Event('vite:preloadError', { cancelable: true }));
+    await user.tab();
+
+    const reloadButton = document.querySelector<HTMLButtonElement>(
+      '#vite-preload-error-recovery button'
+    );
+    expect(reloadButton).toHaveFocus();
+
+    await user.tab({ shift: true });
+
+    expect(modalControl).toHaveFocus();
   });
 });

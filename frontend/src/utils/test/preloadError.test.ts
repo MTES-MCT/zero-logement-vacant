@@ -25,8 +25,8 @@ describe('Preload error recovery', () => {
     window.dispatchEvent(firstEvent);
     window.dispatchEvent(secondEvent);
 
-    expect(firstEvent.defaultPrevented).toBeFalse();
-    expect(secondEvent.defaultPrevented).toBeFalse();
+    expect(firstEvent.defaultPrevented).toBeTrue();
+    expect(secondEvent.defaultPrevented).toBeTrue();
     expect(showRecovery).toHaveBeenCalledOnce();
     expect(reload).not.toHaveBeenCalled();
 
@@ -80,7 +80,7 @@ describe('Preload error recovery', () => {
     const secondEvent = new Event('vite:preloadError', { cancelable: true });
     window.dispatchEvent(secondEvent);
 
-    expect(secondEvent.defaultPrevented).toBeFalse();
+    expect(secondEvent.defaultPrevented).toBeTrue();
     expect(firstShowRecovery).toHaveBeenCalledOnce();
     expect(secondShowRecovery).toHaveBeenCalledOnce();
     expect(reload).not.toHaveBeenCalled();
@@ -102,7 +102,7 @@ describe('Preload error recovery', () => {
     expect(reload).not.toHaveBeenCalled();
   });
 
-  it('should keep the error visible if the reload guard cannot be written', () => {
+  it('should offer recovery if the reload guard cannot be written', () => {
     const reload = vi.fn();
     const showRecovery = vi.fn();
     unregister = registerPreloadErrorRecovery({
@@ -119,9 +119,29 @@ describe('Preload error recovery', () => {
 
     window.dispatchEvent(event);
 
-    expect(event.defaultPrevented).toBeFalse();
-    expect(showRecovery).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBeTrue();
+    expect(showRecovery).toHaveBeenCalledOnce();
     expect(reload).not.toHaveBeenCalled();
+  });
+
+  it('should retry showing recovery when a previous attempt failed', () => {
+    const showRecovery = vi.fn(() => {
+      throw new Error('Recovery rendering failed');
+    });
+    unregister = registerPreloadErrorRecovery({
+      showRecovery,
+      now: () => 100_000
+    });
+    const firstEvent = new Event('vite:preloadError', { cancelable: true });
+    const secondEvent = new Event('vite:preloadError', { cancelable: true });
+
+    window.dispatchEvent(firstEvent);
+    window.dispatchEvent(secondEvent);
+
+    expect(showRecovery).toHaveBeenCalledTimes(2);
+    expect(firstEvent.defaultPrevented).toBeFalse();
+    expect(secondEvent.defaultPrevented).toBeFalse();
+    expect(sessionStorage.getItem('zlv:preload-error-reload-at')).toBeNull();
   });
 
   it('should recover when the stored reload timestamp is corrupted', () => {
@@ -137,7 +157,7 @@ describe('Preload error recovery', () => {
 
     window.dispatchEvent(event);
 
-    expect(event.defaultPrevented).toBeFalse();
+    expect(event.defaultPrevented).toBeTrue();
     expect(showRecovery).toHaveBeenCalledOnce();
     expect(reload).not.toHaveBeenCalled();
   });
@@ -155,7 +175,7 @@ describe('Preload error recovery', () => {
 
     window.dispatchEvent(event);
 
-    expect(event.defaultPrevented).toBeFalse();
+    expect(event.defaultPrevented).toBeTrue();
     expect(showRecovery).toHaveBeenCalledOnce();
     expect(reload).not.toHaveBeenCalled();
   });

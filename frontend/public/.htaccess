@@ -3,10 +3,9 @@
     Header set Cache-Control "no-cache"
   </Files>
 
-  # Vite assets include an eight-character content hash in their filename.
-  <FilesMatch "-[A-Za-z0-9_-]{8}\.[^.]+$">
+  <If "%{REQUEST_URI} =~ m#^/assets/#">
     Header set Cache-Control "public, max-age=31536000, immutable"
-  </FilesMatch>
+  </If>
 </IfModule>
 
 RewriteEngine On

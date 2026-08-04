@@ -51,15 +51,17 @@ export function registerPreloadErrorRecovery(
   const showRecovery = options.showRecovery ?? showDefaultRecovery;
   let recoveryPending = false;
 
-  const onPreloadError = () => {
+  const onPreloadError = (event: Event) => {
     if (recoveryPending) {
+      event.preventDefault();
       return;
     }
 
     const currentTime = now();
+    let storage: Pick<Storage, 'getItem' | 'setItem'>;
 
     try {
-      const storage = getStorage();
+      storage = getStorage();
       const storedReloadAt = storage.getItem(PRELOAD_ERROR_RELOAD_KEY);
       const lastReloadAt = storedReloadAt ? Number(storedReloadAt) : null;
 
@@ -70,8 +72,6 @@ export function registerPreloadErrorRecovery(
           return;
         }
       }
-
-      storage.setItem(PRELOAD_ERROR_RELOAD_KEY, currentTime.toString());
     } catch {
       return;
     }
@@ -82,7 +82,15 @@ export function registerPreloadErrorRecovery(
       return;
     }
 
+    try {
+      storage.setItem(PRELOAD_ERROR_RELOAD_KEY, currentTime.toString());
+    } catch {
+      // Recovery is already visible. A missing cooldown is preferable to
+      // hiding the only action that can restore a stale application.
+    }
+
     recoveryPending = true;
+    event.preventDefault();
   };
 
   eventTarget.addEventListener('vite:preloadError', onPreloadError);

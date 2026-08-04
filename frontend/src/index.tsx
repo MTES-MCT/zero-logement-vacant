@@ -7,6 +7,8 @@ import { MapProvider } from 'react-map-gl/maplibre';
 import { Provider as StoreProvider } from 'react-redux';
 import { Link } from 'react-router';
 
+import { registerPreloadErrorRecovery } from '~/utils/preloadError';
+
 import App from './App';
 import Notification from './components/Notification/Notification';
 import { store } from './store/store';
@@ -14,6 +16,7 @@ import ThemeProvider from './theme';
 import config from './utils/config';
 import sentry from './utils/sentry';
 
+registerPreloadErrorRecovery();
 sentry.init();
 
 startReactDsfr({

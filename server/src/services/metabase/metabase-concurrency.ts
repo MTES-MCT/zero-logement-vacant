@@ -8,6 +8,7 @@ interface ConcurrencyOptions {
   maxConcurrency: number;
   maxQueuedQueries?: number;
   maxQueueWaitMs?: number;
+  retryAfterSeconds?: number;
 }
 
 interface CardQuery {
@@ -18,17 +19,15 @@ interface CardQuery {
 
 const DEFAULT_MAX_QUEUED_QUERIES = 20;
 const DEFAULT_MAX_QUEUE_WAIT_MS = 30_000;
-const RETRY_AFTER_SECONDS = 1;
-
-function createUnavailableError(): ExternalServiceUnavailableError {
-  return new ExternalServiceUnavailableError('Metabase', {
-    retryAfterSeconds: RETRY_AFTER_SECONDS
-  });
-}
-
 function assertPositiveInteger(value: number, name: string): void {
   if (!Number.isInteger(value) || value < 1) {
     throw new RangeError(`${name} must be a positive integer`);
+  }
+}
+
+function assertNonNegativeInteger(value: number, name: string): void {
+  if (!Number.isInteger(value) || value < 0) {
+    throw new RangeError(`${name} must be a non-negative integer`);
   }
 }
 
@@ -39,10 +38,18 @@ export function createConcurrencyLimitedMetabaseService(
   const maxQueuedQueries =
     options.maxQueuedQueries ?? DEFAULT_MAX_QUEUED_QUERIES;
   const maxQueueWaitMs = options.maxQueueWaitMs ?? DEFAULT_MAX_QUEUE_WAIT_MS;
+  const retryAfterSeconds = options.retryAfterSeconds ?? 1;
 
   assertPositiveInteger(options.maxConcurrency, 'maxConcurrency');
   assertPositiveInteger(maxQueuedQueries, 'maxQueuedQueries');
   assertPositiveInteger(maxQueueWaitMs, 'maxQueueWaitMs');
+  assertNonNegativeInteger(retryAfterSeconds, 'retryAfterSeconds');
+
+  function createUnavailableError(): ExternalServiceUnavailableError {
+    return new ExternalServiceUnavailableError('Metabase', {
+      retryAfterSeconds
+    });
+  }
 
   const cardQueries = async.queue<CardQuery, CardValue>(async (query) => {
     query.started = true;

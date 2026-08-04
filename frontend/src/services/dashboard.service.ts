@@ -3,6 +3,7 @@ import type {
   DashboardDTO,
   Resource
 } from '@zerologementvacant/models';
+import { wait } from '@zerologementvacant/utils';
 
 import { zlvApi } from './api.service';
 
@@ -27,14 +28,7 @@ function getRetryDelayMs(response: Response | undefined): number {
   if (Number.isFinite(seconds) && seconds >= 0) {
     return Math.min(seconds * 1_000, MAX_CARD_RETRY_DELAY_MS);
   }
-
-  const date = Date.parse(retryAfter);
-  if (Number.isNaN(date)) return DEFAULT_CARD_RETRY_DELAY_MS;
-  return Math.min(Math.max(date - Date.now(), 0), MAX_CARD_RETRY_DELAY_MS);
-}
-
-function wait(delayMs: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, delayMs));
+  return DEFAULT_CARD_RETRY_DELAY_MS;
 }
 
 export const dashboardApi = zlvApi.injectEndpoints({
@@ -49,7 +43,7 @@ export const dashboardApi = zlvApi.injectEndpoints({
         const path = `dashboards/${opts.did}/cards/${opts.cid}`;
         let result = await baseQuery(path);
 
-        if (result.error?.status === 503) {
+        if (result.error?.status === 502 || result.error?.status === 503) {
           await wait(getRetryDelayMs(result.meta?.response));
           result = await baseQuery(path);
         }

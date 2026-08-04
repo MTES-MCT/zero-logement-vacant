@@ -99,7 +99,8 @@ describe('ConcurrencyLimitedMetabaseService', () => {
     const limited = createConcurrencyLimitedMetabaseService(inner, {
       maxConcurrency: 1,
       maxQueuedQueries: 1,
-      maxQueueWaitMs: 10_000
+      maxQueueWaitMs: 10_000,
+      retryAfterSeconds: 7
     });
 
     const running = getCardValue(limited, 1);
@@ -108,7 +109,8 @@ describe('ConcurrencyLimitedMetabaseService', () => {
 
     await expect(getCardValue(limited, 3)).rejects.toMatchObject({
       name: 'ExternalServiceUnavailableError',
-      status: 503
+      status: 503,
+      headers: { 'Retry-After': '7' }
     });
     expect(inner.getCardValue).toHaveBeenCalledTimes(1);
 

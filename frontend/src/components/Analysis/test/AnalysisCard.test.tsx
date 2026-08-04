@@ -91,6 +91,29 @@ describe('AnalysisCard', () => {
     expect(attempts).toBe(2);
   });
 
+  it('retries a card once when Metabase fails through the API gateway', async () => {
+    let attempts = 0;
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () => {
+        attempts++;
+        if (attempts === 1) {
+          return HttpResponse.json(
+            { message: 'Metabase request failed.' },
+            { status: 502 }
+          );
+        }
+        return HttpResponse.json(
+          genScalarCardDataDTO({ id: 929, data: 51884 })
+        );
+      })
+    );
+
+    setup({ card, dashboardId });
+
+    expect(await screen.findByText(/51[\s ]884/)).toBeInTheDocument();
+    expect(attempts).toBe(2);
+  });
+
   it('stops after one retry when the card remains unavailable', async () => {
     let attempts = 0;
     mockAPI.use(

@@ -52,15 +52,84 @@ describe('AnalysisCard', () => {
   });
 
   it('shows an error when the request fails', async () => {
+    let attempts = 0;
     mockAPI.use(
-      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
-        HttpResponse.json({ message: 'Error' }, { status: 500 })
-      )
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () => {
+        attempts++;
+        return HttpResponse.json({ message: 'Error' }, { status: 500 });
+      })
+    );
+
+    setup({ card, dashboardId });
+
+    expect(
+      await screen.findByText('Impossible de charger ce graphique')
+    ).toBeInTheDocument();
+    expect(attempts).toBe(1);
+  });
+
+  it('retries a temporarily unavailable card once', async () => {
+    let attempts = 0;
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () => {
+        attempts++;
+        if (attempts === 1) {
+          return HttpResponse.json(
+            { message: 'Metabase is temporarily unavailable.' },
+            { status: 503, headers: { 'Retry-After': '0' } }
+          );
+        }
+        return HttpResponse.json(
+          genScalarCardDataDTO({ id: 929, data: 51884 })
+        );
+      })
+    );
+
+    setup({ card, dashboardId });
+
+    expect(await screen.findByText(/51[\s ]884/)).toBeInTheDocument();
+    expect(attempts).toBe(2);
+  });
+
+  it('retries a card once when Metabase fails through the API gateway', async () => {
+    let attempts = 0;
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () => {
+        attempts++;
+        if (attempts === 1) {
+          return HttpResponse.json(
+            { message: 'Metabase request failed.' },
+            { status: 502 }
+          );
+        }
+        return HttpResponse.json(
+          genScalarCardDataDTO({ id: 929, data: 51884 })
+        );
+      })
+    );
+
+    setup({ card, dashboardId });
+
+    expect(await screen.findByText(/51[\s ]884/)).toBeInTheDocument();
+    expect(attempts).toBe(2);
+  });
+
+  it('stops after one retry when the card remains unavailable', async () => {
+    let attempts = 0;
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () => {
+        attempts++;
+        return HttpResponse.json(
+          { message: 'Metabase is temporarily unavailable.' },
+          { status: 503, headers: { 'Retry-After': '0' } }
+        );
+      })
     );
 
     setup({ card, dashboardId });
 
     expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(attempts).toBe(2);
   });
 
   it('displays a flat number value', async () => {

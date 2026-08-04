@@ -4,7 +4,6 @@ const schema = yup.object({
   api: yup.object({
     url: yup.string().default('http://localhost:3001')
   }),
-  featureFlags: yup.array().of(yup.string().required()).default([]),
   ban: yup.object({
     url: yup.string().url().default('https://api-adresse.data.gouv.fr'),
     eligibleScore: yup.number().default(0.8)
@@ -66,10 +65,6 @@ const config = schema.validateSync({
   api: {
     url: import.meta.env.VITE_API_URL
   },
-  featureFlags: (import.meta.env.VITE_FEATURE_FLAGS ?? '')
-    .split(',')
-    .map((f: string) => f.trim())
-    .filter(Boolean),
   ban: {
     url: import.meta.env.VITE_BAN_URL,
     eligibleScore: import.meta.env.VITE_BAN_ELIGIBLE_SCORE
@@ -96,7 +91,6 @@ const config = schema.validateSync({
 interface Config {
   apiEndpoint: string;
   banEndpoint: string;
-  featureFlags: string[];
   metabase: {
     siteUrl?: string;
     public: {
@@ -122,7 +116,6 @@ export default {
   apiEndpoint: config.api.url,
   banEligibleScore: config.ban.eligibleScore,
   banEndpoint: config.ban.url,
-  featureFlags: config.featureFlags,
   metabase: {
     siteUrl: config.metabase.siteURL,
     public: {

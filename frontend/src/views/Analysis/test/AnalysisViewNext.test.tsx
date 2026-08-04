@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { DashboardDTO } from '@zerologementvacant/models';
 import {
   genCardDataDTO,
@@ -15,12 +16,14 @@ import configureTestStore from '~/utils/storeUtils';
 
 import AnalysisViewNext from '../AnalysisViewNext';
 
-function setup(dashboardHandler: Parameters<typeof http.get>[1]) {
+function setup(
+  dashboardHandler: Parameters<typeof http.get>[1],
+  cardHandler: Parameters<typeof http.get>[1] = ({ params }) =>
+    HttpResponse.json(genCardDataDTO({ id: Number(params.cid), data: 12345 }))
+) {
   mockAPI.use(
     http.get(`${config.apiEndpoint}/dashboards/:id`, dashboardHandler),
-    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, ({ params }) =>
-      HttpResponse.json(genCardDataDTO({ id: Number(params.cid), data: 12345 }))
-    )
+    http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, cardHandler)
   );
 
   const router = createMemoryRouter(
@@ -40,6 +43,14 @@ function setup(dashboardHandler: Parameters<typeof http.get>[1]) {
       <RouterProvider router={router} />
     </Provider>
   );
+}
+
+function expectTabsToControlExistingPanels() {
+  for (const tab of screen.getAllByRole('tab')) {
+    const panelId = tab.getAttribute('aria-controls');
+    expect(panelId).not.toBeNull();
+    expect(document.getElementById(panelId as string)).not.toBeNull();
+  }
 }
 
 describe('AnalysisViewNext', () => {
@@ -76,5 +87,55 @@ describe('AnalysisViewNext', () => {
 
     expect(await screen.findByText('Parc vacant')).toBeInTheDocument();
     expect(await screen.findByText('Logements vacants')).toBeInTheDocument();
+  });
+
+  it('loads cards only when their tab is selected', async () => {
+    const user = userEvent.setup();
+    const firstCard = genFlatNumberCard({
+      id: 929,
+      title: 'Logements vacants'
+    });
+    const secondCard = genFlatNumberCard({
+      id: 930,
+      title: 'Évolution de la vacance'
+    });
+    const dashboard: DashboardDTO = {
+      id: 38,
+      url: 'https://stats.zlv.beta.gouv.fr/embed/dashboard/fake',
+      tabs: [
+        { id: 54, title: 'Parc vacant', cards: [firstCard] },
+        { id: 55, title: 'Évolution', cards: [secondCard] }
+      ]
+    };
+    const requestedCards: number[] = [];
+
+    setup(
+      () => HttpResponse.json(dashboard),
+      ({ params }) => {
+        const cardId = Number(params.cid);
+        requestedCards.push(cardId);
+        return HttpResponse.json(genCardDataDTO({ id: cardId, data: 12345 }));
+      }
+    );
+
+    expect(await screen.findByText('Logements vacants')).toBeInTheDocument();
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    expect(requestedCards).toEqual([929]);
+
+    expectTabsToControlExistingPanels();
+
+    await user.click(screen.getByRole('tab', { name: 'Évolution' }));
+
+    expect(
+      await screen.findByText('Évolution de la vacance')
+    ).toBeInTheDocument();
+    expect(requestedCards).toEqual([929, 930]);
+    expectTabsToControlExistingPanels();
+
+    await user.keyboard('{ArrowLeft}');
+
+    expect(await screen.findByText('Logements vacants')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Parc vacant' })).toHaveFocus();
+    expect(requestedCards).toEqual([929, 930]);
   });
 });

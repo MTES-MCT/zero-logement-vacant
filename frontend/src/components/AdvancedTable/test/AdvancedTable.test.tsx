@@ -49,6 +49,30 @@ function ShrinkingPaginationTable(
   );
 }
 
+function ExternallyShrinkingPaginationTable() {
+  const [pagination, setPagination] = useState({
+    pageIndex: 4,
+    pageSize: 1
+  });
+  const [pageCount, setPageCount] = useState(5);
+
+  return (
+    <>
+      <button type="button" onClick={() => setPageCount(2)}>
+        Réduire le nombre de pages
+      </button>
+      <AdvancedTable
+        columns={columns}
+        data={buildRows(1)}
+        manualPagination
+        pageCount={pageCount}
+        state={{ pagination }}
+        onPaginationChange={setPagination}
+      />
+    </>
+  );
+}
+
 describe('AdvancedTable', () => {
   const user = userEvent.setup();
 
@@ -106,6 +130,39 @@ describe('AdvancedTable', () => {
     ).toBeInTheDocument();
   });
 
+  it('should keep the page-size selector focused while a manual page count is temporarily zero', async () => {
+    const pagination = { pageIndex: 0, pageSize: 1 };
+    const { rerender } = render(
+      <AdvancedTable
+        columns={columns}
+        data={buildRows(1)}
+        manualPagination
+        pageCount={2}
+        state={{ pagination }}
+      />
+    );
+    const pageSizeSelector = screen.getByRole('combobox', {
+      name: 'Résultats par page'
+    });
+    pageSizeSelector.focus();
+
+    rerender(
+      <AdvancedTable
+        columns={columns}
+        data={buildRows(1)}
+        manualPagination
+        pageCount={0}
+        state={{ pagination }}
+      />
+    );
+
+    expect(pageSizeSelector).toBeInTheDocument();
+    expect(pageSizeSelector).toHaveFocus();
+    expect(
+      screen.queryByRole('navigation', { name: 'Pagination' })
+    ).not.toBeInTheDocument();
+  });
+
   it('should preserve focus when pagination disappears after navigation', async () => {
     render(<ShrinkingPaginationTable pageCountAfterNavigation={0} />);
     const table = await screen.findByRole('table');
@@ -131,6 +188,20 @@ describe('AdvancedTable', () => {
 
     await waitFor(() => {
       expect(screen.getByTitle('Page 1')).toHaveFocus();
+    });
+  });
+
+  it('should use the last available page when the page count shrinks externally', async () => {
+    render(<ExternallyShrinkingPaginationTable />);
+
+    expect(screen.getByTitle('Page 5')).toHaveAttribute('aria-current');
+
+    await user.click(
+      screen.getByRole('button', { name: 'Réduire le nombre de pages' })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTitle('Page 2')).toHaveAttribute('aria-current');
     });
   });
 

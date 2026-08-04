@@ -194,6 +194,14 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
   const pageCount = table.getPageCount();
   const headers = table.getLeafHeaders();
   const rows = table.getRowModel().rows;
+  const showPaginationFooter =
+    paginate && (pageCount > 0 || props.manualPagination === true);
+
+  useEffect(() => {
+    if (pageCount > 0 && currentPage > pageCount) {
+      table.setPageIndex(pageCount - 1);
+    }
+  }, [currentPage, pageCount, table]);
 
   useEffect(() => {
     if (
@@ -206,7 +214,6 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
 
     if (pageCount > 0 && currentPage > pageCount) {
       pageToFocusRef.current = pageCount;
-      table.setPageIndex(pageCount - 1);
       return;
     }
 
@@ -399,7 +406,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
         </div>
       </div>
 
-      {paginate && pageCount > 0 ? (
+      {showPaginationFooter ? (
         <PaginationFooter
           direction="row"
           spacing="1rem"
@@ -432,22 +439,24 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
             />
           )}
 
-          <TablePagination
-            ref={paginationRef}
-            count={pageCount}
-            defaultPage={currentPage}
-            getPageLinkProps={(page: number) => ({
-              to: '#',
-              onClick: (event: MouseEvent) => {
-                event.preventDefault();
-                if (page !== currentPage) {
-                  pageToFocusRef.current = page;
+          {pageCount > 0 ? (
+            <TablePagination
+              ref={paginationRef}
+              count={pageCount}
+              defaultPage={currentPage}
+              getPageLinkProps={(page: number) => ({
+                to: '#',
+                onClick: (event: MouseEvent) => {
+                  event.preventDefault();
+                  if (page !== currentPage) {
+                    pageToFocusRef.current = page;
+                  }
+                  table.setPageIndex(page - 1);
                 }
-                table.setPageIndex(page - 1);
-              }
-            })}
-            showFirstLast
-          />
+              })}
+              showFirstLast
+            />
+          ) : null}
         </PaginationFooter>
       ) : null}
     </Stack>

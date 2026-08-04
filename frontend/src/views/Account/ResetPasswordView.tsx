@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { type FormEvent, useState } from 'react';
-import { object, string } from 'yup';
+import { object } from 'yup';
 
 import building from '../../assets/images/building.svg';
 import AppTextInput from '../../components/_app/AppTextInput/AppTextInput';
@@ -17,6 +17,9 @@ import {
   useForm
 } from '../../hooks/useForm';
 import resetLinkService from '../../services/reset-link.service';
+import { clearPasswordResetToken } from '../../utils/password-reset-token';
+
+const PASSWORD_REQUIRED_MESSAGE = 'Veuillez renseigner votre mot de passe.';
 
 function ResetPasswordView() {
   useDocumentTitle('Nouveau mot de passe');
@@ -29,23 +32,27 @@ function ResetPasswordView() {
   });
 
   const shape = {
-    password: string().required('Veuillez renseigner votre mot de passe.'),
-    passwordFormat: passwordFormatValidator,
+    password: passwordFormatValidator.required(PASSWORD_REQUIRED_MESSAGE),
     passwordConfirmation: passwordConfirmationValidator
   };
   type FormShape = typeof shape;
 
-  const form = useForm(object().shape(shape) as any, {
-    password,
-    passwordFormat: password,
-    passwordConfirmation
-  });
+  const form = useForm(
+    object().shape(shape) as any,
+    {
+      password,
+      passwordConfirmation
+    },
+    ['password']
+  );
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     try {
       e.preventDefault();
+      setError('');
       await form.validate(async () => {
         await resetLinkService.resetPassword(resetLink.hash, password);
+        clearPasswordResetToken();
         setPasswordReset(true);
       });
     } catch (err) {
@@ -97,12 +104,15 @@ function ResetPasswordView() {
       >
         <Grid container spacing={2} alignItems="center">
           <Grid size="grow">
-            <Typography component="h1" variant="h4" mb={3}>
-              Votre mot de passe a été réinitialisé !
-            </Typography>
-            <Typography component="p" variant="body1">
-              Essayez de vous connecter en utilisant votre nouveau mot de passe.
-            </Typography>
+            <div role="status">
+              <Typography component="h1" variant="h4" mb={3}>
+                Votre mot de passe a été réinitialisé !
+              </Typography>
+              <Typography component="p" variant="body1">
+                Essayez de vous connecter en utilisant votre nouveau mot de
+                passe.
+              </Typography>
+            </div>
             <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
               <Button linkProps={{ to: '/connexion' }}>Se connecter</Button>
             </Stack>
@@ -131,9 +141,8 @@ function ResetPasswordView() {
           {error && (
             <Alert
               title="Erreur"
-              description="Erreur lors de la mise à jour du mot de passe."
+              description={error}
               className="fr-my-3w"
-              closable
               severity="error"
             />
           )}
@@ -151,11 +160,31 @@ function ResetPasswordView() {
               label="Créer votre mot de passe (obligatoire)"
               required
             />
-            {form.messageList('passwordFormat')?.map((message, i) => (
-              <p className={`fr-${message.type}-text`} key={i}>
-                {message.text}
-              </p>
-            ))}
+            {form
+              .messageList('password')
+              .filter((message) => message.text !== PASSWORD_REQUIRED_MESSAGE)
+              .map((message, i) => {
+                const status = form.isTouched('password')
+                  ? message.type
+                  : 'default';
+                return (
+                  <p
+                    className={
+                      status === 'default' ? undefined : `fr-${status}-text`
+                    }
+                    key={i}
+                  >
+                    <span className="fr-sr-only">
+                      {status === 'error'
+                        ? 'Critère non respecté : '
+                        : status === 'valid'
+                          ? 'Critère respecté : '
+                          : 'Critère à respecter : '}
+                    </span>
+                    {message.text}
+                  </p>
+                );
+              })}
             <AppTextInput<FormShape>
               value={passwordConfirmation}
               type="password"

@@ -87,10 +87,10 @@ describe('Account controller', () => {
   });
 
   describe('POST /account/reset-password', () => {
-    it('updates only the Better Auth credential password', async () => {
+    it('accepts the shared password policy and updates only the Better Auth credential password', async () => {
       const link = genResetLinkApi(user.id);
       await kysely.insertInto('resetLinks').values(link).execute();
-      const newPassword = '123QWEasd!@#';
+      const newPassword = '123QWEasdzxc';
 
       await kysely
         .insertInto('authUsers')

@@ -1,8 +1,23 @@
 import * as Sentry from '@sentry/node';
+import { redactSensitiveData } from '@zerologementvacant/utils';
 import { Express } from 'express';
 
 import config from './config';
 import { logger } from './logger';
+
+export function sanitizeEvent<T extends Sentry.Event>(event: T): T {
+  const sanitized = redactSensitiveData({
+    ...event,
+    sdkProcessingMetadata: undefined
+  }) as T;
+  if (sanitized.request) {
+    delete sanitized.request.data;
+    delete sanitized.request.headers;
+    delete sanitized.request.cookies;
+    delete sanitized.request.query_string;
+  }
+  return sanitized;
+}
 
 function init(app: Express): void {
   if (config.sentry.enabled && !config.sentry.dsn) {
@@ -20,6 +35,8 @@ function init(app: Express): void {
       environment:
         config.app.env === 'production' ? 'production' : 'development',
       tracesSampleRate: 0.2,
+      beforeSend: sanitizeEvent,
+      beforeSendTransaction: sanitizeEvent,
       integrations: [
         new Sentry.Integrations.Http({
           tracing: true

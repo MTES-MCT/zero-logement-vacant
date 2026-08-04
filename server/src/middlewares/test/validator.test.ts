@@ -54,6 +54,18 @@ describe('Validator middleware', () => {
       });
     });
 
+    it('should not expose invalid request values in the response', async () => {
+      const sensitiveValue = 'SensitiveValue123';
+
+      const { body, status } = await request(app)
+        .post(testRoute)
+        .send({ geoCode: { secret: sensitiveValue } })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(JSON.stringify(body)).not.toContain(sensitiveValue);
+    });
+
     it('should strip unknown body keys', async () => {
       const { body, status } = await request(app)
         .post(testRoute)

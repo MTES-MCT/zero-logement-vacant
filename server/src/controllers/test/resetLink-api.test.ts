@@ -140,9 +140,12 @@ describe('Reset link API', () => {
       const link = genResetLinkApi(user.id);
       await resetLinkRepository.insert(link);
 
-      const { status } = await request(url).get(testRoute(link.id));
+      const { body, status } = await request(url).get(testRoute(link.id));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body).toStrictEqual({ valid: true });
+      expect(JSON.stringify(body)).not.toContain(link.id);
+      expect(JSON.stringify(body)).not.toContain(user.id);
     });
   });
 });

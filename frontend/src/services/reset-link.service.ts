@@ -1,5 +1,8 @@
-import { type ResetLink } from '../models/ResetLink';
 import config from '../utils/config';
+
+interface ResetLinkValidation {
+  valid: true;
+}
 
 const sendResetEmail = async (email: string): Promise<void> => {
   const { status } = await fetch(`${config.apiEndpoint}/reset-links`, {
@@ -12,7 +15,7 @@ const sendResetEmail = async (email: string): Promise<void> => {
   }
 };
 
-const get = async (id: string): Promise<ResetLink> => {
+const get = async (id: string): Promise<ResetLinkValidation> => {
   const response = await fetch(`${config.apiEndpoint}/reset-links/${id}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
@@ -30,7 +33,14 @@ const resetPassword = async (key: string, password: string): Promise<void> => {
     body: JSON.stringify({ key, password })
   });
   if (!response.ok) {
-    throw new Error('Password reset failed');
+    if (response.status === 404 || response.status === 410) {
+      throw new Error(
+        'Ce lien de réinitialisation n’est plus valide. Demandez un nouveau lien.'
+      );
+    }
+    throw new Error(
+      'Votre mot de passe n’a pas pu être enregistré. Veuillez réessayer. Si le problème persiste, demandez un nouveau lien de réinitialisation.'
+    );
   }
 };
 

@@ -9,14 +9,31 @@ import { createLogger } from '~/infra/logger';
 
 const logger = createLogger('error-handler');
 
+function stackFrames(error: Error): string | undefined {
+  return error.stack?.split('\n').slice(1).join('\n') || undefined;
+}
+
 function log(
   error: Error,
   request: Request,
   response: Response,
   next: Next
 ): void {
-  // Should later be enhanced with relevant info like Request ID, user ID, etc.
-  logger.error('API Error', error);
+  const status = isHttpError(error)
+    ? error.status
+    : constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
+  logger.error({
+    event: 'API Error',
+    errorName: error.name,
+    status,
+    method: request.method,
+    route: request.route?.path,
+    errorId: (response as Response & { sentry?: string }).sentry,
+    stack:
+      status >= constants.HTTP_STATUS_INTERNAL_SERVER_ERROR
+        ? stackFrames(error)
+        : undefined
+  });
   next(error);
 }
 

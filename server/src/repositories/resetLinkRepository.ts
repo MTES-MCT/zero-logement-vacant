@@ -11,7 +11,7 @@ async function insert(resetLinkApi: ResetLinkApi): Promise<void> {
 }
 
 async function get(id: string): Promise<ResetLinkApi | null> {
-  logger.info('Get resetLinkApi with id', id);
+  logger.info('Get reset link');
   const row = await kysely
     .selectFrom('resetLinks')
     .where('id', '=', id)
@@ -21,7 +21,7 @@ async function get(id: string): Promise<ResetLinkApi | null> {
 }
 
 async function used(id: string): Promise<void> {
-  logger.info(`Set resetLinkApi ${id} as used`);
+  logger.info('Mark reset link as used');
   await kysely
     .updateTable('resetLinks')
     .set({ usedAt: new Date() })

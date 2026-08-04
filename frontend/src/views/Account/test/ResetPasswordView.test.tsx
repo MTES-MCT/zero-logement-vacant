@@ -16,12 +16,8 @@ describe('ResetPasswordView', () => {
 
   function setup() {
     mockAPI.use(
-      http.get(`${config.apiEndpoint}/reset-links/:id`, ({ params }) =>
-        HttpResponse.json({
-          id: params.id,
-          createdAt: new Date().toJSON(),
-          expiresAt: new Date(Date.now() + 60 * 60 * 1000).toJSON()
-        })
+      http.get(`${config.apiEndpoint}/reset-links/:id`, () =>
+        HttpResponse.json({ valid: true })
       ),
       http.post(`${config.apiEndpoint}/account/reset-password`, () =>
         HttpResponse.json(null, { status: 200 })
@@ -55,7 +51,7 @@ describe('ResetPasswordView', () => {
     // Both fields must be non-empty to pass native HTML `required` validation
     // (this legacy form has no `noValidate`) and reach the custom yup check.
     const password = await screen.findByLabelText(/^Créer votre mot de passe/);
-    await user.type(password, 'Abcdefghij1');
+    await user.type(password, 'MotDePasse123');
     const passwordConfirmation = screen.getByLabelText(
       /^Confirmer votre mot de passe/
     );
@@ -78,7 +74,7 @@ describe('ResetPasswordView', () => {
     setup();
 
     const password = await screen.findByLabelText(/^Créer votre mot de passe/);
-    await user.type(password, 'Abcdefghij1');
+    await user.type(password, 'MotDePasse123');
     const passwordConfirmation = screen.getByLabelText(
       /^Confirmer votre mot de passe/
     );
@@ -93,9 +89,106 @@ describe('ResetPasswordView', () => {
     expect(passwordConfirmation).toHaveAttribute('aria-invalid', 'true');
 
     await user.clear(passwordConfirmation);
-    await user.type(passwordConfirmation, 'Abcdefghij1');
+    await user.type(passwordConfirmation, 'MotDePasse123');
     await user.click(submit);
 
     expect(passwordConfirmation).not.toHaveAttribute('aria-invalid');
+  });
+
+  it('should associate password policy errors with the field and not submit (RGAA 11.10)', async () => {
+    setup();
+    const resetPassword = vi.fn();
+    mockAPI.use(
+      http.post(`${config.apiEndpoint}/account/reset-password`, () => {
+        resetPassword();
+        return new HttpResponse(null, { status: 200 });
+      })
+    );
+
+    const password = await screen.findByLabelText(/^Créer votre mot de passe/);
+    await user.type(password, 'motdepasse123');
+    await user.type(
+      screen.getByLabelText(/^Confirmer votre mot de passe/),
+      'motdepasse123'
+    );
+    await user.click(
+      screen.getByRole('button', {
+        name: /Enregistrer le nouveau mot de passe/i
+      })
+    );
+
+    expect(password).toHaveAttribute('aria-invalid', 'true');
+    expect(password).toHaveAccessibleDescription(/Au moins une majuscule/);
+    const uppercaseCriterion = screen
+      .getAllByText('Au moins une majuscule.')
+      .find((element) => element.textContent?.includes('Critère non respecté'));
+    expect(uppercaseCriterion).toBeVisible();
+    expect(uppercaseCriterion).toHaveTextContent(
+      'Critère non respecté : Au moins une majuscule.'
+    );
+    expect(resetPassword).not.toHaveBeenCalled();
+  });
+
+  it('should announce an actionable error when the password cannot be reset', async () => {
+    setup();
+    mockAPI.use(
+      http.post(`${config.apiEndpoint}/account/reset-password`, () =>
+        HttpResponse.json(
+          { name: 'InternalServerError', message: 'Internal Server Error' },
+          { status: 500 }
+        )
+      )
+    );
+
+    const password = await screen.findByLabelText(/^Créer votre mot de passe/);
+    await user.type(password, 'MotDePasse123');
+    const passwordConfirmation = screen.getByLabelText(
+      /^Confirmer votre mot de passe/
+    );
+    await user.type(passwordConfirmation, 'MotDePasse123');
+    await user.click(
+      screen.getByRole('button', {
+        name: /Enregistrer le nouveau mot de passe/i
+      })
+    );
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(
+      'Votre mot de passe n’a pas pu être enregistré. Veuillez réessayer.'
+    );
+    expect(password).toHaveValue('MotDePasse123');
+  });
+
+  it('should reset a password without special characters and announce success', async () => {
+    setup();
+    let requestBody: unknown;
+    mockAPI.use(
+      http.post(
+        `${config.apiEndpoint}/account/reset-password`,
+        async ({ request }) => {
+          requestBody = await request.json();
+          return new HttpResponse(null, { status: 200 });
+        }
+      )
+    );
+
+    const password = await screen.findByLabelText(/^Créer votre mot de passe/);
+    await user.type(password, 'MotDePasse123');
+    await user.type(
+      screen.getByLabelText(/^Confirmer votre mot de passe/),
+      'MotDePasse123'
+    );
+    await user.click(
+      screen.getByRole('button', {
+        name: /Enregistrer le nouveau mot de passe/i
+      })
+    );
+
+    const status = await screen.findByRole('status');
+    expect(status).toHaveTextContent('Votre mot de passe a été réinitialisé');
+    expect(requestBody).toEqual({
+      key: linkId,
+      password: 'MotDePasse123'
+    });
   });
 });

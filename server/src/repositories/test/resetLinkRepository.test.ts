@@ -1,7 +1,8 @@
 import { faker } from '@faker-js/faker/locale/fr';
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 
 import { kysely } from '~/infra/database/kysely';
+import { logger } from '~/infra/logger';
 import { UserApi } from '~/models/UserApi';
 import resetLinkRepository from '~/repositories/resetLinkRepository';
 import { factories } from '~/test/factories';
@@ -69,5 +70,20 @@ describe('resetLinkRepository', () => {
         .executeTakeFirst();
       expect(row?.usedAt).not.toBeNull();
     });
+  });
+
+  it('should not write reset tokens to logs', async () => {
+    const link = genResetLinkApi(user.id);
+    await kysely.insertInto('resetLinks').values(link).execute();
+    const log = vi.spyOn(logger, 'info');
+
+    try {
+      await resetLinkRepository.get(link.id);
+      await resetLinkRepository.used(link.id);
+
+      expect(JSON.stringify(log.mock.calls)).not.toContain(link.id);
+    } finally {
+      log.mockRestore();
+    }
   });
 });

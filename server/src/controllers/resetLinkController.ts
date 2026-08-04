@@ -53,7 +53,7 @@ async function show(request: Request, response: Response) {
     throw new ResetLinkExpiredError();
   }
 
-  response.status(constants.HTTP_STATUS_OK).json(link);
+  response.status(constants.HTTP_STATUS_OK).json({ valid: true });
 }
 
 export default {

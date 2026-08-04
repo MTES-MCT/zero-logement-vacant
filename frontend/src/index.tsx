@@ -14,9 +14,13 @@ import Notification from './components/Notification/Notification';
 import { store } from './store/store';
 import ThemeProvider from './theme';
 import config from './utils/config';
+import { initCrisp } from './utils/crisp';
+import { protectPasswordResetToken } from './utils/password-reset-token';
 import sentry from './utils/sentry';
 
+protectPasswordResetToken();
 registerPreloadErrorRecovery();
+initCrisp();
 sentry.init();
 
 startReactDsfr({

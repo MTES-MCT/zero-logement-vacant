@@ -7,8 +7,12 @@ import type { UserApi } from '~/models/UserApi';
 /**
  * Seed Better Auth identities for users created by a database seed.
  *
- * The shared UUID keeps the legacy profile and authentication identity linked,
- * while credential accounts reuse the existing bcrypt hash.
+ * This mirrors the production backfill contract without requiring a separate
+ * backfill step: the shared UUID links legacy and auth rows, and credential
+ * accounts reuse the existing bcrypt hash. Suspended users intentionally keep
+ * a credential account so sign-in can surface the suspension warning; only
+ * deleted users or users without a password are excluded from credential
+ * account creation.
  */
 export async function seedBetterAuthIdentities(
   knex: Knex,

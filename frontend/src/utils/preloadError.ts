@@ -30,7 +30,14 @@ function showDefaultRecovery(reload: () => void): void {
   button.addEventListener('click', reload, { once: true });
 
   alert.append(title, description, button);
-  document.body.prepend(alert);
+  const openedModal = document.querySelector<HTMLDialogElement>(
+    'dialog.fr-modal[open]'
+  );
+  const recoveryContainer =
+    openedModal?.querySelector<HTMLElement>('.fr-modal__content') ??
+    openedModal ??
+    document.body;
+  recoveryContainer.prepend(alert);
 }
 
 interface PreloadErrorRecoveryOptions {

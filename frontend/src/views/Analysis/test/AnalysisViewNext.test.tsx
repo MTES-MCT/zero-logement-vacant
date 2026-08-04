@@ -45,6 +45,14 @@ function setup(
   );
 }
 
+function expectTabsToControlExistingPanels() {
+  for (const tab of screen.getAllByRole('tab')) {
+    const panelId = tab.getAttribute('aria-controls');
+    expect(panelId).not.toBeNull();
+    expect(document.getElementById(panelId as string)).not.toBeNull();
+  }
+}
+
 describe('AnalysisViewNext', () => {
   it('shows a skeleton while the dashboard is loading', () => {
     setup(async () => new Promise(() => {}));
@@ -114,12 +122,15 @@ describe('AnalysisViewNext', () => {
     expect(screen.getByRole('tablist')).toBeInTheDocument();
     expect(requestedCards).toEqual([929]);
 
+    expectTabsToControlExistingPanels();
+
     await user.click(screen.getByRole('tab', { name: 'Évolution' }));
 
     expect(
       await screen.findByText('Évolution de la vacance')
     ).toBeInTheDocument();
     expect(requestedCards).toEqual([929, 930]);
+    expectTabsToControlExistingPanels();
 
     await user.keyboard('{ArrowLeft}');
 

@@ -6,7 +6,7 @@ import Skeleton from '@mui/material/Skeleton';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import type { DashboardCard, Resource, Tab } from '@zerologementvacant/models';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
 import AnalysisCard from '~/components/Analysis/AnalysisCard';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
@@ -70,28 +70,45 @@ interface DashboardTabsProps {
 }
 
 function DashboardTabs({ dashboard }: Readonly<DashboardTabsProps>) {
+  const tabsId = useId();
   const [selectedTabId, setSelectedTabId] = useState(
     String(dashboard.tabs[0]?.id)
   );
-  const selectedTab =
-    dashboard.tabs.find((tab) => String(tab.id) === selectedTabId) ??
-    dashboard.tabs[0];
+  const currentTabIndex = dashboard.tabs.findIndex(
+    (tab) => String(tab.id) === selectedTabId
+  );
+  const selectedTabIndex = currentTabIndex === -1 ? 0 : currentTabIndex;
+  const selectedTab = dashboard.tabs[selectedTabIndex];
 
   if (!selectedTab) {
     return null;
   }
 
   return (
-    <Tabs
-      tabs={dashboard.tabs.map((tab) => ({
-        tabId: String(tab.id),
-        label: tab.title
-      }))}
-      selectedTabId={String(selectedTab.id)}
-      onTabChange={setSelectedTabId}
-    >
-      <CardGridContent cards={selectedTab.cards} dashboardId={dashboard.id} />
-    </Tabs>
+    <>
+      <Tabs
+        id={tabsId}
+        tabs={dashboard.tabs.map((tab) => ({
+          tabId: String(tab.id),
+          label: tab.title
+        }))}
+        selectedTabId={String(selectedTab.id)}
+        onTabChange={setSelectedTabId}
+      >
+        <CardGridContent cards={selectedTab.cards} dashboardId={dashboard.id} />
+      </Tabs>
+      {dashboard.tabs.map((tab, tabIndex) =>
+        tabIndex === selectedTabIndex ? null : (
+          <div
+            key={tab.id}
+            id={`tabpanel-${tabsId}-${tabIndex}-panel`}
+            role="tabpanel"
+            aria-labelledby={`tabpanel-${tabsId}-${tabIndex}`}
+            hidden
+          />
+        )
+      )}
+    </>
   );
 }
 

@@ -124,7 +124,8 @@ function AppTextInputNext<
       ref: field.ref,
       value: value,
       onBlur: field.onBlur,
-      onChange: onChange
+      onChange: onChange,
+      'aria-invalid': fieldState.invalid ? 'true' : undefined
     }
   };
   const textAreaProps: Pick<
@@ -142,7 +143,8 @@ function AppTextInputNext<
       ref: field.ref,
       value: value,
       onBlur: field.onBlur,
-      onChange: onChange
+      onChange: onChange,
+      'aria-invalid': fieldState.invalid ? 'true' : undefined
     }
   };
 

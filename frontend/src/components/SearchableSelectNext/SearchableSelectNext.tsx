@@ -261,7 +261,8 @@ function SearchableSelectNext<
             // Non-customizable props
             placeholder: placeholder,
             disabled: disabled,
-            type: 'search'
+            type: 'search',
+            'aria-invalid': props.error ? 'true' : undefined
           }}
           ref={params.InputProps.ref}
           state={props.error ? 'error' : 'default'}

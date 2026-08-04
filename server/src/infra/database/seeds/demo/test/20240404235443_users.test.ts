@@ -9,8 +9,8 @@ import {
   SirenSaintLo,
   SirenStrasbourg,
   ZeroLogementVacantEstablishment
-} from './20240404235442_establishments';
-import { seed } from './20240404235443_users';
+} from '../20240404235442_establishments';
+import { seed } from '../20240404235443_users';
 
 interface InsertCall {
   table: string;

@@ -12,6 +12,7 @@ import {
 import { toUserDBO, USERS_TABLE } from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
 
+import { seedBetterAuthIdentities } from '../seed-better-auth-identities';
 import {
   SirenSaintLo,
   SirenStrasbourg,
@@ -90,15 +91,13 @@ export async function seed(knex: Knex): Promise<void> {
   });
 
   const hashedPassword = await bcrypt.hash(password, SALT_LENGTH);
-  const users = baseUsers
-    .concat(randomUsers)
-    .map(toUserDBO)
-    .map((user) => ({
-      ...user,
-      password: hashedPassword
-    }));
+  const users = baseUsers.concat(randomUsers).map((user) => ({
+    ...user,
+    password: hashedPassword
+  }));
   console.log(`Inserting ${users.length} users...\n`);
-  await knex.batchInsert(USERS_TABLE, users);
+  await knex.batchInsert(USERS_TABLE, users.map(toUserDBO));
+  await seedBetterAuthIdentities(knex, users);
 
   console.timeEnd('20240404235457_users');
 }

@@ -1,5 +1,3 @@
-import { randomUUID } from 'node:crypto';
-
 import { faker } from '@faker-js/faker/locale/fr';
 import { UserRole } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
@@ -15,6 +13,7 @@ import {
 import { toUserDBO, USERS_TABLE, UserDBO } from '~/repositories/userRepository';
 import { genUserApi } from '~/test/testFixtures';
 
+import { seedBetterAuthIdentities } from '../seed-better-auth-identities';
 import {
   SirenSaintLo,
   SirenStrasbourg,
@@ -285,7 +284,7 @@ async function insertBaseUsers(
     .insert(baseUsers.map(toUserDBO))
     .onConflict('email')
     .merge(['establishment_id']);
-  await syncToAuthUsers(knex, baseUsers);
+  await seedBetterAuthIdentities(knex, baseUsers);
 }
 
 async function generateRandomUsers(knex: Knex): Promise<void> {
@@ -299,7 +298,7 @@ async function generateRandomUsers(knex: Knex): Promise<void> {
   });
   console.log(`Inserting ${users.length} random users...`);
   await knex.batchInsert(USERS_TABLE, users.map(toUserDBO));
-  await syncToAuthUsers(knex, users);
+  await seedBetterAuthIdentities(knex, users);
   console.log('\n');
 }
 
@@ -334,50 +333,5 @@ async function syncUserEstablishments(
       })
       .onConflict(['user_id', 'establishment_id'])
       .ignore();
-  }
-}
-
-/**
- * Mirror inserted legacy users into `auth_users` and `account` so the
- * auth-v2 (better-auth) sign-in path works against the seeded dataset
- * without a separate `yarn workspace ... node backfill-auth-users` step.
- *
- * Mirrors the production `backfill-auth-users` script's contract:
- * - `auth_users.id` = legacy `users.id` (same UUID).
- * - Sign-in-capable users (not deleted, with a password) also get an `account` row
- *   with `provider_id='credential'` carrying the legacy bcrypt password.
- * - Suspended users keep their credential account so the frontend can show the
- *   suspension warning modal after login.
- */
-async function syncToAuthUsers(knex: Knex, users: UserApi[]): Promise<void> {
-  if (users.length === 0) return;
-
-  const authUserRows = users.map((user) => {
-    const fullName = [user.firstName, user.lastName]
-      .filter((part): part is string => Boolean(part))
-      .join(' ')
-      .trim();
-    return {
-      id: user.id,
-      name: fullName.length > 0 ? fullName : user.email,
-      email: user.email.toLowerCase(),
-      email_verified: true,
-      created_at: user.activatedAt ?? user.updatedAt,
-      updated_at: user.updatedAt
-    };
-  });
-  await knex.batchInsert('auth_users', authUserRows);
-
-  const accountRows = users
-    .filter((user) => !user.deletedAt && user.password)
-    .map((user) => ({
-      id: randomUUID(),
-      account_id: user.email.toLowerCase(),
-      provider_id: 'credential',
-      user_id: user.id,
-      password: user.password
-    }));
-  if (accountRows.length > 0) {
-    await knex.batchInsert('account', accountRows);
   }
 }

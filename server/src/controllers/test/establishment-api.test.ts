@@ -11,6 +11,7 @@ import {
 import { GEO_CODE_REGEXP } from '@zerologementvacant/schemas';
 import request from 'supertest';
 
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import type { UserApi } from '~/models/UserApi';
@@ -46,6 +47,14 @@ describe('Establishment API', () => {
           nil: undefined
         }
       ),
+      kindAdmin: fc.option(
+        fc.array(fc.stringMatching(/^[A-Z][A-Z-]{0,49}$/), {
+          minLength: 1
+        }),
+        {
+          nil: undefined
+        }
+      ),
       name: fc.option(fc.string(), { nil: undefined }),
       geoCodes: fc.option(
         fc.array(fc.stringMatching(GEO_CODE_REGEXP), {
@@ -71,6 +80,7 @@ describe('Establishment API', () => {
           id: query.id?.join(','),
           available: query.available,
           kind: query.kind?.join(','),
+          kindAdmin: query.kindAdmin?.join(','),
           name: query.name,
           geoCodes: query.geoCodes?.join(','),
           siren: query.siren?.join(','),
@@ -102,6 +112,57 @@ describe('Establishment API', () => {
       expect(body).toSatisfyAll<EstablishmentApi>((establishment) => {
         return establishment.available;
       });
+    });
+
+    it('should filter establishments by administrative kind', async () => {
+      const [metropolis, otherIntercommunality] = await Promise.all([
+        factories.establishment.create({
+          geoCodes: ['06004', '06012', '06088']
+        }),
+        factories.establishment.create({
+          geoCodes: ['06004', '06012'],
+          kind: 'METRO'
+        })
+      ]);
+      await Promise.all([
+        kysely
+          .updateTable('establishments')
+          .set({ kind: 'ME', kindAdmin: 'METRO' })
+          .where('id', '=', metropolis.id)
+          .execute(),
+        kysely
+          .updateTable('establishments')
+          .set({ kindAdmin: 'CA' })
+          .where('id', '=', otherIntercommunality.id)
+          .execute()
+      ]);
+
+      const { body, status } = await request(url)
+        .get(testRoute)
+        .query({ kindAdmin: 'METRO' });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const ids = body.map(
+        (establishment: EstablishmentApi) => establishment.id
+      );
+      expect(ids).toContain(metropolis.id);
+      expect(ids).not.toContain(otherIntercommunality.id);
+    });
+
+    it('should not mix legacy and administrative kinds', async () => {
+      const legacyIntercommunality = await factories.establishment.create({
+        geoCodes: ['06004', '06012'],
+        kind: 'CA'
+      });
+
+      const { body, status } = await request(url)
+        .get(testRoute)
+        .query({ kindAdmin: 'CA' });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(
+        body.map((establishment: EstablishmentApi) => establishment.id)
+      ).not.toContain(legacyIntercommunality.id);
     });
 
     it('should search establishments by query', async () => {

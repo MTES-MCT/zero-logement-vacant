@@ -1,4 +1,5 @@
 import {
+  INTERCOMMUNALITY_KIND_ADMIN_VALUES,
   isChild,
   isDepartmentalEstablishment
 } from '@zerologementvacant/models';
@@ -10,7 +11,7 @@ export function useIntercommunalities() {
   const { establishment } = useUser();
   const query = useFindEstablishmentsQuery(
     {
-      kind: ['CA', 'CC', 'CU', 'METRO', 'EPT'] // Intercommunalities
+      kindAdmin: [...INTERCOMMUNALITY_KIND_ADMIN_VALUES]
     },
     {
       skip: establishment && !isDepartmentalEstablishment(establishment)

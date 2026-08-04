@@ -9,14 +9,15 @@ import localityRepository, { toLocalityInsert } from '../localityRepository';
 describe('Locality repository', () => {
   describe('find', () => {
     describe('geoCodes filter', () => {
-      const locality1 = genLocalityApi();
-      const locality2 = genLocalityApi();
+      const locality1 = genLocalityApi('01001');
+      const locality2 = genLocalityApi('01002');
 
       beforeAll(async () => {
         await factories.establishment.create();
         await kysely
           .insertInto('localities')
           .values([toLocalityInsert(locality1), toLocalityInsert(locality2)])
+          .onConflict((conflict) => conflict.column('geoCode').doNothing())
           .execute();
       });
 
@@ -49,11 +50,12 @@ describe('Locality repository', () => {
 
     describe('establishmentId filter', () => {
       it('should return only localities within the establishment geoCodes', async () => {
-        const locality1 = genLocalityApi();
-        const locality2 = genLocalityApi();
+        const locality1 = genLocalityApi('01003');
+        const locality2 = genLocalityApi('01004');
         await kysely
           .insertInto('localities')
           .values([toLocalityInsert(locality1), toLocalityInsert(locality2)])
+          .onConflict((conflict) => conflict.column('geoCode').doNothing())
           .execute();
         const establishment = await factories.establishment.create({
           geoCodes: [locality1.geoCode]

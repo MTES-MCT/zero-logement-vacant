@@ -19,6 +19,7 @@ export * from './OwnerEntity';
 export * from './EstablishmentDTO';
 export * from './EstablishmentFiltersDTO';
 export * from './EstablishmentKind';
+export * from './EstablishmentKindAdmin';
 export * from './EstablishmentSource';
 export * from './EventDTO';
 export * from './EventPayloads';

@@ -97,55 +97,51 @@ const listNext = http.get<
   Record<string, never>,
   HousingPayload,
   Partial<HousingDTO>[]
->(
-  `${config.apiEndpoint}/housings`,
-  async ({ request }) => {
-    const url = new URL(request.url);
-    const { campaignIds, housingKinds, relativeLocations, statuses } =
-      parseQueryParams(url);
+>(`${config.apiEndpoint}/housings`, async ({ request }) => {
+  const url = new URL(request.url);
+  const { campaignIds, housingKinds, relativeLocations, statuses } =
+    parseQueryParams(url);
 
-    const subset = pipe(
-      data.housings,
-      Array.map((housing) => {
-        const mainHousingOwner =
-          data.housingOwners
-            .get(housing.id)
-            ?.find((housingOwner) => housingOwner.rank === 1) ?? null;
-        const mainOwner =
-          data.owners.find((owner) => owner.id === mainHousingOwner?.id) ??
-          null;
-        return { ...housing, owner: mainOwner };
-      }),
-      filter({ campaignIds, housingKinds, statuses, relativeLocations })
-    );
+  const subset = pipe(
+    data.housings,
+    Array.map((housing) => {
+      const mainHousingOwner =
+        data.housingOwners
+          .get(housing.id)
+          ?.find((housingOwner) => housingOwner.rank === 1) ?? null;
+      const mainOwner =
+        data.owners.find((owner) => owner.id === mainHousingOwner?.id) ?? null;
+      return { ...housing, owner: mainOwner };
+    }),
+    filter({ campaignIds, housingKinds, statuses, relativeLocations })
+  );
 
-    const paginate = url.searchParams.get('paginate') !== 'false';
-    const page = Number(url.searchParams.get('page') ?? 1);
-    const perPage = Number(url.searchParams.get('perPage') ?? 50);
-    const rangeStart = paginate ? (page - 1) * perPage : 0;
-    const entities = paginate
-      ? subset.slice(rangeStart, rangeStart + perPage)
-      : subset;
+  const paginate = url.searchParams.get('paginate') !== 'false';
+  const page = Number(url.searchParams.get('page') ?? 1);
+  const perPage = Number(url.searchParams.get('perPage') ?? 50);
+  const rangeStart = paginate ? (page - 1) * perPage : 0;
+  const entities = paginate
+    ? subset.slice(rangeStart, rangeStart + perPage)
+    : subset;
 
-    // Sparse `fields` projection (JSON:API style); `id` is always included.
-    const fields = url.searchParams.get('fields')?.split(',') as
-      | (keyof HousingDTO)[]
-      | undefined;
-    const projected: Partial<HousingDTO>[] = fields?.length
-      ? entities.map((housing) => {
-          const point: Partial<HousingDTO> = {};
-          for (const field of ['id', ...fields] as (keyof HousingDTO)[]) {
-            Object.assign(point, { [field]: housing[field] });
-          }
-          return point;
-        })
-      : entities;
+  // Sparse `fields` projection (JSON:API style); `id` is always included.
+  const fields = url.searchParams.get('fields')?.split(',') as
+    | (keyof HousingDTO)[]
+    | undefined;
+  const projected: Partial<HousingDTO>[] = fields?.length
+    ? entities.map((housing) => {
+        const point: Partial<HousingDTO> = {};
+        for (const field of ['id', ...fields] as (keyof HousingDTO)[]) {
+          Object.assign(point, { [field]: housing[field] });
+        }
+        return point;
+      })
+    : entities;
 
-    return HttpResponse.json(projected, {
-      status: constants.HTTP_STATUS_OK
-    });
-  }
-);
+  return HttpResponse.json(projected, {
+    status: constants.HTTP_STATUS_OK
+  });
+});
 
 type HousingParams = {
   id: string;

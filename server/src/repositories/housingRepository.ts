@@ -25,6 +25,7 @@ import {
   type RelativeLocation
 } from '@zerologementvacant/models';
 import { compactUndefined, isNotNull } from '@zerologementvacant/utils';
+import { map } from '@zerologementvacant/utils/node';
 import { Array, identity, pipe, Predicate, Record, Struct } from 'effect';
 import { snakeToCamel } from 'effect/String';
 import type { Point } from 'geojson';
@@ -64,7 +65,6 @@ import {
   relativeLocationFilterToDBO
 } from './housingOwnerRepository';
 import { OwnerDBO, parseOwnerApi } from './ownerRepository';
-import { map } from '@zerologementvacant/utils/node';
 
 const logger = createLogger('housingRepository');
 
@@ -543,7 +543,6 @@ function housingMergeColumns(merge?: Array<keyof HousingRecordDBO>): string[] {
   );
 }
 
-
 async function update(housing: HousingApi): Promise<void> {
   logger.debug('Update housing', housing.id);
 
@@ -828,7 +827,6 @@ export const parseHousingRecordRow = (
 // so the builders are `any`-typed — behaviour is pinned by the characterization
 // tests, not the compiler.
 // ---------------------------------------------------------------------------
-
 
 function filterQuery(filters: HousingFiltersApi) {
   return <O>(query: SelectQueryBuilder<DB, 'fastHousing', O>) => {
@@ -1849,7 +1847,6 @@ function paginateQuery(pagination: Partial<Pagination> = DEFAULT_PAGINATION) {
     return query.limit(limit).offset(offset);
   };
 }
-
 
 type READ_ONLY_FIELDS =
   | 'last_mutation_type'

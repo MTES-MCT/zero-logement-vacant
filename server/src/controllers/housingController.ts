@@ -129,7 +129,6 @@ const get: RequestHandler<
   response.status(constants.HTTP_STATUS_OK).json(housing);
 };
 
-
 type HousingQuery = HousingFiltersDTO &
   Partial<Pagination> & { sort?: string[]; fields?: HousingPointField[] };
 

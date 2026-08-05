@@ -15,9 +15,9 @@ import HousingListFiltersSidemenu from '~/components/HousingListFilters/HousingL
 import HousingCreationModal from '~/components/modals/HousingCreationModal/HousingCreationModal';
 import Tooltip from '~/components/ui/Tooltip/Tooltip';
 import { useHousingFilters } from '~/hooks/HousingFiltersContext';
+import { useActiveHousingCount } from '~/hooks/useActiveHousingCount';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useNotification } from '~/hooks/useNotification';
-import { useActiveHousingCount } from '~/hooks/useActiveHousingCount';
 import { useSelection } from '~/hooks/useSelection';
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import { useUser } from '~/hooks/useUser';

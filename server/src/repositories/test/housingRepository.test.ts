@@ -530,7 +530,7 @@ describe('Housing repository', () => {
         });
       });
 
-      it.todo('should filter by group and establishment')
+      it.todo('should filter by group and establishment');
 
       describe('by campaign id', () => {
         let campaigns: ReadonlyArray<CampaignDTO>;
@@ -593,7 +593,7 @@ describe('Housing repository', () => {
           });
         });
 
-        it.todo('should filter by campaign and establishment')
+        it.todo('should filter by campaign and establishment');
       });
 
       describe('by owner’s age', () => {

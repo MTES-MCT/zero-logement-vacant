@@ -12,6 +12,7 @@ import type { ReactElement, ReactNode } from 'react';
 
 import { HousingProvider } from '~/hooks/useHousing';
 
+import { useActiveHousingCount } from '../../hooks/useActiveHousingCount';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { useSelection } from '../../hooks/useSelection';
 import { useSort } from '../../hooks/useSort';
@@ -22,7 +23,6 @@ import type {
   SelectedHousing
 } from '../../models/Housing';
 import type { HousingFilters } from '../../models/HousingFilters';
-import { useActiveHousingCount } from '../../hooks/useActiveHousingCount';
 import { useFindHousingQuery } from '../../services/housing.service';
 import { findChild } from '../../utils/elementUtils';
 import { capitalize } from '../../utils/stringUtils';
@@ -62,12 +62,11 @@ function HousingList(props: HousingListProps) {
     perPage: pagination.pageSize
   };
 
-  const { data: housings, isFetching: isFetchHousings } =
-    useFindHousingQuery({
-      filters,
-      pagination: apiPagination,
-      sort
-    });
+  const { data: housings, isFetching: isFetchHousings } = useFindHousingQuery({
+    filters,
+    pagination: apiPagination,
+    sort
+  });
 
   const housingList = housings;
 

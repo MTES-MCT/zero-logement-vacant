@@ -46,8 +46,8 @@ import { toDocumentInsert } from '~/repositories/documentRepository';
 import { toEstablishmentInsert } from '~/repositories/establishmentRepository';
 import { toEventInsert } from '~/repositories/eventRepository';
 import housingDocumentRepository from '~/repositories/housingDocumentRepository';
-import { toUserInsert } from '~/repositories/userRepository';
 import userPerimeterRepository from '~/repositories/userPerimeterRepository';
+import { toUserInsert } from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
 import {
   genDocumentApi,
@@ -688,9 +688,7 @@ describe('Housing API', () => {
       expect(Array.isArray(body)).toBe(true);
       expect(body).toEqual(
         expect.arrayContaining(
-          housings.map((housing) =>
-            expect.objectContaining({ id: housing.id })
-          )
+          housings.map((housing) => expect.objectContaining({ id: housing.id }))
         )
       );
       expect(headers['content-range']).toBeUndefined();

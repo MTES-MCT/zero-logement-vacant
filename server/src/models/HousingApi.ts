@@ -31,17 +31,13 @@ export interface HousingRecordApi extends Omit<HousingDTO, 'owner'> {
 }
 
 export interface HousingApi extends HousingRecordApi {
-  localityKind?: string | null;
   geoPerimeters?: string[] | null;
   owner?: OwnerApi | null;
   /**
    * Added by joining with the `housing_owners` table (rank 1 owner).
    */
   ownerRelativeLocation?: RelativeLocation | null;
-  buildingHousingCount?: number | null;
-  buildingVacancyRate?: number | null;
   campaignIds?: string[] | null;
-  contactCount?: number | null;
   /**
    * Added by joining with the `housing_precisions` and `precisions` tables
    */

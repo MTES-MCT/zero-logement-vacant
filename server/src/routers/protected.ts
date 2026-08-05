@@ -120,7 +120,7 @@ router.delete(
 );
 
 router.get(
-  '/housing',
+  '/housings',
   validator.validate({
     query: schemas.housingFilters
       .concat(sortApi.sortSchema)
@@ -129,6 +129,17 @@ router.get(
   }),
   housingController.list
 );
+router.get(
+  '/housings/count',
+  validator.validate({
+    query: schemas.housingFilters
+      .concat(sortApi.sortSchema)
+      .concat(paginationSchema)
+      .concat(object({ groupBy: string().oneOf(['status']).optional() }))
+  }),
+  housingController.count
+);
+
 router.post(
   '/housing',
   validator.validate({
@@ -137,15 +148,6 @@ router.post(
     })
   }),
   housingController.create
-);
-router.get(
-  '/housing/count',
-  validator.validate({
-    query: schemas.housingFilters
-      .concat(sortApi.sortSchema)
-      .concat(paginationSchema)
-  }),
-  housingController.count
 );
 // `:id` accepts EITHER a 12-char localId OR a UUID, so we cannot reuse the
 // UUID-only `schemas.id` here.

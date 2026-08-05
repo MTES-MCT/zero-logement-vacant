@@ -23,6 +23,21 @@ import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
 
+/**
+ * Bound a housing query to the establishment's perimeter (the user's effective
+ * geo codes, falling back to the whole establishment), narrowed by any
+ * caller-provided localities. Geo resolution lives in the app layer now that
+ * the repository filters on `localities` directly.
+ */
+function perimeterLocalities(
+  geoCodes: string[],
+  localities: string[] | undefined
+): string[] {
+  return localities?.length
+    ? Array.intersection(geoCodes, localities)
+    : geoCodes;
+}
+
 const list: RequestHandler<
   never,
   ReadonlyArray<GroupDTO>,
@@ -55,12 +70,8 @@ const create: RequestHandler<never, GroupDTO, GroupPayloadDTO, never> = async (
   request,
   response
 ): Promise<void> => {
-  const { body, establishment, user } = request as AuthenticatedRequest<
-    never,
-    GroupDTO,
-    GroupPayloadDTO,
-    never
-  >;
+  const { body, establishment, user, effectiveGeoCodes } =
+    request as AuthenticatedRequest<never, GroupDTO, GroupPayloadDTO, never>;
 
   // Keep the housing list that are in the same establishment as the group
   const housings =
@@ -69,7 +80,11 @@ const create: RequestHandler<never, GroupDTO, GroupPayloadDTO, never> = async (
           .find({
             filters: {
               ...body.housing.filters,
-              establishmentIds: [establishment.id]
+              establishmentIds: [establishment.id],
+              localities: perimeterLocalities(
+                effectiveGeoCodes ?? establishment.geoCodes,
+                body.housing.filters?.localities
+              )
             },
             includes: ['owner'],
             pagination: { paginate: false }
@@ -184,7 +199,7 @@ const update: RequestHandler<
     title: body.title,
     description: body.description
   };
-  await groupRepository.save(updatedGroup, housingList);
+  await groupRepository.save(updatedGroup, [...housingList]);
 
   response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
 };
@@ -195,7 +210,7 @@ const addHousing: RequestHandler<
   GroupAddHousingPayload,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, effectiveGeoCodes, params } =
+  const { auth, body, establishment, effectiveGeoCodes, params } =
     request as AuthenticatedRequest<
       { id: GroupDTO['id'] },
       GroupDTO,
@@ -218,7 +233,11 @@ const addHousing: RequestHandler<
       .find({
         filters: {
           ...body.filters,
-          establishmentIds: [auth.establishmentId]
+          establishmentIds: [auth.establishmentId],
+          localities: perimeterLocalities(
+            effectiveGeoCodes ?? establishment.geoCodes,
+            body.filters?.localities
+          )
         },
         includes: ['owner'],
         pagination: { paginate: false }
@@ -281,7 +300,7 @@ const removeHousing: RequestHandler<
   GroupRemoveHousingPayload,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, effectiveGeoCodes, params } =
+  const { auth, body, establishment, effectiveGeoCodes, params } =
     request as AuthenticatedRequest<
       { id: GroupDTO['id'] },
       GroupDTO,
@@ -304,7 +323,11 @@ const removeHousing: RequestHandler<
       .find({
         filters: {
           ...body.filters,
-          establishmentIds: [auth.establishmentId]
+          establishmentIds: [auth.establishmentId],
+          localities: perimeterLocalities(
+            effectiveGeoCodes ?? establishment.geoCodes,
+            body.filters?.localities
+          )
         },
         includes: ['owner'],
         pagination: { paginate: false }

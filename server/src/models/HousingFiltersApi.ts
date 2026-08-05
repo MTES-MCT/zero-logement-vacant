@@ -7,7 +7,6 @@ import {
 export interface HousingFiltersApi extends Pick<
   HousingFiltersDTO,
   | 'all'
-  | 'intercommunalities'
   | 'precisions'
   | 'dataFileYearsIncluded'
   | 'dataFileYearsExcluded'
@@ -43,6 +42,9 @@ export interface HousingFiltersApi extends Pick<
   campaignIds?: Array<string | null>;
   ownerIds?: string[];
   departments?: string[];
+  /**
+   * Will be filled with the geo codes from the localities, intercommunalities and the authenticated user.
+   */
   localities?: string[];
   geoPerimetersIncluded?: string[];
   geoPerimetersExcluded?: string[];

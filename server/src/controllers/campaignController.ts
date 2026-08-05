@@ -221,7 +221,7 @@ const createFromGroup: RequestHandler<
     await campaignDraftRepository.save(campaign, draft);
 
     await Promise.all([
-      campaignHousingRepository.insertHousingList(campaign.id, housings),
+      campaignHousingRepository.insertHousingList(campaign.id, [...housings]),
       eventRepository.insertManyCampaignHousingEvents(campaignHousingEvents)
     ]);
 
@@ -471,7 +471,7 @@ const removeHousings: RequestHandler<
           subStatus: null
         }
       ),
-      campaignHousingRepository.removeMany(campaign, housings),
+      campaignHousingRepository.removeMany(campaign, [...housings]),
       eventRepository.insertManyCampaignHousingEvents(campaignHousingEvents),
       eventRepository.insertManyHousingEvents(housingEvents)
     ]);

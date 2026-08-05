@@ -60,7 +60,6 @@ import {
   HousingSortableApi,
   isContacted,
   toHousingDTO,
-  toHousingPointDTO,
   type HousingId
 } from '~/models/HousingApi';
 import { HousingCountApi } from '~/models/HousingCountApi';
@@ -68,20 +67,20 @@ import { HousingFiltersApi } from '~/models/HousingFiltersApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { NoteApi, type HousingNoteApi } from '~/models/NoteApi';
 import { fromDatafoncierOwner, type OwnerApi } from '~/models/OwnerApi';
-import {
-  HousingPaginatedDTO,
-  HousingPaginatedResultApi
-} from '~/models/PaginatedResultApi';
+import { createPagination, DEFAULT_PAGINATION, isPaginationEnabled } from '~/models/PaginationApi';
 import { type PrecisionApi } from '~/models/PrecisionApi';
 import sortApi from '~/models/SortApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
 import documentRepository from '~/repositories/documentRepository';
+import establishmentRepository from '~/repositories/establishmentRepository';
 import eventRepository from '~/repositories/eventRepository';
 import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
-import housingRepository from '~/repositories/housingRepository';
+import housingRepository, {
+  type CountOptions
+} from '~/repositories/housingRepository';
 import noteRepository from '~/repositories/noteRepository';
 import ownerRepository, {
   refreshMultiOwnerFlags
@@ -130,127 +129,178 @@ const get: RequestHandler<
   response.status(constants.HTTP_STATUS_OK).json(housing);
 };
 
-type ListHousingPayload = Pagination & {
-  filters?: HousingFiltersDTO;
-};
 
 type HousingQuery = HousingFiltersDTO &
   Partial<Pagination> & { sort?: string[]; fields?: HousingPointField[] };
 
 const list: RequestHandler<
   never,
-  HousingPaginatedDTO,
-  ListHousingPayload,
+  ReadonlyArray<Partial<HousingDTO> & Pick<HousingDTO, 'id'>>,
+  never,
   HousingQuery
 > = async (request, response): Promise<void> => {
-  const { auth, user, query, effectiveGeoCodes } =
+  const { auth, establishment, user, query, effectiveGeoCodes } =
     request as AuthenticatedRequest<
       never,
-      HousingPaginatedResultApi,
-      ListHousingPayload,
+      ReadonlyArray<Partial<HousingDTO> & Pick<HousingDTO, 'id'>>,
+      never,
       HousingQuery
     >;
+  logger.debug('List housings', { query, effectiveGeoCodes });
 
-  const pagination: Pagination = {
-    paginate: query.paginate,
-    page: query.page ?? 1,
-    perPage: query.perPage ?? 50
-  };
-  const role = user.role;
-  const sort = sortApi.parse<HousingSortableApi>(query.sort);
-  const rawFilters = Struct.omit(query, 'paginate', 'page', 'perPage', 'sort');
+  const { fields, paginate, page, perPage, sort, ...rawFilters } = query;
+  const pagination = createPagination({
+    page: page ?? DEFAULT_PAGINATION.page,
+    perPage: perPage ?? DEFAULT_PAGINATION.perPage,
+    paginate
+  });
 
-  const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(role);
+  const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
+    user.role
+  );
+  const intercommunalities =
+    query.intercommunalities !== undefined
+      ? await establishmentRepository
+          .find({ filters: { id: query.intercommunalities } })
+          .then((establishments) =>
+            establishments.flatMap((establishment) => establishment.geoCodes)
+          )
+      : null;
+  const localities = pipe(
+    establishment.geoCodes,
+    (geoCodes) =>
+      effectiveGeoCodes !== undefined
+        ? Array.intersection(geoCodes, effectiveGeoCodes)
+        : geoCodes,
+    (geoCodes) =>
+      intercommunalities !== null
+        ? Array.intersection(geoCodes, intercommunalities)
+        : geoCodes,
+    (geoCodes) =>
+      query.localities !== undefined
+        ? Array.intersection(geoCodes, query.localities)
+        : geoCodes
+  );
+
+  const rangeStart = isPaginationEnabled(pagination)
+    ? (pagination.page - 1) * pagination.perPage
+    : 0;
+
+  // No commune the user is allowed to see: short-circuit to an empty range
+  // (findNext/countNext apply `localities` as-is and would otherwise scan all).
+  if (localities.length === 0) {
+    response
+      .set('Accept-Ranges', 'housing')
+      .set('Content-Range', `housing ${rangeStart}-${rangeStart}/0`)
+      .set('Access-Control-Expose-Headers', 'Accept-Ranges, Content-Range')
+      .status(constants.HTTP_STATUS_OK)
+      .json([]);
+    return;
+  }
+
   const filters: HousingFiltersApi = {
     ...rawFilters,
     establishmentIds:
-      isAdminOrVisitor && rawFilters?.establishmentIds?.length
-        ? rawFilters?.establishmentIds
+      isAdminOrVisitor && rawFilters.establishmentIds?.length
+        ? rawFilters.establishmentIds
         : [auth.establishmentId],
-    // effectiveGeoCodes is undefined when no restriction applies (ADMIN/VISITOR, no perimeter, or fr_entiere)
-    // If effectiveGeoCodes is empty array, user should see nothing (no communes in their perimeter)
-    localities: effectiveGeoCodes
-      ? rawFilters.localities?.length
-        ? rawFilters.localities.filter((loc) => effectiveGeoCodes.includes(loc))
-        : effectiveGeoCodes
-      : rawFilters.localities
+    localities
   };
 
-  logger.debug('List housing', {
-    pagination,
-    filters,
-    sort
-  });
-
-  // Sparse projection (map view): fetch lightweight points instead of
-  // fully-hydrated housings — no owner/campaign joins, no to_json, no sort.
-  const fields = query.fields;
-
-  const [housings, count] = await Promise.all([
-    fields?.length
-      ? housingRepository.find({ filters, pagination, sort, fields })
-      : housingRepository.find({
+  // Sparse map projection (fields) has no owner/campaign joins and no sort;
+  // full hydration carries includes + sort. Both share the same filters, so the
+  // `countNext` total matches the returned page.
+  const entitiesQuery = fields?.length
+    ? housingRepository.find({ filters, fields, pagination })
+    : housingRepository
+        .find({
           filters,
-          pagination,
-          sort,
-          includes: ['owner', 'campaigns']
-        }),
-    // Kept for backward-compatibility
-    // TODO: remove this
-    Promise.resolve({ housing: 1, owners: 1 })
+          includes: ['owner', 'campaigns'],
+          sort: sortApi.parse<HousingSortableApi>(sort),
+          pagination
+        })
+        .then((housings) => housings.map(toHousingDTO));
+  const [entities, count] = await Promise.all([
+    entitiesQuery,
+    housingRepository.count({ filters })
   ]);
 
-  const entities = fields?.length
-    ? housings.map(toHousingPointDTO)
-    : housings.map(toHousingDTO);
+  const total = count.housing;
+  const rangeEnd =
+    entities.length > 0 ? rangeStart + entities.length - 1 : rangeStart;
 
-  const offset = (pagination.page - 1) * pagination.perPage;
   response
-    .status(constants.HTTP_STATUS_OK)
-    .setHeader(
-      'Content-Range',
-      `housing ${offset}-${offset + housings.length - 1}/${count.housing}`
+    .set('Accept-Ranges', 'housing')
+    .set('Content-Range', `housing ${rangeStart}-${rangeEnd}/${total}`)
+    .set('Access-Control-Expose-Headers', 'Accept-Ranges, Content-Range')
+    .status(
+      entities.length < total
+        ? constants.HTTP_STATUS_PARTIAL_CONTENT
+        : constants.HTTP_STATUS_OK
     )
-    // `entities` may be the sparse point projection; cast at the response boundary.
-    .json({
-      entities,
-      filteredCount: count.housing,
-      filteredOwnerCount: count.owners,
-      page: pagination.page,
-      perPage: pagination.perPage,
-      totalCount: 0
-    } as HousingPaginatedDTO);
+    .json(entities);
 };
 
 const count: RequestHandler<
   never,
-  HousingCountApi,
+  HousingCountApi | Record<HousingStatus, HousingCountApi>,
   never,
   HousingFiltersDTO
 > = async (request, response): Promise<void> => {
-  const { auth, query, effectiveGeoCodes } = request as AuthenticatedRequest<
-    never,
-    HousingCountApi,
-    never,
-    HousingFiltersDTO
-  >;
+  const { auth, establishment, query, effectiveGeoCodes } =
+    request as AuthenticatedRequest<
+      never,
+      HousingCountApi | Record<HousingStatus, HousingCountApi>,
+      never,
+      HousingFiltersDTO
+    >;
   logger.debug('Count housings', { query });
+
+  const { groupBy, ...queryFilters } = query as HousingFiltersDTO & {
+    groupBy?: 'status';
+  };
 
   const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
     auth.role
   );
-  const count = await housingRepository.count({
-    ...query,
+
+  const intercommunalities =
+    query.intercommunalities !== undefined
+      ? await establishmentRepository
+          .find({ filters: { id: query.intercommunalities } })
+          .then((establishments) =>
+            establishments.flatMap((establishment) => establishment.geoCodes)
+          )
+      : null;
+  const localities = pipe(
+    establishment.geoCodes,
+    (geoCodes) =>
+      effectiveGeoCodes !== undefined
+        ? Array.intersection(geoCodes, effectiveGeoCodes)
+        : geoCodes,
+    (geoCodes) =>
+      intercommunalities !== null
+        ? Array.intersection(geoCodes, intercommunalities)
+        : geoCodes,
+    (geoCodes) =>
+      query.localities !== undefined
+        ? Array.intersection(geoCodes, query.localities)
+        : geoCodes
+  );
+
+  const filters: CountOptions['filters'] = {
+    ...queryFilters,
     establishmentIds:
       isAdminOrVisitor && query.establishmentIds?.length
         ? query.establishmentIds
         : [auth.establishmentId],
-    localities: effectiveGeoCodes
-      ? query.localities?.length
-        ? query.localities.filter((loc) => effectiveGeoCodes.includes(loc))
-        : effectiveGeoCodes
-      : query.localities
-  });
+    localities
+  };
+
+  const count =
+    groupBy === 'status'
+      ? await housingRepository.count({ filters, groupBy: 'status' })
+      : await housingRepository.count({ filters });
   response.status(constants.HTTP_STATUS_OK).json(count);
 };
 
@@ -607,6 +657,13 @@ const updateMany: RequestHandler<
   const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
     user.role
   );
+  // Geo resolution lives in the app layer: bound the update to the
+  // establishment's perimeter (the user's effective geo codes, falling back to
+  // the whole establishment) narrowed by any caller-provided localities.
+  const perimeter = effectiveGeoCodes ?? establishment.geoCodes;
+  const localities = body.filters.localities?.length
+    ? Array.intersection(perimeter, body.filters.localities)
+    : perimeter;
   const [housings, referential] = await Promise.all([
     housingRepository.find({
       filters: {
@@ -615,13 +672,7 @@ const updateMany: RequestHandler<
           isAdminOrVisitor && body.filters.establishmentIds?.length
             ? body.filters.establishmentIds
             : [establishment.id],
-        localities: effectiveGeoCodes
-          ? body.filters.localities?.length
-            ? body.filters.localities.filter((loc) =>
-                effectiveGeoCodes.includes(loc)
-              )
-            : effectiveGeoCodes
-          : body.filters.localities
+        localities
       },
       includes: ['campaigns', 'owner', 'precisions'],
       pagination: { paginate: false }

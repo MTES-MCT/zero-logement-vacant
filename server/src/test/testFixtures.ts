@@ -277,19 +277,12 @@ export const genHousingApi = (
   return {
     ...housing,
     owner,
-    localityKind: faker.helpers.maybe(
-      () => faker.helpers.arrayElement(['ACV', 'PVD']),
-      { probability: 0.2 }
-    ),
     occupancyRegistered: faker.helpers.arrayElement(
       READ_WRITE_OCCUPANCY_VALUES
     ),
-    buildingVacancyRate: faker.number.float(),
-    contactCount: genNumber(1),
     geolocation: null,
     buildingId: building?.id ?? null,
     buildingGroupId: null,
-    buildingHousingCount: null,
     geoPerimeters: [],
     precisions: []
   };

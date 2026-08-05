@@ -105,16 +105,57 @@ models:
       Champs strictement issus du spec fields_usage_establishments.csv.
       Inclut les echelons inscrits (communes inscrites dans les EPCI, etc).
 
-      Attribution des "logements mis a jour": les compteurs logements_maj_* sont
-      calcules a partir des EVENEMENTS crees par les utilisateurs de l etablissement
-      (int_production_events.establishment_id), et NON par le territoire geographique
-      du logement. Un logement n est donc compte que pour l etablissement dont un
-      utilisateur a reellement effectue la mise a jour.
+      Attribution: tout compteur d activite provient d un EVENEMENT cree par un
+      utilisateur de l etablissement, et NON du territoire geographique du
+      logement. Le territoire ne sert qu aux referentiels (parc, region,
+      departement, echelons) et, pour les evenements portant sur un proprietaire,
+      de filtre d assiette.
+
+      NE PAS SOMMER entre etablissements les colonnes logements_*: un meme
+      logement peut etre compte par plusieurs etablissements si plusieurs
+      collectivites l ont mis a jour. Pour un total national, compter les
+      logements distincts sur marts_production_housing.
     tests:
       - dbt_utils.expression_is_true:
           expression: logements_maj_suivi <= logements_maj_situation
       - dbt_utils.expression_is_true:
           expression: logements_maj_occupation <= logements_maj_situation
+      - dbt_utils.expression_is_true:
+          expression: logements_contactes_via_campagnes <= contacts_campagnes
+      - dbt_utils.expression_is_true:
+          expression: logements_exportes_via_groupes <= exports_groupes
+      - dbt_utils.expression_is_true:
+          expression: logements_maj_enrichissement <= actes_enrichissement
+      - dbt_utils.expression_is_true:
+          expression: >
+            logements_maj_enrichissement >= GREATEST(
+              logements_maj_mails, logements_maj_phone, logements_maj_owners,
+              logements_maj_owners_rank, logements_maj_owners_address,
+              logements_maj_notes, logements_maj_documents, logements_maj_dpe
+            )
+      - dbt_utils.expression_is_true:
+          expression: >
+            logements_maj_enrichissement <= (
+              logements_maj_mails + logements_maj_phone + logements_maj_owners
+              + logements_maj_owners_rank + logements_maj_owners_address
+              + logements_maj_notes + logements_maj_documents + logements_maj_dpe
+            )
+      - dbt_utils.expression_is_true:
+          expression: communes_inscrites <= total_communes_in_territory
+          config:
+            where: communes_inscrites IS NOT NULL
+      - dbt_utils.expression_is_true:
+          expression: intercommunalites_inscrites <= intercommunalites_couvrant_le_perimetre
+          config:
+            where: intercommunalites_inscrites IS NOT NULL
+      - dbt_utils.expression_is_true:
+          expression: departements_inscrits <= departements_couvrant_le_perimetre
+          config:
+            where: departements_inscrits IS NOT NULL
+      - dbt_utils.expression_is_true:
+          expression: sded_inscrits <= sded_couvrant_le_perimetre
+          config:
+            where: sded_inscrits IS NOT NULL
     columns:
       - name: establishment_id
         description: Identifiant unique de l etablissement
@@ -125,30 +166,134 @@ models:
         description: Nom de l etablissement
       - name: ouvert
         description: TRUE si l etablissement est disponible et a au moins 1 utilisateur
+      - name: type_simple
+        description: |
+          Echelon de l etablissement - Commune, Intercommunalite, Departement,
+          Region, DDT/M, DREAL/SDER, Autre. Departement, Region et DREAL/SDER
+          etaient auparavant agreges dans Autre.
+        tests:
+          - accepted_values:
+              values:
+                - Commune
+                - Intercommunalité
+                - Département
+                - Région
+                - DDT/M
+                - DREAL/SDER
+                - Autre
       - name: logements_maj_situation
         description: |
           Nombre de logements distincts mis a jour (suivi OU occupation) par les
-          utilisateurs de cet etablissement.
+          utilisateurs de cet etablissement. NE PAS SOMMER entre etablissements.
       - name: logements_maj_suivi
-        description: Nombre de logements distincts dont le dernier statut de suivi a ete pose par un utilisateur de l etablissement
+        description: Nombre de logements distincts dont le dernier statut de suivi a ete pose par un utilisateur de l etablissement. NE PAS SOMMER entre etablissements.
       - name: logements_maj_occupation
-        description: Nombre de logements distincts dont le dernier statut d occupation a ete pose par un utilisateur de l etablissement
+        description: Nombre de logements distincts dont le dernier statut d occupation a ete pose par un utilisateur de l etablissement. NE PAS SOMMER entre etablissements.
+      - name: logements_maj_enrichissement
+        description: |
+          Logements DISTINCTS touches par au moins une famille d enrichissement
+          (mail, telephone, nom ou adresse du proprietaire, rang, note, document,
+          DPE). A ne pas confondre avec actes_enrichissement.
+          NE PAS SOMMER entre etablissements.
+      - name: actes_enrichissement
+        description: |
+          Volumetrie d actes d enrichissement - un logement dont le mail ET le
+          telephone ont ete corriges compte deux fois. Mesure d effort de saisie,
+          toujours superieure ou egale a logements_maj_enrichissement.
+      - name: logements_maj_owners
+        description: Logements distincts du territoire dont le NOM du proprietaire a ete modifie par un utilisateur de l etablissement
+      - name: logements_maj_owners_rank
+        description: |
+          Logements distincts dont le rang d un proprietaire a ete modifie.
+          Auparavant additionne a logements_maj_owners, ce qui comptait deux fois
+          les logements concernes par les deux operations.
+      - name: logements_maj_dpe
+        description: |
+          Logements distincts dont le DPE constate (housing.actual_dpe) a ete
+          renseigne par un utilisateur, mesure via l evenement housing:updated.
+          Volumetrie faible et attendue - la fonctionnalite date de janvier 2026.
+          A ne pas confondre avec le DPE source LOVAC/ADEME.
+      - name: date_derniere_maj_dpe
+        description: Date du dernier renseignement de DPE constate par un utilisateur de l etablissement
+      - name: logements_contactes_via_campagnes
+        description: |
+          Logements DISTINCTS contactes par au moins une campagne envoyee. Un
+          logement present dans plusieurs campagnes ne compte qu une fois.
+          NE PAS SOMMER entre etablissements.
+      - name: contacts_campagnes
+        description: |
+          Volumetrie brute des contacts - un logement contacte par trois
+          campagnes compte trois fois. Mesure d effort, toujours superieure ou
+          egale a logements_contactes_via_campagnes.
+      - name: logements_exportes_via_groupes
+        description: |
+          Logements DISTINCTS presents dans au moins un groupe exporte.
+          NE PAS SOMMER entre etablissements.
+      - name: exports_groupes
+        description: Volumetrie brute des exports de groupes - un logement present dans plusieurs groupes compte plusieurs fois
+      - name: total_communes_in_territory
+        description: Nombre de communes du perimetre de l etablissement, denominateur de communes_inscrites_pct
       - name: communes_inscrites
-        description: Nombre de communes inscrites dans le territoire de l EPCI
+        description: |
+          Nombre de communes du perimetre ayant au moins un utilisateur inscrit
+          (user_number > 0). NULL si l echelon communal n est pas un sous-echelon
+          de cet etablissement (cas d une Commune).
       - name: communes_inscrites_pct
-        description: Pourcentage de communes inscrites dans le territoire de l EPCI
+        description: Part des communes du perimetre inscrites, en pourcentage
       - name: intercommunalites_inscrites
-        description: Nombre d intercommunalites inscrites dans le departement
+        description: Nombre d intercommunalites du perimetre inscrites. NULL si l echelon ne s applique pas (EPCI et Commune).
+      - name: intercommunalites_couvrant_le_perimetre
+        description: Nombre d intercommunalites intersectant le perimetre, denominateur du pourcentage
       - name: intercommunalites_inscrites_pct
-        description: Pourcentage d intercommunalites inscrites dans le departement
+        description: Part des intercommunalites du perimetre inscrites, en pourcentage
       - name: departements_inscrits
-        description: Nombre de departements inscrits dans la region
+        description: Nombre de departements du perimetre inscrits. NULL sauf pour les echelons regionaux.
+      - name: departements_couvrant_le_perimetre
+        description: Nombre de departements intersectant le perimetre
       - name: departements_inscrits_pct
-        description: Pourcentage de departements inscrits dans la region
+        description: Part des departements du perimetre inscrits, en pourcentage
       - name: sded_inscrits
-        description: Nombre de SDED inscrits dans la region
+        description: Nombre de services deconcentres departementaux inscrits couvrant le perimetre. NULL sauf pour les echelons departemental (hors DDT/M elle-meme) et regional.
+      - name: sded_couvrant_le_perimetre
+        description: Nombre de services deconcentres departementaux intersectant le perimetre
       - name: sded_inscrits_pct
-        description: Pourcentage de SDED inscrits dans la region
+        description: Part des services deconcentres departementaux du perimetre inscrits, en pourcentage
+
+  - name: marts_zlv_usage_annuel
+    description: |
+      Table Marts - Usage ZLV par etablissement ET par annee. Version longue de
+      marts_zlv_usage, pour les series temporelles. Millesime pris sur
+      campaigns.sent_at, groups.exported_at et events.created_at.
+
+      NE PAS SOMMER les annees pour obtenir un total: les compteurs de logements
+      sont distincts a l interieur de chaque annee, donc un logement recontacte
+      deux annees differentes compte dans chacune.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - establishment_id
+            - annee
+      - dbt_utils.expression_is_true:
+          expression: logements_contactes_via_campagnes <= contacts_campagnes
+      - dbt_utils.expression_is_true:
+          expression: logements_exportes_via_groupes <= exports_groupes
+      - dbt_utils.expression_is_true:
+          expression: annee >= 2019
+    columns:
+      - name: establishment_id
+        description: Identifiant de l etablissement
+        tests:
+          - not_null
+      - name: annee
+        description: Annee du millesime
+        tests:
+          - not_null
+      - name: logements_contactes_via_campagnes
+        description: Logements distincts contactes par une campagne envoyee cette annee-la
+      - name: logements_exportes_via_groupes
+        description: Logements distincts presents dans un groupe exporte cette annee-la
+      - name: logements_maj_situation
+        description: Logements distincts dont la situation a ete mise a jour cette annee-la par un utilisateur de l etablissement
 
   - name: marts_bi_housing_zlv_usage
     description: |

@@ -17,6 +17,7 @@ import Tooltip from '~/components/ui/Tooltip/Tooltip';
 import { useHousingFilters } from '~/hooks/HousingFiltersContext';
 import { useDocumentTitle } from '~/hooks/useDocumentTitle';
 import { useNotification } from '~/hooks/useNotification';
+import { useActiveHousingCount } from '~/hooks/useActiveHousingCount';
 import { useSelection } from '~/hooks/useSelection';
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import { useUser } from '~/hooks/useUser';
@@ -82,19 +83,26 @@ const HousingListView = () => {
   });
 
   const { activeStatus } = useHousingListTabs();
-  const { data: totalCount } = useCountHousingQuery({
-    ...filters,
-    status: activeStatus.value
-  });
-  const { selected, hasSelected } = useSelection(totalCount?.housing ?? 0, {
+  const { data: activeCount, isLoading: isActiveCounting } =
+    useActiveHousingCount({ ...filters, status: activeStatus.value });
+  const { selected, hasSelected } = useSelection(activeCount?.housing ?? 0, {
     storage: 'store'
   });
-  const { data: count, isLoading: isCounting } = useCountHousingQuery({
-    ...filters,
-    all: selected.all,
-    housingIds: selected.ids,
-    status: activeStatus.value
-  });
+
+  // The selection count only differs from the filtered count once something is
+  // actually selected, so skip the request while the selection is empty.
+  const hasSelection = selected.all || selected.ids.length > 0;
+  const selectionCount = useCountHousingQuery(
+    {
+      ...filters,
+      all: selected.all,
+      housingIds: selected.ids,
+      status: activeStatus.value
+    },
+    { skip: !hasSelection }
+  );
+  const count = hasSelection ? selectionCount.data : activeCount;
+  const isCounting = hasSelection ? selectionCount.isLoading : isActiveCounting;
 
   const [addGroupHousing, addGroupHousingMutation] =
     useAddGroupHousingMutation();

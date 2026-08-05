@@ -22,10 +22,8 @@ import type {
   SelectedHousing
 } from '../../models/Housing';
 import type { HousingFilters } from '../../models/HousingFilters';
-import {
-  useCountHousingQuery,
-  useFindHousingQuery
-} from '../../services/housing.service';
+import { useActiveHousingCount } from '../../hooks/useActiveHousingCount';
+import { useFindHousingQuery } from '../../services/housing.service';
 import { findChild } from '../../utils/elementUtils';
 import { capitalize } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
@@ -64,15 +62,16 @@ function HousingList(props: HousingListProps) {
     perPage: pagination.pageSize
   };
 
-  const { data: housings, isFetching: isFetchHousings } = useFindHousingQuery({
-    filters,
-    pagination: apiPagination,
-    sort
-  });
+  const { data: housings, isFetching: isFetchHousings } =
+    useFindHousingQuery({
+      filters,
+      pagination: apiPagination,
+      sort
+    });
 
   const housingList = housings?.entities;
 
-  const { data: count } = useCountHousingQuery(filters);
+  const { data: count } = useActiveHousingCount(filters);
   const filteredCount = count?.housing ?? 0;
 
   const { selected, selectedCount, setSelected, unselectAll } = useSelection(
@@ -262,7 +261,7 @@ function HousingList(props: HousingListProps) {
 
       <AdvancedTable
         columns={columns}
-        data={housingList ?? []}
+        data={(housingList ?? []) as Housing[]}
         getRowId={(housing) => housing.id}
         getRowSelectionLabel={(housing) =>
           `Sélectionner le logement "${housing.rawAddress.join(', ')}"`

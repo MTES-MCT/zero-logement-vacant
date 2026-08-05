@@ -5,15 +5,17 @@ import type {
   HousingFiltersDTO,
   HousingPointDTO,
   HousingPointField,
+  HousingStatus,
   HousingUpdatePayloadDTO,
+  PaginatedResponse,
   PaginationOptions
 } from '@zerologementvacant/models';
+import { paginated } from '@zerologementvacant/models';
 import { parseISO } from 'date-fns';
 
 import type { Housing, HousingSort } from '../models/Housing';
 import type { HousingCount } from '../models/HousingCount';
 import type { HousingFilters } from '../models/HousingFilters';
-import type { HousingPaginatedResult } from '../models/PaginatedResult';
 import { toQuery, type SortOptions } from '../models/Sort';
 import type { AbortOptions } from '../utils/fetchUtils';
 import { zlvApi, type TagType } from './api.service';
@@ -53,32 +55,40 @@ export const housingApi = zlvApi.injectEndpoints({
           : []
     }),
 
-    findHousing: builder.query<HousingPaginatedResult, FindOptions>({
+    // Housing list (REST pagination): `GET /housings` returns a bare array with
+    // a `Content-Range` header (206 for a partial range). Mirrors
+    // `findOwnersNext`; the total is parsed from the header by `paginated()`.
+    findHousing: builder.query<PaginatedResponse<Housing>, FindOptions>({
       query: (opts) => ({
-        url: '/housing',
+        url: '/housings',
+        method: 'GET',
         params: {
-          ...opts?.filters,
-          ...opts?.pagination,
-          sort: toQuery(opts?.sort)
-        },
-        method: 'GET'
+          ...opts.filters,
+          ...opts.pagination,
+          sort: toQuery(opts.sort)
+        }
       }),
-      providesTags: (_result, _errors, args) => [
-        {
-          type: 'HousingByStatus' as const,
-          id: args.filters.status
-        },
-        ...(_result?.entities.map(({ id }) => ({
-          type: 'Housing' as const,
-          id
-        })) ?? [])
-      ],
-      transformResponse: (response: any) => {
-        return {
-          ...response,
-          entities: response.entities.map(parseHousing)
-        };
-      }
+      transformResponse: (housings: ReadonlyArray<HousingDTO>, meta) => {
+        const acceptRanges =
+          meta?.response?.headers?.get('Accept-Ranges') ?? null;
+        const contentRange =
+          meta?.response?.headers?.get('Content-Range') ?? null;
+
+        return paginated(housings.map(parseHousing), {
+          acceptRanges,
+          contentRange
+        });
+      },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.entities.map(({ id }) => ({
+                type: 'Housing' as const,
+                id
+              })),
+              { type: 'Housing', id: 'LIST' }
+            ]
+          : [{ type: 'Housing', id: 'LIST' }]
     }),
 
     // Lightweight projection for the map: fetches all housings as points via
@@ -92,22 +102,21 @@ export const housingApi = zlvApi.injectEndpoints({
       } & AbortOptions
     >({
       query: (opts) => ({
-        url: '/housing',
+        url: '/housings',
+        method: 'GET',
         params: {
           ...opts.filters,
           fields: [...opts.fields],
           paginate: false
-        },
-        method: 'GET'
+        }
       }),
-      transformResponse: (response: { entities: Partial<HousingPointDTO>[] }) =>
-        response.entities,
       providesTags: ['Housing']
     }),
 
+    // Map view counts hit `GET /housings/count`.
     countHousing: builder.query<HousingCount, HousingFilters>({
       query: (filters) => ({
-        url: 'housing/count',
+        url: 'housings/count',
         method: 'GET',
         params: {
           ...filters
@@ -119,6 +128,21 @@ export const housingApi = zlvApi.injectEndpoints({
           id: args.status
         }
       ]
+    }),
+
+    countHousingByStatus: builder.query<
+      Record<HousingStatus, HousingCount>,
+      HousingFilters
+    >({
+      query: (filters) => ({
+        url: 'housings/count',
+        method: 'GET',
+        params: {
+          ...filters,
+          groupBy: 'status'
+        }
+      }),
+      providesTags: ['HousingCountByStatus']
     }),
     // TODO: fix this any type
     createHousing: builder.mutation<Housing, any>({
@@ -208,11 +232,10 @@ export function useHousingPoints<
 export const {
   useGetHousingQuery,
   useFindHousingQuery,
-  useLazyFindHousingQuery,
   useGetHousingPointsQuery,
   useLazyGetHousingPointsQuery,
   useCountHousingQuery,
-  useLazyCountHousingQuery,
+  useCountHousingByStatusQuery,
   useCreateHousingMutation,
   useUpdateHousingMutation,
   useUpdateManyHousingMutation

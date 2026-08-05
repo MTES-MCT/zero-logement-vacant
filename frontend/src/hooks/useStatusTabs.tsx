@@ -1,28 +1,30 @@
 import type { TabsProps } from '@codegouvfr/react-dsfr/Tabs';
 import {
   HOUSING_STATUS_LABELS,
+  HOUSING_STATUS_VALUES,
   HousingStatus,
   toHousingStatusId
 } from '@zerologementvacant/models';
 import { Array, Number, pipe } from 'effect';
 import type { ElementOf } from 'ts-essentials';
-import { match, Pattern } from 'ts-pattern';
+import { match } from 'ts-pattern';
 
 import type { HousingFilters } from '~/models/HousingFilters';
-import { useCountHousingQuery } from '~/services/housing.service';
+import { useCountHousingByStatusQuery } from '~/services/housing.service';
 import { useHousingListTabs } from '~/views/HousingList/HousingListTabsProvider';
 
 function createTab(
   status: HousingStatus,
-  query: ReturnType<typeof useCountHousingQuery>
+  query: ReturnType<typeof useCountHousingByStatusQuery>
 ): ElementOf<TabsProps.Controlled['tabs']> {
   return {
     tabId: toHousingStatusId(status),
     label: match(query)
       .with({ isLoading: true }, () => `${HOUSING_STATUS_LABELS[status]} (...)`)
       .with(
-        { isSuccess: true, data: { housing: Pattern.number.select() } },
-        (housing) => `${HOUSING_STATUS_LABELS[status]} (${housing})`
+        { isSuccess: true },
+        ({ data }) =>
+          `${HOUSING_STATUS_LABELS[status]} (${data[status]?.housing ?? 0})`
       )
       .otherwise(() => null)
   };
@@ -31,43 +33,12 @@ function createTab(
 export function useStatusTabs(filters: HousingFilters) {
   const { activeStatus, activeTab, setActiveTab } = useHousingListTabs();
 
-  const countNeverContactedQuery = useCountHousingQuery({
-    ...filters,
-    status: HousingStatus.NEVER_CONTACTED
-  });
-  const countWaitingQuery = useCountHousingQuery({
-    ...filters,
-    status: HousingStatus.WAITING
-  });
-  const countFirstContactQuery = useCountHousingQuery({
-    ...filters,
-    status: HousingStatus.FIRST_CONTACT
-  });
-  const countInProgressQuery = useCountHousingQuery({
-    ...filters,
-    status: HousingStatus.IN_PROGRESS
-  });
-  const countCompletedQuery = useCountHousingQuery({
-    ...filters,
-    status: HousingStatus.COMPLETED
-  });
-  const countBlockedQuery = useCountHousingQuery({
-    ...filters,
-    status: HousingStatus.BLOCKED
-  });
-  const queries = [
-    countNeverContactedQuery,
-    countWaitingQuery,
-    countFirstContactQuery,
-    countInProgressQuery,
-    countCompletedQuery,
-    countBlockedQuery
-  ];
+  const query = useCountHousingByStatusQuery(filters);
 
-  const sum: number | null = queries.every((query) => query.isSuccess)
+  const sum: number | null = query.isSuccess
     ? pipe(
-        queries,
-        Array.map((query) => query.data.housing),
+        HOUSING_STATUS_VALUES,
+        Array.map((status) => query.data[status]?.housing ?? 0),
         Number.sumAll
       )
     : null;
@@ -77,12 +48,12 @@ export function useStatusTabs(filters: HousingFilters) {
       tabId: 'all',
       label: sum !== null ? `Tous (${sum})` : 'Tous'
     },
-    createTab(HousingStatus.NEVER_CONTACTED, countNeverContactedQuery),
-    createTab(HousingStatus.WAITING, countWaitingQuery),
-    createTab(HousingStatus.FIRST_CONTACT, countFirstContactQuery),
-    createTab(HousingStatus.IN_PROGRESS, countInProgressQuery),
-    createTab(HousingStatus.COMPLETED, countCompletedQuery),
-    createTab(HousingStatus.BLOCKED, countBlockedQuery)
+    createTab(HousingStatus.NEVER_CONTACTED, query),
+    createTab(HousingStatus.WAITING, query),
+    createTab(HousingStatus.FIRST_CONTACT, query),
+    createTab(HousingStatus.IN_PROGRESS, query),
+    createTab(HousingStatus.COMPLETED, query),
+    createTab(HousingStatus.BLOCKED, query)
   ];
 
   return {

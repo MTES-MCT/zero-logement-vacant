@@ -1,14 +1,10 @@
 import { HousingStatus } from '@zerologementvacant/models';
 
+import { fromDateDBO } from '~/infra/database';
+import { kysely } from '~/infra/database/kysely';
 import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import { isSendDateReached } from '~/models/CampaignApi';
-import {
-  campaignsHousingTable,
-  CampaignsHousing
-} from '~/repositories/campaignHousingRepository';
-import { campaignsTable } from '~/repositories/campaignRepository';
-import { housingTable } from '~/repositories/housingRepository';
 import {
   flipCampaignHousingsToWaiting,
   resolveSystemUser
@@ -24,6 +20,8 @@ export interface FlipSentCampaignHousingsOptions {
 export interface FlipSentCampaignHousingsSummary {
   campaigns: number;
   housings: number;
+  /** Number of campaigns whose flip failed and was skipped, not aborting the rest. */
+  failed: number;
 }
 
 /**
@@ -41,47 +39,41 @@ export async function flipSentCampaignHousings(
   // digits were stored (which can differ from the app's reconstructed
   // calendar date by a day depending on the writer's local offset) and could
   // disagree with the controller's decision for the same campaign.
-  const rows = await CampaignsHousing()
-    .join(
-      campaignsTable,
-      `${campaignsTable}.id`,
-      `${campaignsHousingTable}.campaign_id`
+  const rows = await kysely
+    .selectFrom('campaignsHousing')
+    .innerJoin('campaigns', 'campaigns.id', 'campaignsHousing.campaignId')
+    .innerJoin('fastHousing', (join) =>
+      join
+        .onRef('fastHousing.id', '=', 'campaignsHousing.housingId')
+        .onRef('fastHousing.geoCode', '=', 'campaignsHousing.housingGeoCode')
     )
-    .join(housingTable, function () {
-      this.on(
-        `${housingTable}.id`,
-        '=',
-        `${campaignsHousingTable}.housing_id`
-      ).andOn(
-        `${housingTable}.geo_code`,
-        '=',
-        `${campaignsHousingTable}.housing_geo_code`
-      );
-    })
-    .whereNotNull(`${campaignsTable}.sent_at`)
-    .where(`${housingTable}.status`, HousingStatus.NEVER_CONTACTED)
-    .distinct(
-      `${campaignsTable}.id as id`,
-      `${campaignsTable}.sent_at as sentAt`
-    );
+    .where('campaigns.sentAt', 'is not', null)
+    .where('fastHousing.status', '=', HousingStatus.NEVER_CONTACTED)
+    .select(['campaigns.id as id', 'campaigns.sentAt as sentAt'])
+    .distinct()
+    .execute();
 
   const campaignIds = rows
     .filter((row) =>
-      isSendDateReached(
-        (row.sentAt as Date).toJSON().slice(0, 10),
-        options.today
-      )
+      isSendDateReached(fromDateDBO(row.sentAt!).slice(0, 10), options.today)
     )
-    .map((row) => row.id as string);
+    .map((row) => row.id);
   logger.info(`Found ${campaignIds.length} campaign(s) to settle`);
 
   let housings = 0;
+  let failed = 0;
   if (campaignIds.length > 0) {
     const system = await resolveSystemUser();
-    if (system) {
-      for (const id of campaignIds) {
+    for (const id of campaignIds) {
+      try {
         await startKyselyTransaction(async () => {
           housings += await flipCampaignHousingsToWaiting({ id }, system);
+        });
+      } catch (error) {
+        failed += 1;
+        logger.error('Failed to flip campaign housings to WAITING', {
+          campaign: id,
+          error
         });
       }
     }
@@ -89,7 +81,8 @@ export async function flipSentCampaignHousings(
 
   logger.info('Settled sent-campaign housings', {
     campaigns: campaignIds.length,
-    housings
+    housings,
+    failed
   });
-  return { campaigns: campaignIds.length, housings };
+  return { campaigns: campaignIds.length, housings, failed };
 }

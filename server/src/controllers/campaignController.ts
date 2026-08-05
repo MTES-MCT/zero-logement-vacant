@@ -178,15 +178,22 @@ const createFromGroup: RequestHandler<
     updatedAt: new Date().toJSON()
   };
 
-  const housings = await housingRepository.find({
-    filters: {
-      establishmentIds: [auth.establishmentId],
-      groupIds: [group.id]
-    },
-    pagination: {
-      paginate: false
-    }
-  });
+  const shouldFlip = isSendDateReached(campaign.sentAt, today());
+  // Resolved outside the transaction, concurrently with the independent
+  // housings fetch: a misconfigured/deleted system account now fails the
+  // request outright rather than silently skipping the flip.
+  const [housings, system] = await Promise.all([
+    housingRepository.find({
+      filters: {
+        establishmentIds: [auth.establishmentId],
+        groupIds: [group.id]
+      },
+      pagination: {
+        paginate: false
+      }
+    }),
+    shouldFlip ? resolveSystemUser() : Promise.resolve(null)
+  ]);
   const campaignHousingEvents = housings.map<CampaignHousingEventApi>(
     (housing) => ({
       id: uuidv4(),
@@ -206,11 +213,6 @@ const createFromGroup: RequestHandler<
   const neverContactedHousings = housings.filter(
     (housing) => housing.status === HousingStatus.NEVER_CONTACTED
   );
-
-  // Resolved outside the transaction: a misconfigured/deleted system account
-  // must not roll back the campaign creation itself, only defer the flip.
-  const shouldFlip = isSendDateReached(campaign.sentAt, today());
-  const system = shouldFlip ? await resolveSystemUser() : null;
 
   await startKyselyTransaction(async () => {
     await senderRepository.save(sender);
@@ -276,14 +278,20 @@ const update: RequestHandler<
   // A genuine sentAt change either flips housings to waiting (date reached) or,
   // when postponed to the future, reverts the ones the send-date rule
   // auto-flipped. Never on a metadata-only edit. The two are mutually exclusive.
+  // shouldRevert additionally requires the *previous* sentAt to have already
+  // been reached — otherwise this is a campaign's first-ever sentAt, which by
+  // definition never auto-flipped anything, and must not revert other
+  // campaigns' genuine flips.
   const currentDate = today();
   const sentAtChanged = updated.sentAt !== campaign.sentAt;
   const shouldFlip =
     sentAtChanged && isSendDateReached(updated.sentAt, currentDate);
   const shouldRevert =
-    sentAtChanged && isSendDateInFuture(updated.sentAt, currentDate);
+    sentAtChanged &&
+    isSendDateReached(campaign.sentAt, currentDate) &&
+    isSendDateInFuture(updated.sentAt, currentDate);
   // Resolved outside the transaction: a misconfigured/deleted system account
-  // must not roll back the campaign's own metadata save, only defer the change.
+  // now fails the request outright rather than silently skipping the change.
   const system = shouldFlip || shouldRevert ? await resolveSystemUser() : null;
 
   await startKyselyTransaction(async () => {

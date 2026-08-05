@@ -51,17 +51,22 @@ import {
 
 const TODAY = '2026-07-15';
 const STATUS_EVENT_TIME = '2026-01-01T10:00:00.000Z';
+const fixtureUser = genUserApi('establishment-id');
 
 function statusEvent(
   overrides: Partial<HousingEventApi> = {}
 ): HousingEventApi {
   return {
+    ...genEventApi({
+      type: 'housing:status-updated',
+      creator: fixtureUser,
+      nextOld: {
+        status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+      },
+      nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] }
+    }),
     id: 'status-event-id',
-    type: 'housing:status-updated',
-    nextOld: { status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED] },
-    nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] },
     createdAt: STATUS_EVENT_TIME,
-    createdBy: 'user-id',
     housingGeoCode: '01001',
     housingId: 'housing-id',
     ...overrides
@@ -70,16 +75,18 @@ function statusEvent(
 
 function attachedEvent(createdAt: string): CampaignHousingEventApi {
   return {
+    ...genEventApi({
+      type: 'housing:campaign-attached',
+      creator: fixtureUser,
+      nextOld: null,
+      nextNew: { name: 'Campaign' }
+    }),
     id: 'attached-event-id',
-    type: 'housing:campaign-attached',
-    nextOld: null,
-    nextNew: { name: 'Campaign' },
     createdAt,
-    createdBy: 'user-id',
     housingGeoCode: '01001',
     housingId: 'housing-id',
     campaignId: 'campaign-id'
-  };
+  } as CampaignHousingEventApi;
 }
 
 function base() {
@@ -303,5 +310,89 @@ describe('campaignSendingDateRepair.query (integration)', () => {
     expect(campaignSendingDateRepair.decide(target!)).toMatchObject({
       deleteEventIds: [flip.id]
     });
+  });
+});
+
+describe('campaignSendingDateRepair.revalidate (integration)', () => {
+  it('flags a full-revert row as stale once a sibling campaign has since sent', async () => {
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(toUserDBO(user));
+
+    const housing = {
+      ...genHousingApi(),
+      status: HousingStatus.WAITING,
+      subStatus: null
+    };
+    // Not sent when the plan was generated, but has since reached its sending
+    // date by the time apply() runs.
+    const sibling = {
+      ...genCampaignApi(establishment.id, user),
+      sentAt: '2020-01-01'
+    };
+    await Housing().insert(formatHousingRecordApi(housing));
+    await Campaigns().insert(formatCampaignApi(sibling));
+    await CampaignsHousing().insert({
+      campaign_id: sibling.id,
+      housing_id: housing.id,
+      housing_geo_code: housing.geoCode
+    });
+
+    const stale = await campaignSendingDateRepair.revalidate!([
+      {
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode,
+        update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null }
+      }
+    ]);
+
+    expect(stale).toEqual(new Set([`${housing.geoCode}:${housing.id}`]));
+  });
+
+  it('does not flag a full-revert row when no campaign has sent', async () => {
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(toUserDBO(user));
+
+    const housing = {
+      ...genHousingApi(),
+      status: HousingStatus.WAITING,
+      subStatus: null
+    };
+    const draft = { ...genCampaignApi(establishment.id, user), sentAt: null };
+    await Housing().insert(formatHousingRecordApi(housing));
+    await Campaigns().insert(formatCampaignApi(draft));
+    await CampaignsHousing().insert({
+      campaign_id: draft.id,
+      housing_id: housing.id,
+      housing_geo_code: housing.geoCode
+    });
+
+    const stale = await campaignSendingDateRepair.revalidate!([
+      {
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode,
+        update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null }
+      }
+    ]);
+
+    expect(stale.size).toBe(0);
+  });
+
+  it('ignores re-author rows (no `update`), whose precondition is the opposite', async () => {
+    const housing = {
+      ...genHousingApi(),
+      status: HousingStatus.WAITING,
+      subStatus: null
+    };
+    await Housing().insert(formatHousingRecordApi(housing));
+
+    const stale = await campaignSendingDateRepair.revalidate!([
+      { housingId: housing.id, housingGeoCode: housing.geoCode }
+    ]);
+
+    expect(stale.size).toBe(0);
   });
 });

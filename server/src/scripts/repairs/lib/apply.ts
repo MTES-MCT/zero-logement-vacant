@@ -2,9 +2,9 @@ import { stat } from 'node:fs/promises';
 import { Writable } from 'node:stream';
 
 import { compactUndefined } from '@zerologementvacant/utils';
-import { chunksOf } from 'effect/Array';
 
 import db from '~/infra/database';
+import { runInBatches } from '~/infra/database/batch';
 import type { HousingEventApi } from '~/models/EventApi';
 import {
   Events,
@@ -34,6 +34,15 @@ export interface ApplyOptions {
    * full counts recompute. Defaults to `false`.
    */
   bypassTriggers?: boolean;
+  /**
+   * Extra apply-time staleness check for rows carrying an `expect` precondition,
+   * for repairs whose real precondition cannot be expressed as a housing-column
+   * `expect` (e.g. "no sibling campaign has since reached its sending date").
+   * Called once with every precondition row; return the
+   * `${housingGeoCode}:${housingId}` keys to additionally treat as stale
+   * (skipped), on top of any generic `expect` mismatch.
+   */
+  revalidate?(rows: PlanRow[]): Promise<Set<string>>;
 }
 
 export async function apply(
@@ -89,30 +98,44 @@ export async function apply(
     // can move these rows between this check and the writes below — and mark any
     // that no longer match as stale so their whole row is skipped.
     const staleKeys = new Set<string>();
-    for (const chunk of chunksOf(preconditions, CHUNK_SIZE)) {
-      const current = await Housing(transaction)
-        .whereIn(
-          ['geo_code', 'id'],
-          chunk.map((row) => [row.housingGeoCode, row.housingId])
-        )
-        .forUpdate()
-        .select(
-          'geo_code',
-          'id',
-          'status',
-          'sub_status',
-          'occupancy',
-          'occupancy_intended'
+    await runInBatches(
+      preconditions,
+      async (chunk) => {
+        const current = await Housing(transaction)
+          .whereIn(
+            ['geo_code', 'id'],
+            chunk.map((row) => [row.housingGeoCode, row.housingId])
+          )
+          .forUpdate()
+          .select(
+            'geo_code',
+            'id',
+            'status',
+            'sub_status',
+            'occupancy',
+            'occupancy_intended'
+          );
+        const currentByKey = new Map<string, HousingStateRow>(
+          current.map((row) => [`${row.geo_code}:${row.id}`, row])
         );
-      const currentByKey = new Map<string, HousingStateRow>(
-        current.map((row) => [`${row.geo_code}:${row.id}`, row])
-      );
-      for (const row of chunk) {
-        const key = `${row.housingGeoCode}:${row.housingId}`;
-        const housing = currentByKey.get(key);
-        if (!housing || !matchesExpect(housing, row.expect)) {
-          staleKeys.add(key);
+        for (const row of chunk) {
+          const key = `${row.housingGeoCode}:${row.housingId}`;
+          const housing = currentByKey.get(key);
+          if (!housing || !matchesExpect(housing, row.expect)) {
+            staleKeys.add(key);
+          }
         }
+      },
+      CHUNK_SIZE
+    );
+
+    // A repair-specific precondition beyond the generic housing columns above
+    // (e.g. "no sibling campaign has since sent"), re-checked against live data
+    // for the same reason: the plan is a point-in-time snapshot.
+    if (options.revalidate && preconditions.length > 0) {
+      const extraStaleKeys = await options.revalidate(preconditions);
+      for (const key of extraStaleKeys) {
+        staleKeys.add(key);
       }
     }
 
@@ -260,9 +283,7 @@ function toHousingColumns(update: NonNullable<PlanRow['update']>) {
   });
 }
 
-interface Precondition {
-  housingGeoCode: string;
-  housingId: string;
+interface Precondition extends PlanRow {
   expect: NonNullable<PlanRow['expect']>;
 }
 
@@ -279,11 +300,7 @@ async function collectPreconditions(planFile: string): Promise<Precondition[]> {
       objectMode: true,
       write(row: PlanRow, _encoding, callback) {
         if (row.expect && Object.keys(row.expect).length > 0) {
-          preconditions.push({
-            housingGeoCode: row.housingGeoCode,
-            housingId: row.housingId,
-            expect: row.expect
-          });
+          preconditions.push({ ...row, expect: row.expect });
         }
         callback();
       }

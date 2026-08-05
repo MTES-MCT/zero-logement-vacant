@@ -260,6 +260,29 @@ describe('repairCommand()', () => {
       await unregisterRepair();
     });
 
+    it('forwards repair.revalidate to apply() when the repair defines it', async () => {
+      const { repairs } = await import('../index');
+      const revalidate = vi.fn(async () => new Set<string>());
+      (repairs as Record<string, unknown>)['my-repair'] = {
+        name: 'my-repair',
+        query: async () => [],
+        decide: () => ({ action: 'skip' as const }),
+        revalidate
+      };
+      const planFile = path.join(outDir, 'plan.jsonl');
+      fs.writeFileSync(planFile, '');
+      mockApply.mockResolvedValue(summary);
+
+      const cmd = repairCommand();
+      await cmd.parseAsync(['apply', 'my-repair', planFile], { from: 'user' });
+
+      expect(mockApply).toHaveBeenCalledWith(planFile, {
+        bypassTriggers: false,
+        revalidate
+      });
+      await unregisterRepair();
+    });
+
     it('logs an error and never applies when repair name is unknown', async () => {
       const planFile = path.join(outDir, 'plan.jsonl');
       fs.writeFileSync(planFile, '');

@@ -771,9 +771,54 @@ describe('Campaign API', () => {
         .execute();
       expect(attachEvents).toBeArrayOfSize(isolatedHousings.length);
       // ...while attaching housings — a genuine user action — stays the user's.
-      expect(attachEvents).toSatisfyAll(
-        (event) => event.createdBy === user.id
-      );
+      expect(attachEvents).toSatisfyAll((event) => event.createdBy === user.id);
+    });
+
+    it('fails instead of silently skipping the flip when the system account cannot be resolved', async () => {
+      const { housings: isolatedHousings, group: isolatedGroup } =
+        await createGroupWithHousings();
+      // Point at a nonexistent account instead of soft-deleting the shared,
+      // globally-seeded system user: that row is read by every parallel test
+      // file's own resolveSystemUser() call, so mutating it races them.
+      const originalSystem = config.app.system;
+      config.app.system = 'missing-system-account@zerologementvacant.test';
+
+      try {
+        const payload: CampaignCreationPayload = {
+          title: 'Logements prioritaires',
+          description: 'Campagne pour les logements prioritaires',
+          sentAt: '2020-01-01'
+        };
+
+        const { status } = await request(url)
+          .post(testRoute(isolatedGroup.id))
+          .send(payload)
+          .type('json')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+        const neverContactedHousings = isolatedHousings.filter(
+          (housing) => housing.status === HousingStatus.NEVER_CONTACTED
+        );
+        const actual = await kysely
+          .selectFrom('fastHousing')
+          .selectAll('fastHousing')
+          .where((eb) =>
+            eb(
+              eb.refTuple('geoCode', 'id'),
+              'in',
+              neverContactedHousings.map((housing) =>
+                eb.tuple(housing.geoCode, housing.id)
+              )
+            )
+          )
+          .execute();
+        expect(actual).toSatisfyAll<Selectable<DB['fastHousing']>>(
+          (housing) => housing.status === HousingStatus.NEVER_CONTACTED
+        );
+      } finally {
+        config.app.system = originalSystem;
+      }
     });
 
     it('does not flip housings when sentAt is in the future', async () => {
@@ -1182,10 +1227,7 @@ describe('Campaign API', () => {
         housingGeoCode: housing.geoCode,
         housingId: housing.id
       };
-      await kysely
-        .insertInto('events')
-        .values(toEventInsert(manual))
-        .execute();
+      await kysely.insertInto('events').values(toEventInsert(manual)).execute();
       await kysely
         .insertInto('housingEvents')
         .values({
@@ -1205,6 +1247,67 @@ describe('Campaign API', () => {
         .send(payload)
         .use(tokenProvider(user));
 
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual?.status).toBe(HousingStatus.WAITING);
+    });
+
+    it('does not revert a WAITING housing when a draft campaign gets its first sentAt set to the future', async () => {
+      const system = (await userRepository.getByEmail(config.app.system))!;
+      // `campaign` (from beforeEach) has sentAt: null — a draft that has never
+      // been sent, so it cannot be the source of an auto-flip to revert.
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+        status: HousingStatus.WAITING,
+        subStatus: null
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+      // Pristine system-authored auto-flip, as if some other, now-unlinked
+      // campaign had genuinely sent and flipped this housing.
+      const flip: HousingEventApi = {
+        ...genEventApi({
+          type: 'housing:status-updated',
+          creator: system,
+          nextOld: {
+            status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+          },
+          nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
+      };
+      await kysely.insertInto('events').values(toEventInsert(flip)).execute();
+      await kysely
+        .insertInto('housingEvents')
+        .values({
+          eventId: flip.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+
+      const payload: CampaignUpdatePayload = {
+        title: campaign.title,
+        description: campaign.description,
+        sentAt: '2999-01-01'
+      };
+      const { status } = await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
       const actual = await kysely
         .selectFrom('fastHousing')
         .selectAll('fastHousing')
@@ -1260,13 +1363,12 @@ describe('Campaign API', () => {
       expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
     });
 
-    it('still saves the campaign when the system account cannot be resolved', async () => {
-      const system = await userRepository.getByEmail(config.app.system);
-      await kysely
-        .updateTable('users')
-        .set({ deletedAt: new Date() })
-        .where('id', '=', system!.id)
-        .execute();
+    it('fails instead of silently skipping the flip when the system account cannot be resolved', async () => {
+      // Point at a nonexistent account instead of soft-deleting the shared,
+      // globally-seeded system user: that row is read by every parallel test
+      // file's own resolveSystemUser() call, so mutating it races them.
+      const originalSystem = config.app.system;
+      config.app.system = 'missing-system-account@zerologementvacant.test';
 
       try {
         const payload: CampaignUpdatePayload = {
@@ -1275,19 +1377,20 @@ describe('Campaign API', () => {
           sentAt: '2020-01-01'
         };
 
-        const { status, body } = await request(url)
+        const { status } = await request(url)
           .put(testRoute(campaign.id))
           .send(payload)
           .use(tokenProvider(user));
 
-        expect(status).toBe(constants.HTTP_STATUS_OK);
-        expect(body.title).toBe(payload.title);
+        expect(status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+        const actual = await kysely
+          .selectFrom('campaigns')
+          .selectAll()
+          .where('id', '=', campaign.id)
+          .executeTakeFirst();
+        expect(actual?.title).toBe(campaign.title);
       } finally {
-        await kysely
-          .updateTable('users')
-          .set({ deletedAt: null })
-          .where('id', '=', system!.id)
-          .execute();
+        config.app.system = originalSystem;
       }
     });
   });

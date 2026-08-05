@@ -83,7 +83,10 @@ export function repairCommand(): Command {
       // Precedence: CLI flag > repair.bypassTriggers > false.
       const bypassTriggers =
         options.bypassTriggers ?? repair.bypassTriggers ?? false;
-      const summary = await apply(planFile, { bypassTriggers });
+      const summary = await apply(planFile, {
+        bypassTriggers,
+        ...(repair.revalidate ? { revalidate: repair.revalidate } : {})
+      });
       logger.info('Plan applied', { ...summary, bypassTriggers });
     });
 

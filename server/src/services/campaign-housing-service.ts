@@ -2,42 +2,32 @@ import {
   HOUSING_STATUS_LABELS,
   HousingStatus
 } from '@zerologementvacant/models';
-import { chunksOf } from 'effect/Array';
 import { v4 as uuidv4 } from 'uuid';
 
+import SystemUserMissingError from '~/errors/systemUserMissingError';
 import config from '~/infra/config';
-import { withinTransaction } from '~/infra/database/transaction';
-import { logger } from '~/infra/logger';
+import { fromDateDBO } from '~/infra/database';
+import { runInBatches } from '~/infra/database/batch';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import type { CampaignApi } from '~/models/CampaignApi';
 import { isSendDateReached } from '~/models/CampaignApi';
 import type { HousingEventApi } from '~/models/EventApi';
 import type { HousingApi, HousingId } from '~/models/HousingApi';
 import type { UserApi } from '~/models/UserApi';
-import { Campaigns } from '~/repositories/campaignRepository';
-import eventRepository, {
-  EVENTS_TABLE,
-  HOUSING_EVENTS_TABLE,
-  HousingEvents
-} from '~/repositories/eventRepository';
+import eventRepository from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
 
 /**
  * Resolve the system account used to attribute automated status flips.
- * Returns `null` (after logging) instead of throwing so a misconfigured or
- * deleted account defers the flip to the next scheduled run rather than
- * rolling back the caller's own otherwise-valid campaign create/update.
+ * Throws {@link SystemUserMissingError} if the account is missing or
+ * misconfigured, so the caller (a request or the daily cron) fails loudly
+ * instead of silently skipping the flip.
  */
-export async function resolveSystemUser(): Promise<UserApi | null> {
+export async function resolveSystemUser(): Promise<UserApi> {
   const system = await userRepository.getByEmail(config.app.system);
   if (!system) {
-    logger.error(
-      'Unable to resolve the system account used to attribute automated ' +
-        'campaign-housing status flips; the flip will be skipped and ' +
-        'retried by the next scheduled run.',
-      { email: config.app.system }
-    );
-    return null;
+    throw new SystemUserMissingError(config.app.system);
   }
   return system;
 }
@@ -74,25 +64,45 @@ export async function flipHousingsToWaiting(
     return 0;
   }
 
-  const flipped = await housingRepository.updateMany(
+  return writeStatusTransition(
+    housings,
+    { from: HousingStatus.NEVER_CONTACTED, to: HousingStatus.WAITING },
+    system
+  );
+}
+
+/**
+ * Conditionally transition `housings` from `transition.from` to
+ * `transition.to` (`onlyIfStatus` guards against a concurrent writer having
+ * already moved a housing off `from`), writing one `housing:status-updated`
+ * event per housing actually transitioned. Shared tail for the forward flip
+ * and the postpone revert, which apply the same mechanics in opposite
+ * directions. Returns the number transitioned.
+ */
+async function writeStatusTransition(
+  housings: ReadonlyArray<Pick<HousingApi, 'id' | 'geoCode'>>,
+  transition: { from: HousingStatus; to: HousingStatus },
+  system: UserApi
+): Promise<number> {
+  const updated = await housingRepository.updateMany(
     housings.map<HousingId>((housing) => ({
       geoCode: housing.geoCode,
       id: housing.id
     })),
-    { status: HousingStatus.WAITING, subStatus: null },
-    { onlyIfStatus: HousingStatus.NEVER_CONTACTED }
+    { status: transition.to, subStatus: null },
+    { onlyIfStatus: transition.from }
   );
 
-  if (flipped.length === 0) {
+  if (updated.length === 0) {
     return 0;
   }
 
   const now = new Date().toJSON();
-  const events = flipped.map<HousingEventApi>((housing) => ({
+  const events = updated.map<HousingEventApi>((housing) => ({
     id: uuidv4(),
     type: 'housing:status-updated',
-    nextOld: { status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED] },
-    nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] },
+    nextOld: { status: HOUSING_STATUS_LABELS[transition.from] },
+    nextNew: { status: HOUSING_STATUS_LABELS[transition.to] },
     createdAt: now,
     createdBy: system.id,
     housingGeoCode: housing.geoCode,
@@ -100,7 +110,7 @@ export async function flipHousingsToWaiting(
   }));
   await eventRepository.insertManyHousingEvents(events);
 
-  return flipped.length;
+  return updated.length;
 }
 
 /**
@@ -161,40 +171,19 @@ export async function revertCampaignHousingsToNeverContacted(
     return 0;
   }
 
-  const reverted = await housingRepository.updateMany(
-    eligible.map<HousingId>((housing) => ({
-      geoCode: housing.geoCode,
-      id: housing.id
-    })),
-    { status: HousingStatus.NEVER_CONTACTED, subStatus: null },
-    { onlyIfStatus: HousingStatus.WAITING }
+  return writeStatusTransition(
+    eligible,
+    { from: HousingStatus.WAITING, to: HousingStatus.NEVER_CONTACTED },
+    system
   );
-  if (reverted.length === 0) {
-    return 0;
-  }
-
-  const now = new Date().toJSON();
-  const events = reverted.map<HousingEventApi>((housing) => ({
-    id: uuidv4(),
-    type: 'housing:status-updated',
-    nextOld: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] },
-    nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED] },
-    createdAt: now,
-    createdBy: system.id,
-    housingGeoCode: housing.geoCode,
-    housingId: housing.id
-  }));
-  await eventRepository.insertManyHousingEvents(events);
-
-  return reverted.length;
 }
 
 /**
  * Filter `waiting` to the housings eligible for the postpone revert. Enrichment
- * reads run on the ambient transaction so they see the campaign's just-saved
- * future `sentAt`. `currentCampaignId` is excluded from the sibling-sent check —
- * it is future by construction, and reading its freshly-saved value is
- * unnecessary.
+ * reads run on the ambient Kysely transaction so they see the campaign's
+ * just-saved future `sentAt`. `currentCampaignId` is excluded from the
+ * sibling-sent check — it is future by construction, and reading its
+ * freshly-saved value is unnecessary.
  */
 async function selectUntouchedAutoFlips(
   waiting: ReadonlyArray<HousingApi>,
@@ -202,7 +191,7 @@ async function selectUntouchedAutoFlips(
   system: UserApi,
   today: string
 ): Promise<ReadonlyArray<HousingApi>> {
-  return withinTransaction(async (transaction) => {
+  return withinKyselyTransaction(async (trx) => {
     const siblingIds = [
       ...new Set(
         waiting
@@ -211,17 +200,19 @@ async function selectUntouchedAutoFlips(
       )
     ];
     const sentAtById = new Map<string, string | null>();
-    for (const chunk of chunksOf(siblingIds, 1000)) {
-      const rows = await Campaigns(transaction)
-        .whereIn('id', chunk)
-        .select('id', 'sent_at');
+    await runInBatches(siblingIds, async (chunk) => {
+      const rows = await trx
+        .selectFrom('campaigns')
+        .select(['id', 'sentAt'])
+        .where('id', 'in', chunk)
+        .execute();
       for (const row of rows) {
         sentAtById.set(
           row.id,
-          row.sent_at ? new Date(row.sent_at).toJSON().slice(0, 10) : null
+          row.sentAt ? fromDateDBO(row.sentAt).slice(0, 10) : null
         );
       }
-    }
+    });
 
     const pairs = waiting.map(
       (housing) => [housing.geoCode, housing.id] as [string, string]
@@ -234,41 +225,42 @@ async function selectUntouchedAutoFlips(
         createdBy: string;
       }
     >();
-    for (const chunk of chunksOf(pairs, 1000)) {
-      const rows = await HousingEvents(transaction)
-        .join(
-          EVENTS_TABLE,
-          `${EVENTS_TABLE}.id`,
-          `${HOUSING_EVENTS_TABLE}.event_id`
+    await runInBatches(pairs, async (chunk) => {
+      const rows = await trx
+        .selectFrom('housingEvents')
+        .innerJoin('events', 'events.id', 'housingEvents.eventId')
+        .select([
+          'housingEvents.housingGeoCode as housingGeoCode',
+          'housingEvents.housingId as housingId',
+          'events.nextOld as nextOld',
+          'events.nextNew as nextNew',
+          'events.createdBy as createdBy'
+        ])
+        .where('events.type', '=', 'housing:status-updated')
+        .where((eb) =>
+          eb(
+            eb.refTuple(
+              'housingEvents.housingGeoCode',
+              'housingEvents.housingId'
+            ),
+            'in',
+            chunk.map(([geoCode, id]) => eb.tuple(geoCode, id))
+          )
         )
-        .where(`${EVENTS_TABLE}.type`, 'housing:status-updated')
-        .whereIn(
-          [
-            `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
-            `${HOUSING_EVENTS_TABLE}.housing_id`
-          ],
-          chunk
-        )
-        .orderBy(`${EVENTS_TABLE}.created_at`, 'desc')
-        .select(
-          `${HOUSING_EVENTS_TABLE}.housing_geo_code as housing_geo_code`,
-          `${HOUSING_EVENTS_TABLE}.housing_id as housing_id`,
-          `${EVENTS_TABLE}.next_old as next_old`,
-          `${EVENTS_TABLE}.next_new as next_new`,
-          `${EVENTS_TABLE}.created_by as created_by`
-        );
+        .orderBy('events.createdAt', 'desc')
+        .execute();
       for (const row of rows) {
-        const key = `${row.housing_geo_code}:${row.housing_id}`;
-        // Rows are DESC by created_at, so the first seen per housing is latest.
+        const key = `${row.housingGeoCode}:${row.housingId}`;
+        // Rows are DESC by createdAt, so the first seen per housing is latest.
         if (!latestEventByHousing.has(key)) {
           latestEventByHousing.set(key, {
-            nextOld: row.next_old,
-            nextNew: row.next_new,
-            createdBy: row.created_by
+            nextOld: row.nextOld as { status?: string } | null,
+            nextNew: row.nextNew as { status?: string } | null,
+            createdBy: row.createdBy
           });
         }
       }
-    }
+    });
 
     return waiting.filter((housing) => {
       const hasSentSibling = (housing.campaignIds ?? [])

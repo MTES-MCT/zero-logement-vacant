@@ -4,10 +4,12 @@ import {
   HOUSING_STATUS_LABELS,
   HousingStatus
 } from '@zerologementvacant/models';
-import { chunksOf } from 'effect/Array';
 import { v4 as uuidv4 } from 'uuid';
 
 import config from '~/infra/config';
+import { fromDateDBO } from '~/infra/database';
+import { runInBatches } from '~/infra/database/batch';
+import { kysely } from '~/infra/database/kysely';
 import { isSendDateReached } from '~/models/CampaignApi';
 import type { CampaignApi } from '~/models/CampaignApi';
 import type {
@@ -15,25 +17,13 @@ import type {
   HousingEventApi
 } from '~/models/EventApi';
 import type { HousingApi } from '~/models/HousingApi';
-import {
-  campaignsHousingTable,
-  CampaignsHousing
-} from '~/repositories/campaignHousingRepository';
-import { campaignsTable } from '~/repositories/campaignRepository';
-import {
-  CAMPAIGN_HOUSING_EVENTS_TABLE,
-  CampaignHousingEvents,
-  EVENTS_TABLE,
-  HOUSING_EVENTS_TABLE,
-  HousingEvents
-} from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
 import { today } from '~/utils/date';
 
 import { rows } from './lib/row-stream';
 import type { RowStream } from './lib/row-stream';
-import type { Repair } from './lib/types';
+import type { PlanRow, Repair } from './lib/types';
 
 /**
  * How long (ms) after a `housing:campaign-attached` event its paired
@@ -111,122 +101,127 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
       const statusEventByHousing = new Map<string, HousingEventApi>();
       const attachedByHousing = new Map<string, CampaignHousingEventApi[]>();
 
-      for (const chunk of chunksOf(pairs, 1000)) {
+      await runInBatches(pairs, async (chunk) => {
         const [campaignRows, statusRows, attachedRows] = await Promise.all([
-          CampaignsHousing()
-            .join(
-              campaignsTable,
-              `${campaignsTable}.id`,
-              `${campaignsHousingTable}.campaign_id`
+          kysely
+            .selectFrom('campaignsHousing')
+            .innerJoin(
+              'campaigns',
+              'campaigns.id',
+              'campaignsHousing.campaignId'
             )
-            .whereIn(
-              [
-                `${campaignsHousingTable}.housing_geo_code`,
-                `${campaignsHousingTable}.housing_id`
-              ],
-              chunk
+            .where((eb) =>
+              eb(
+                eb.refTuple(
+                  'campaignsHousing.housingGeoCode',
+                  'campaignsHousing.housingId'
+                ),
+                'in',
+                chunk.map(([geoCode, id]) => eb.tuple(geoCode, id))
+              )
             )
-            .select(
-              `${campaignsHousingTable}.housing_geo_code as housing_geo_code`,
-              `${campaignsHousingTable}.housing_id as housing_id`,
-              `${campaignsTable}.id as campaign_id`,
-              `${campaignsTable}.sent_at as sent_at`
-            ),
-          HousingEvents()
-            .join(
-              EVENTS_TABLE,
-              `${EVENTS_TABLE}.id`,
-              `${HOUSING_EVENTS_TABLE}.event_id`
+            .select([
+              'campaignsHousing.housingGeoCode as housingGeoCode',
+              'campaignsHousing.housingId as housingId',
+              'campaigns.id as campaignId',
+              'campaigns.sentAt as sentAt'
+            ])
+            .execute(),
+          kysely
+            .selectFrom('housingEvents')
+            .innerJoin('events', 'events.id', 'housingEvents.eventId')
+            .where('events.type', '=', 'housing:status-updated')
+            .where((eb) =>
+              eb(
+                eb.refTuple(
+                  'housingEvents.housingGeoCode',
+                  'housingEvents.housingId'
+                ),
+                'in',
+                chunk.map(([geoCode, id]) => eb.tuple(geoCode, id))
+              )
             )
-            .where(`${EVENTS_TABLE}.type`, 'housing:status-updated')
-            .whereIn(
-              [
-                `${HOUSING_EVENTS_TABLE}.housing_geo_code`,
-                `${HOUSING_EVENTS_TABLE}.housing_id`
-              ],
-              chunk
+            .orderBy('events.createdAt', 'desc')
+            .select([
+              'housingEvents.housingGeoCode as housingGeoCode',
+              'housingEvents.housingId as housingId',
+              'events.id as id',
+              'events.nextOld as nextOld',
+              'events.nextNew as nextNew',
+              'events.createdAt as createdAt',
+              'events.createdBy as createdBy'
+            ])
+            .execute(),
+          kysely
+            .selectFrom('campaignHousingEvents')
+            .innerJoin('events', 'events.id', 'campaignHousingEvents.eventId')
+            .where('events.type', '=', 'housing:campaign-attached')
+            .where((eb) =>
+              eb(
+                eb.refTuple(
+                  'campaignHousingEvents.housingGeoCode',
+                  'campaignHousingEvents.housingId'
+                ),
+                'in',
+                chunk.map(([geoCode, id]) => eb.tuple(geoCode, id))
+              )
             )
-            .orderBy(`${EVENTS_TABLE}.created_at`, 'desc')
-            .select(
-              `${HOUSING_EVENTS_TABLE}.housing_geo_code as housing_geo_code`,
-              `${HOUSING_EVENTS_TABLE}.housing_id as housing_id`,
-              `${EVENTS_TABLE}.id as id`,
-              `${EVENTS_TABLE}.next_old as next_old`,
-              `${EVENTS_TABLE}.next_new as next_new`,
-              `${EVENTS_TABLE}.created_at as created_at`,
-              `${EVENTS_TABLE}.created_by as created_by`
-            ),
-          CampaignHousingEvents()
-            .join(
-              EVENTS_TABLE,
-              `${EVENTS_TABLE}.id`,
-              `${CAMPAIGN_HOUSING_EVENTS_TABLE}.event_id`
-            )
-            .where(`${EVENTS_TABLE}.type`, 'housing:campaign-attached')
-            .whereIn(
-              [
-                `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_geo_code`,
-                `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_id`
-              ],
-              chunk
-            )
-            .select(
-              `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_geo_code as housing_geo_code`,
-              `${CAMPAIGN_HOUSING_EVENTS_TABLE}.housing_id as housing_id`,
-              `${CAMPAIGN_HOUSING_EVENTS_TABLE}.campaign_id as campaign_id`,
-              `${EVENTS_TABLE}.id as id`,
-              `${EVENTS_TABLE}.next_new as next_new`,
-              `${EVENTS_TABLE}.created_at as created_at`,
-              `${EVENTS_TABLE}.created_by as created_by`
-            )
+            .select([
+              'campaignHousingEvents.housingGeoCode as housingGeoCode',
+              'campaignHousingEvents.housingId as housingId',
+              'campaignHousingEvents.campaignId as campaignId',
+              'events.id as id',
+              'events.nextNew as nextNew',
+              'events.createdAt as createdAt',
+              'events.createdBy as createdBy'
+            ])
+            .execute()
         ]);
 
         for (const row of campaignRows) {
-          const k = `${row.housing_geo_code}:${row.housing_id}`;
+          const k = `${row.housingGeoCode}:${row.housingId}`;
           const list = campaignsByHousing.get(k) ?? [];
           list.push({
-            id: row.campaign_id,
-            sentAt: row.sent_at
-              ? new Date(row.sent_at).toJSON().slice(0, 10)
-              : null
+            id: row.campaignId,
+            sentAt: row.sentAt ? fromDateDBO(row.sentAt).slice(0, 10) : null
           });
           campaignsByHousing.set(k, list);
         }
 
         for (const row of statusRows) {
-          const k = `${row.housing_geo_code}:${row.housing_id}`;
-          // Rows are DESC by created_at, so the first seen per housing is latest.
+          const k = `${row.housingGeoCode}:${row.housingId}`;
+          // Rows are DESC by createdAt, so the first seen per housing is latest.
           if (!statusEventByHousing.has(k)) {
             statusEventByHousing.set(k, {
               id: row.id,
               type: 'housing:status-updated',
-              nextOld: row.next_old,
-              nextNew: row.next_new,
-              createdAt: new Date(row.created_at).toJSON(),
-              createdBy: row.created_by,
-              housingGeoCode: row.housing_geo_code,
-              housingId: row.housing_id
-            });
+              nextOld: row.nextOld,
+              nextNew: row.nextNew,
+              createdAt: fromDateDBO(row.createdAt),
+              createdBy: row.createdBy,
+              housingGeoCode: row.housingGeoCode,
+              housingId: row.housingId
+            } as HousingEventApi);
           }
         }
 
         for (const row of attachedRows) {
-          const k = `${row.housing_geo_code}:${row.housing_id}`;
+          const k = `${row.housingGeoCode}:${row.housingId}`;
           const list = attachedByHousing.get(k) ?? [];
           list.push({
             id: row.id,
             type: 'housing:campaign-attached',
             nextOld: null,
-            nextNew: row.next_new,
-            createdAt: new Date(row.created_at).toJSON(),
-            createdBy: row.created_by,
-            housingGeoCode: row.housing_geo_code,
-            housingId: row.housing_id,
-            campaignId: row.campaign_id
-          });
+            nextNew: row.nextNew,
+            createdAt: fromDateDBO(row.createdAt),
+            createdBy: row.createdBy,
+            housingGeoCode: row.housingGeoCode,
+            housingId: row.housingId,
+            campaignId: row.campaignId
+          } as CampaignHousingEventApi);
           attachedByHousing.set(k, list);
         }
-      }
+      });
 
       return waiting.map((housing) => {
         const k = key(housing);
@@ -307,5 +302,55 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
       update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null },
       deleteEventIds: [event.id]
     };
+  },
+
+  // The generic `expect` (status/subStatus) can't express "no sibling campaign
+  // has since reached its sending date" — the full-revert branch's real
+  // precondition. Between `plan` and the manually-run `apply`, the mere passage
+  // of time can turn a not-yet-sent sibling into a sent one, which would make
+  // reverting the housing wrong (a genuinely sent campaign must keep it
+  // WAITING). Re-derive `hasSentCampaign` live for full-revert rows only
+  // (`update` is set); re-author rows have the opposite precondition and are
+  // left to the residual gap already documented for that branch.
+  async revalidate(planRows: PlanRow[]): Promise<Set<string>> {
+    const revertRows = planRows.filter((row) => row.update !== undefined);
+    const stale = new Set<string>();
+    if (revertRows.length === 0) {
+      return stale;
+    }
+
+    const now = today();
+    const pairs = revertRows.map(
+      (row) => [row.housingGeoCode, row.housingId] as [string, string]
+    );
+    await runInBatches(pairs, async (chunk) => {
+      const campaignRows = await kysely
+        .selectFrom('campaignsHousing')
+        .innerJoin('campaigns', 'campaigns.id', 'campaignsHousing.campaignId')
+        .where((eb) =>
+          eb(
+            eb.refTuple(
+              'campaignsHousing.housingGeoCode',
+              'campaignsHousing.housingId'
+            ),
+            'in',
+            chunk.map(([geoCode, id]) => eb.tuple(geoCode, id))
+          )
+        )
+        .select([
+          'campaignsHousing.housingGeoCode as housingGeoCode',
+          'campaignsHousing.housingId as housingId',
+          'campaigns.sentAt as sentAt'
+        ])
+        .execute();
+      for (const row of campaignRows) {
+        const sentAt = row.sentAt ? fromDateDBO(row.sentAt).slice(0, 10) : null;
+        if (isSendDateReached(sentAt, now)) {
+          stale.add(`${row.housingGeoCode}:${row.housingId}`);
+        }
+      }
+    });
+
+    return stale;
   }
 };

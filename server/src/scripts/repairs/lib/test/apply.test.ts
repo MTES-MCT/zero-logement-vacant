@@ -404,4 +404,34 @@ describe('apply()', () => {
     expect(row.status).toBe(HousingStatus.NEVER_CONTACTED);
     expect(await Events().where('id', event.id)).toHaveLength(0);
   });
+
+  it('skips a row via a custom revalidate check even when expect still matches', async () => {
+    const housing = await factories.housing.create({
+      status: HousingStatus.WAITING,
+      subStatus: null
+    });
+
+    const planFile = writePlan([
+      {
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode,
+        expect: { status: HousingStatus.WAITING, subStatus: null },
+        update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null }
+      }
+    ]);
+
+    const summary = await apply(planFile, {
+      revalidate: async (rows) =>
+        new Set(rows.map((row) => `${row.housingGeoCode}:${row.housingId}`))
+    });
+
+    expect(summary).toEqual({
+      updated: 0,
+      eventsDeleted: 0,
+      eventsCreated: 0,
+      skipped: 1
+    });
+    const [row] = await Housing().where({ id: housing.id });
+    expect(row.status).toBe(HousingStatus.WAITING);
+  });
 });

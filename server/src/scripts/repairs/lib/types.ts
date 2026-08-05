@@ -22,6 +22,13 @@ export interface Repair<H extends HousingApi = HousingApi> {
    */
   query(): RowStream<H>;
   decide(housing: H): RepairAction | RepairSkip | RepairError;
+  /**
+   * Extra apply-time staleness check for rows carrying an `expect` precondition,
+   * for repairs whose real precondition cannot be expressed as a housing-column
+   * `expect` (e.g. "no sibling campaign has since reached its sending date").
+   * See {@link ApplyOptions.revalidate} in `lib/apply.ts`.
+   */
+  revalidate?(rows: PlanRow[]): Promise<Set<string>>;
 }
 
 export interface RepairAction {

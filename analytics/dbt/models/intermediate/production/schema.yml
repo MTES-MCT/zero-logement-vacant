@@ -14,7 +14,21 @@ models:
       - name: type
         description: "Type d'événement (housing:status-updated, housing:occupancy-updated, etc.)"
       - name: user_source
-        description: "Source de l'événement (zlv=automatique, user=utilisateur)"
+        description: |
+          Source de l'événement (zlv=automatique, user=utilisateur). Déduit de
+          l'email de l'auteur, y compris pour les utilisateurs supprimés.
+      - name: establishment_id
+        description: |
+          Établissement de l'utilisateur ayant créé l'événement. Résolu depuis
+          stg_production_users (utilisateurs supprimés inclus), ce qui rend
+          l'événement attribuable même après suppression du compte. NULL
+          uniquement lorsque created_by est absent de la table users (~2% des
+          événements utilisateurs).
+      - name: created_by_deleted_user
+        description: |
+          TRUE si l'auteur de l'événement a depuis été supprimé. L'événement
+          reste attribué à son établissement, mais l'utilisateur n'apparaît plus
+          dans les effectifs (user_number).
       - name: version
         description: "Version du format (old=texte, new=JSON)"
         tests:

@@ -15,7 +15,9 @@ interface EmailLinkOptions<T> {
 
 export function useEmailLink<T>(options: EmailLinkOptions<T>) {
   const location = useLocation();
-  const hash = readPasswordResetToken(location.pathname, location.hash);
+  const [hash] = useState(() =>
+    readPasswordResetToken(location.pathname, location.hash)
+  );
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
   const [link, setLink] = useState<T>();

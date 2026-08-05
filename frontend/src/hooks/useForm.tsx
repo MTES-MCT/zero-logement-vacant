@@ -204,14 +204,6 @@ export function useForm<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...Object.values(input)]);
 
-  useEffect(() => {
-    const validations = (fullValidationKeys ?? []).map((key) =>
-      validateAt(key)
-    );
-    (async () => await Promise.all(validations))();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, fullValidationKeys);
-
   return {
     isDirty,
     isTouched,

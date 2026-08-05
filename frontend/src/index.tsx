@@ -18,10 +18,12 @@ import { initCrisp } from './utils/crisp';
 import { protectPasswordResetToken } from './utils/password-reset-token';
 import sentry from './utils/sentry';
 
-protectPasswordResetToken();
+const canStartTelemetry = protectPasswordResetToken();
 registerPreloadErrorRecovery();
-initCrisp();
-sentry.init();
+if (canStartTelemetry) {
+  initCrisp();
+  sentry.init();
+}
 
 startReactDsfr({
   defaultColorScheme: 'light',
@@ -34,7 +36,7 @@ declare module '@codegouvfr/react-dsfr/spa' {
   }
 }
 
-if (config.posthog.enabled) {
+if (config.posthog.enabled && canStartTelemetry) {
   posthog.init(config.posthog.apiKey, {
     api_host: 'https://eu.i.posthog.com',
     person_profiles: 'identified_only'

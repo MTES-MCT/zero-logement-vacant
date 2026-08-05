@@ -45,6 +45,22 @@ describe('ResetPasswordView', () => {
     );
   }
 
+  it('should keep the password policy neutral before the user interacts with the form', async () => {
+    setup();
+
+    const password = await screen.findByLabelText(/^Créer votre mot de passe/);
+    const uppercaseCriterion = screen
+      .getAllByText('Au moins une majuscule.')
+      .find((element) => element.textContent?.includes('Critère'));
+
+    expect(password).not.toHaveAttribute('aria-invalid');
+    expect(uppercaseCriterion).toHaveTextContent(
+      'Critère à respecter : Au moins une majuscule.'
+    );
+    expect(uppercaseCriterion).not.toHaveClass('fr-error-text');
+    expect(uppercaseCriterion).not.toHaveClass('fr-valid-text');
+  });
+
   it('should mark a mismatched password confirmation as invalid and associate the error to the field (RGAA 11.10)', async () => {
     setup();
 

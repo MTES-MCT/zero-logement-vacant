@@ -1,72 +1,89 @@
 export const PASSWORD_RESET_PATH = '/mot-de-passe/nouveau';
-export const PASSWORD_RESET_TOKEN_STORAGE_KEY = 'zlv.password-reset-token';
+
+const PASSWORD_RESET_TOKEN_HISTORY_STATE_KEY = 'zlv.password-reset-token';
 
 let protectedPasswordResetToken = '';
 
 type PasswordResetLocation = Pick<Location, 'hash' | 'pathname' | 'search'>;
 type PasswordResetHistory = Pick<History, 'replaceState' | 'state'>;
-type PasswordResetStorage = Pick<Storage, 'getItem' | 'removeItem' | 'setItem'>;
-type PasswordResetStorageProvider<T extends keyof PasswordResetStorage> =
-  () => Pick<PasswordResetStorage, T>;
 
-function browserSessionStorage(): PasswordResetStorage {
-  return window.sessionStorage;
+function isHistoryState(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
 export function protectPasswordResetToken(
   location: PasswordResetLocation = window.location,
-  history: PasswordResetHistory = window.history,
-  storage: PasswordResetStorageProvider<'setItem'> = browserSessionStorage
-): void {
+  history: PasswordResetHistory = window.history
+): boolean {
   if (location.pathname !== PASSWORD_RESET_PATH || !location.hash) {
-    return;
+    return true;
   }
 
   protectedPasswordResetToken = location.hash.slice(1);
   try {
-    storage().setItem(
-      PASSWORD_RESET_TOKEN_STORAGE_KEY,
-      protectedPasswordResetToken
+    const currentState = history.state;
+    const nextState = {
+      ...(isHistoryState(currentState) ? currentState : {}),
+      [PASSWORD_RESET_TOKEN_HISTORY_STATE_KEY]: protectedPasswordResetToken
+    };
+    history.replaceState(
+      nextState,
+      '',
+      `${location.pathname}${location.search}`
     );
+    return true;
   } catch {
-    // Some privacy modes disable storage. The in-memory fallback still lets the
-    // current page consume the token after it has been removed from the URL.
+    // The URL fragment and the one-shot in-memory fallback keep the flow
+    // usable, but callers must not start third-party telemetry while the secret
+    // remains visible in the URL.
+    return false;
   }
-  history.replaceState(
-    history.state,
-    '',
-    `${location.pathname}${location.search}`
-  );
 }
 
 export function readPasswordResetToken(
   pathname: string,
   hash: string,
-  storage: PasswordResetStorageProvider<'getItem'> = browserSessionStorage
+  history: Pick<History, 'state'> = window.history
 ): string {
+  if (pathname !== PASSWORD_RESET_PATH) {
+    protectedPasswordResetToken = '';
+    return '';
+  }
+
+  const fallbackToken = protectedPasswordResetToken;
+  protectedPasswordResetToken = '';
+
   if (hash) {
     return hash.slice(1);
   }
-  if (pathname !== PASSWORD_RESET_PATH) {
-    return '';
-  }
   try {
-    return (
-      storage().getItem(PASSWORD_RESET_TOKEN_STORAGE_KEY) ??
-      protectedPasswordResetToken
-    );
+    const state = history.state;
+    const token = isHistoryState(state)
+      ? state[PASSWORD_RESET_TOKEN_HISTORY_STATE_KEY]
+      : undefined;
+    return typeof token === 'string' ? token : fallbackToken;
   } catch {
-    return protectedPasswordResetToken;
+    return fallbackToken;
   }
 }
 
 export function clearPasswordResetToken(
-  storage: PasswordResetStorageProvider<'removeItem'> = browserSessionStorage
+  history: PasswordResetHistory = window.history
 ): void {
   protectedPasswordResetToken = '';
   try {
-    storage().removeItem(PASSWORD_RESET_TOKEN_STORAGE_KEY);
+    const state = history.state;
+    if (
+      !isHistoryState(state) ||
+      !(PASSWORD_RESET_TOKEN_HISTORY_STATE_KEY in state)
+    ) {
+      return;
+    }
+
+    const nextState = { ...state };
+    delete nextState[PASSWORD_RESET_TOKEN_HISTORY_STATE_KEY];
+    history.replaceState(nextState, '');
   } catch {
-    // Storage can be unavailable in privacy modes; the in-memory token is clear.
+    // History can be unavailable in privacy modes; the in-memory token is clear.
   }
 }

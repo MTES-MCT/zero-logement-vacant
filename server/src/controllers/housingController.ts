@@ -67,7 +67,7 @@ import { HousingFiltersApi } from '~/models/HousingFiltersApi';
 import { HousingOwnerApi } from '~/models/HousingOwnerApi';
 import { NoteApi, type HousingNoteApi } from '~/models/NoteApi';
 import { fromDatafoncierOwner, type OwnerApi } from '~/models/OwnerApi';
-import { createPagination, DEFAULT_PAGINATION, isPaginationEnabled } from '~/models/PaginationApi';
+import { createPagination, DEFAULT_PAGINATION } from '~/models/PaginationApi';
 import { type PrecisionApi } from '~/models/PrecisionApi';
 import sortApi from '~/models/SortApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
@@ -182,19 +182,10 @@ const list: RequestHandler<
         : geoCodes
   );
 
-  const rangeStart = isPaginationEnabled(pagination)
-    ? (pagination.page - 1) * pagination.perPage
-    : 0;
-
-  // No commune the user is allowed to see: short-circuit to an empty range
-  // (findNext/countNext apply `localities` as-is and would otherwise scan all).
+  // No commune the user is allowed to see: short-circuit to an empty list
+  // (find applies `localities` as-is and would otherwise scan all).
   if (localities.length === 0) {
-    response
-      .set('Accept-Ranges', 'housing')
-      .set('Content-Range', `housing ${rangeStart}-${rangeStart}/0`)
-      .set('Access-Control-Expose-Headers', 'Accept-Ranges, Content-Range')
-      .status(constants.HTTP_STATUS_OK)
-      .json([]);
+    response.status(constants.HTTP_STATUS_OK).json([]);
     return;
   }
 
@@ -208,8 +199,7 @@ const list: RequestHandler<
   };
 
   // Sparse map projection (fields) has no owner/campaign joins and no sort;
-  // full hydration carries includes + sort. Both share the same filters, so the
-  // `countNext` total matches the returned page.
+  // full hydration carries includes + sort.
   const entitiesQuery = fields?.length
     ? housingRepository.find({ filters, fields, pagination })
     : housingRepository
@@ -220,25 +210,14 @@ const list: RequestHandler<
           pagination
         })
         .then((housings) => housings.map(toHousingDTO));
-  const [entities, count] = await Promise.all([
-    entitiesQuery,
-    housingRepository.count({ filters })
-  ]);
+  const entities = await entitiesQuery;
 
-  const total = count.housing;
-  const rangeEnd =
-    entities.length > 0 ? rangeStart + entities.length - 1 : rangeStart;
-
-  response
-    .set('Accept-Ranges', 'housing')
-    .set('Content-Range', `housing ${rangeStart}-${rangeEnd}/${total}`)
-    .set('Access-Control-Expose-Headers', 'Accept-Ranges, Content-Range')
-    .status(
-      entities.length < total
-        ? constants.HTTP_STATUS_PARTIAL_CONTENT
-        : constants.HTTP_STATUS_OK
-    )
-    .json(entities);
+  // The list returns only housings: the total is NOT computed here. Counting the
+  // whole filtered set on every request would tie each page's latency to a full
+  // count (owner join + `count(distinct)`) and recompute it on every page turn.
+  // Clients read the total from `GET /housings/count`, which RTK Query caches
+  // per filter-set.
+  response.status(constants.HTTP_STATUS_OK).json(entities);
 };
 
 const count: RequestHandler<

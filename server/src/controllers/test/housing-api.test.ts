@@ -654,8 +654,47 @@ describe('Housing API', () => {
         })
         .use(tokenProvider(user));
 
-      expect(status).toBe(constants.HTTP_STATUS_PARTIAL_CONTENT);
+      expect(status).toBe(constants.HTTP_STATUS_OK);
       expect(body).toHaveLength(1);
+    });
+
+    // The list returns only housings (a bare array) and no total: computing a
+    // full-set count on every request would tie each page's latency to it and
+    // recompute it on every page turn. Clients read the total from
+    // `GET /housings/count` instead.
+    it('should return only housings, without a total', async () => {
+      const housings = await Promise.all(
+        Array.from({ length: 2 }, () =>
+          factories.housing.create({
+            geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+          })
+        )
+      );
+      await Promise.all(
+        housings.map(async (housing) => {
+          const owner = await factories.owner.create();
+          await factories
+            .housingOwner({ housing, owner })
+            .create({ rank: 1 as OwnerRank });
+        })
+      );
+
+      const { body, status, headers } = await request(url)
+        .get(testRoute)
+        .query({ paginate: true, page: 1, perPage: 50 })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(Array.isArray(body)).toBe(true);
+      expect(body).toEqual(
+        expect.arrayContaining(
+          housings.map((housing) =>
+            expect.objectContaining({ id: housing.id })
+          )
+        )
+      );
+      expect(headers['content-range']).toBeUndefined();
+      expect(headers['accept-ranges']).toBeUndefined();
     });
 
     it('should sort housings by occupancy', async () => {

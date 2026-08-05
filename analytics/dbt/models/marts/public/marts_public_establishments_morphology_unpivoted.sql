@@ -87,6 +87,13 @@ WITH base_data AS (
         count_housing_last_lovac_production AS count_value
     FROM base_data
     UNION ALL
+    SELECT
+        establishment_id,
+        year,
+        'count_housing_tagged_lovac_production' AS count_type,
+        count_housing_tagged_lovac_production AS count_value
+    FROM base_data
+    UNION ALL
 
     SELECT
         establishment_id,
@@ -152,6 +159,9 @@ WITH base_data AS (
             WHEN
                 count_type = 'count_housing_last_lovac_production'
                 THEN 'LOVAC 2026 (>2 ans) - ZLV'
+            WHEN
+                count_type = 'count_housing_tagged_lovac_production'
+                THEN 'Parc ZLV importé du millésime (Millésimes inclus)'
             WHEN
                 count_type = 'count_housing_last_ff_production'
                 THEN 'FF 2024 (parc privé locatif) - ZLV'

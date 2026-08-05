@@ -1,0 +1,77 @@
+version: 2
+
+models:
+  - name: int_lovac_morphology_locals
+    description: >
+      Lignes LOVAC de tous les millésimes, à la maille du local, avec les
+      indicateurs métier de la morphologie. Sert de base au comptage des locaux
+      vacants ; ne pas s'en servir pour compter des logements, les local_id y
+      étant dupliqués.
+    columns:
+      - name: year
+        description: Millésime LOVAC.
+        tests:
+          - not_null
+      - name: local_id
+        description: Identifiant du local.
+        tests:
+          - not_null
+      - name: is_housing
+        description: Le local est un appartement ou une maison affecté à l'habitation.
+        tests:
+          - accepted_values:
+              values: [0, 1]
+              quote: false
+      - name: is_private
+        description: Le local relève du parc privé.
+        tests:
+          - accepted_values:
+              values: [0, 1]
+              quote: false
+      - name: is_vacant_fil
+        description: Vacance de plus de deux ans au sens de la seule année de début de vacance.
+        tests:
+          - accepted_values:
+              values: [0, 1]
+              quote: false
+      - name: is_vacant_fil_ccthp
+        description: Vacance FIL confirmée par le classement CCTHP des Fichiers Fonciers.
+        tests:
+          - accepted_values:
+              values: [0, 1]
+              quote: false
+
+  - name: int_lovac_morphology_housing
+    description: >
+      Logements LOVAC de tous les millésimes, à la maille du logement — un
+      local_id par millésime. Un indicateur vaut 1 dès qu'une des lignes du
+      local_id le porte. C'est la source de tous les comptages nommés
+      « logements » dans la morphologie.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - year
+            - local_id
+    columns:
+      - name: year
+        description: Millésime LOVAC.
+        tests:
+          - not_null
+      - name: local_id
+        description: Identifiant du logement.
+        tests:
+          - not_null
+      - name: geo_code
+        description: Commune du logement.
+      - name: is_housing_private_fil
+        description: Logement du parc privé en vacance FIL.
+        tests:
+          - accepted_values:
+              values: [0, 1]
+              quote: false
+      - name: is_housing_private_fil_ccthp
+        description: Logement du parc privé en vacance FIL+CCTHP.
+        tests:
+          - accepted_values:
+              values: [0, 1]
+              quote: false

@@ -123,3 +123,35 @@ seeds:
       delimiter: ","
       meta:
         header: true
+
+  - name: lovac_public_criteria
+    description: >
+      Critère de vacance retenu pour le chiffre public
+      (count_vacant_housing_private_fil_public), par millésime LOVAC.
+      Les millésimes 2019-2024 croisent la vacance FIL avec le classement CCTHP
+      des Fichiers Fonciers ; 2025 et suivants retiennent la vacance FIL seule,
+      conformément à ce que l'import ZLV consomme réellement.
+      Ajouter une ligne pour chaque nouveau millésime : sans elle, le chiffre
+      public est NULL et le test
+      tests/data_quality/test_morphology_public_criterion_declared.sql échoue.
+      Voir docs/decisions/20260805142324-millesime-inclus-provenance-d-import-et-non-presence-lovac.md
+    config:
+      delimiter: ","
+      column_types:
+        year: integer
+        public_criterion: varchar(9)
+
+      meta:
+        header: true
+    columns:
+      - name: year
+        description: Millésime LOVAC.
+        tests:
+          - unique
+          - not_null
+      - name: public_criterion
+        description: Critère appliqué pour ce millésime.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['fil', 'fil_ccthp']

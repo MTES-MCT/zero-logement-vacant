@@ -3,6 +3,7 @@ import { constants } from 'http2';
 import express, { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 import { beforeEach, vi } from 'vitest';
+import { object, string } from 'yup';
 
 const mocks = vi.hoisted(() => ({
   error: vi.fn()
@@ -23,6 +24,7 @@ import TestAccountError from '~/errors/testAccountError';
 import { genEmail } from '~/test/testFixtures';
 
 import errorHandler from '../error-handler';
+import validator from '../validator';
 
 describe('Error handler', () => {
   beforeEach(() => {
@@ -32,9 +34,12 @@ describe('Error handler', () => {
   describe('Integration test', () => {
     const expectedErrorRoute = '/fail';
     const retryableErrorRoute = '/retryable-fail';
+    const validationErrorRoute = '/validation-fail';
     const unexpectedErrorRoute = '/unexpected-fail';
     const sensitiveValue = 'SensitiveErrorValue123';
     const app = express();
+
+    app.use(express.json());
 
     const email = genEmail();
     app.get(
@@ -59,6 +64,17 @@ describe('Error handler', () => {
       async (request: Request, response: Response, next: NextFunction) => {
         const error = new Error(sensitiveValue);
         next(error);
+      }
+    );
+    app.post(
+      validationErrorRoute,
+      validator.validate({
+        body: object({
+          geoCode: string().length(5).required()
+        })
+      }),
+      (_request: Request, response: Response) => {
+        response.sendStatus(constants.HTTP_STATUS_OK);
       }
     );
     app.use(errorHandler());
@@ -88,7 +104,28 @@ describe('Error handler', () => {
       );
       expect(mocks.error).toHaveBeenCalledWith(
         expect.objectContaining({
+          diagnosticId: expect.stringMatching(/^[a-f0-9]{12}$/),
           stack: expect.stringContaining('error-handler.test.ts')
+        })
+      );
+    });
+
+    it('logs a safe structured validation diagnostic without the rejected value', async () => {
+      await request(app)
+        .post(validationErrorRoute)
+        .send({ geoCode: { secret: sensitiveValue } })
+        .expect(constants.HTTP_STATUS_BAD_REQUEST);
+
+      expect(JSON.stringify(mocks.error.mock.calls)).not.toContain(
+        sensitiveValue
+      );
+      expect(mocks.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errorName: 'ValidationError',
+          diagnostic: {
+            path: 'body.geoCode',
+            type: 'typeError'
+          }
         })
       );
     });

@@ -1,4 +1,5 @@
 import { constants } from 'http2';
+import { createHash } from 'node:crypto';
 
 import { errors as compose, ErrorHandler, Next } from 'compose-middleware';
 import { Request, Response } from 'express';
@@ -13,6 +14,14 @@ function stackFrames(error: Error): string | undefined {
   return error.stack?.split('\n').slice(1).join('\n') || undefined;
 }
 
+function diagnosticId(error: Error): string {
+  const firstStackFrame = stackFrames(error)?.split('\n')[0] ?? 'unknown';
+  return createHash('sha256')
+    .update(`${error.name}:${firstStackFrame}`)
+    .digest('hex')
+    .slice(0, 12);
+}
+
 function log(
   error: Error,
   request: Request,
@@ -22,6 +31,7 @@ function log(
   const status = isHttpError(error)
     ? error.status
     : constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
+  const isServerError = status >= constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
   logger.error({
     event: 'API Error',
     errorName: error.name,
@@ -29,10 +39,9 @@ function log(
     method: request.method,
     route: request.route?.path,
     errorId: (response as Response & { sentry?: string }).sentry,
-    stack:
-      status >= constants.HTTP_STATUS_INTERNAL_SERVER_ERROR
-        ? stackFrames(error)
-        : undefined
+    diagnosticId: isServerError ? diagnosticId(error) : undefined,
+    diagnostic: isHttpError(error) ? error.diagnostic : undefined,
+    stack: isServerError ? stackFrames(error) : undefined
   });
   next(error);
 }

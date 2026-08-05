@@ -47,7 +47,11 @@ class ValidationError extends HttpError implements HttpError {
     super({
       name: error.name,
       message,
-      status: constants.HTTP_STATUS_BAD_REQUEST
+      status: constants.HTTP_STATUS_BAD_REQUEST,
+      diagnostic: {
+        path: error.path,
+        type: error.type
+      }
     });
   }
 }

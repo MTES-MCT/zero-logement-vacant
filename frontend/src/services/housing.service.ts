@@ -7,10 +7,8 @@ import type {
   HousingPointField,
   HousingStatus,
   HousingUpdatePayloadDTO,
-  PaginatedResponse,
   PaginationOptions
 } from '@zerologementvacant/models';
-import { paginated } from '@zerologementvacant/models';
 import { parseISO } from 'date-fns';
 
 import type { Housing, HousingSort } from '../models/Housing';
@@ -55,10 +53,11 @@ export const housingApi = zlvApi.injectEndpoints({
           : []
     }),
 
-    // Housing list (REST pagination): `GET /housings` returns a bare array with
-    // a `Content-Range` header (206 for a partial range). Mirrors
-    // `findOwnersNext`; the total is parsed from the header by `paginated()`.
-    findHousing: builder.query<PaginatedResponse<Housing>, FindOptions>({
+    // Housing list: `GET /housings` returns a bare array of housings (paginated
+    // via LIMIT/OFFSET). It does NOT compute a total; consumers read the count
+    // from `GET /housings/count` (see `countHousing`), which RTK Query caches
+    // per filter-set instead of recomputing it on every page turn.
+    findHousing: builder.query<ReadonlyArray<Housing>, FindOptions>({
       query: (opts) => ({
         url: '/housings',
         method: 'GET',
@@ -68,21 +67,12 @@ export const housingApi = zlvApi.injectEndpoints({
           sort: toQuery(opts.sort)
         }
       }),
-      transformResponse: (housings: ReadonlyArray<HousingDTO>, meta) => {
-        const acceptRanges =
-          meta?.response?.headers?.get('Accept-Ranges') ?? null;
-        const contentRange =
-          meta?.response?.headers?.get('Content-Range') ?? null;
-
-        return paginated(housings.map(parseHousing), {
-          acceptRanges,
-          contentRange
-        });
-      },
+      transformResponse: (housings: ReadonlyArray<HousingDTO>) =>
+        housings.map(parseHousing),
       providesTags: (result) =>
         result
           ? [
-              ...result.entities.map(({ id }) => ({
+              ...result.map(({ id }) => ({
                 type: 'Housing' as const,
                 id
               })),

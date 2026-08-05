@@ -293,7 +293,7 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
 
       <AdvancedTable
         columns={columns}
-        data={housings ? [...housings.entities] : undefined}
+        data={housings ? [...housings] : undefined}
         isLoading={isLoading}
         enableSorting
         enableSortingRemoval

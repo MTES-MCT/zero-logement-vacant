@@ -69,7 +69,7 @@ function HousingList(props: HousingListProps) {
       sort
     });
 
-  const housingList = housings?.entities;
+  const housingList = housings;
 
   const { data: count } = useActiveHousingCount(filters);
   const filteredCount = count?.housing ?? 0;

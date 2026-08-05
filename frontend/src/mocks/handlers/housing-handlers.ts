@@ -92,7 +92,7 @@ const countHandler = (path: string) =>
 
 const countNext = countHandler('/housings/count');
 
-// REST-paginated list (listNext): bare array + Content-Range header, 200/206.
+// List: bare array of housings (paginated via LIMIT/OFFSET), no total.
 const listNext = http.get<
   Record<string, never>,
   HousingPayload,
@@ -126,9 +126,6 @@ const listNext = http.get<
     const entities = paginate
       ? subset.slice(rangeStart, rangeStart + perPage)
       : subset;
-    const rangeEnd =
-      entities.length > 0 ? rangeStart + entities.length - 1 : rangeStart;
-    const total = subset.length;
 
     // Sparse `fields` projection (JSON:API style); `id` is always included.
     const fields = url.searchParams.get('fields')?.split(',') as
@@ -145,14 +142,7 @@ const listNext = http.get<
       : entities;
 
     return HttpResponse.json(projected, {
-      status:
-        entities.length < total
-          ? constants.HTTP_STATUS_PARTIAL_CONTENT
-          : constants.HTTP_STATUS_OK,
-      headers: {
-        'Accept-Ranges': 'housing',
-        'Content-Range': `housing ${rangeStart}-${rangeEnd}/${total}`
-      }
+      status: constants.HTTP_STATUS_OK
     });
   }
 );

@@ -343,3 +343,40 @@ models:
         description: "Score d'engagement ZLV composite (0-10)"
       - name: zlv_engagement_category
         description: "Catégorie d'engagement ZLV (Aucun, Faible, Moyen, Fort)"
+
+  - name: int_analysis_establishments_zlv_usage_annuel
+    description: |
+      Usage ZLV par établissement et par année. Grain: (establishment_id, annee).
+      Source unique des colonnes annuelles pivotées dans marts_zlv_usage et de
+      marts_zlv_usage_annuel.
+
+      Les compteurs de logements sont distincts à l'intérieur d'une année: la
+      somme des années est donc supérieure ou égale au total toutes années.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - establishment_id
+            - annee
+    columns:
+      - name: establishment_id
+        description: "Identifiant de l'établissement"
+        tests:
+          - not_null
+      - name: annee
+        description: "Année du millésime"
+        tests:
+          - not_null
+      - name: campagnes_envoyees
+        description: "Campagnes envoyées cette année-là"
+      - name: logements_contactes_via_campagnes
+        description: "Logements distincts contactés par une campagne envoyée cette année-là"
+      - name: contacts_campagnes
+        description: "Volumétrie brute des contacts de l'année"
+      - name: groupes_exportes
+        description: "Groupes exportés cette année-là"
+      - name: logements_exportes_via_groupes
+        description: "Logements distincts présents dans un groupe exporté cette année-là"
+      - name: exports_groupes
+        description: "Volumétrie brute des exports de l'année"
+      - name: logements_maj_situation
+        description: "Logements distincts dont la situation a été mise à jour cette année-là"

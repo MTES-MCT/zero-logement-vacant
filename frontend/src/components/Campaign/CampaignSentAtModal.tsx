@@ -49,8 +49,13 @@ export function createCampaignSentAtModal() {
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <modal.Component title="Indiquer la date d’envoi">
               <Typography sx={{ mb: '1rem' }}>
-                {`Indiquer la date d’envoi permet d'afficher le taux de retour de la campagne et d'inscrire cette date dans l'historique de chacun des logements.`}
+                {`Indiquer la date d’envoi permet d'afficher le taux de retour de la campagne et d'inscrire cette date dans l'historique de chacun des logements. Le jour de la date d’envoi, le statut des logements « Non suivi » passera à « En attente de retour » (si vous indiquez une date antérieure à aujourd’hui, cette mise à jour sera immédiate).`}
               </Typography>
+              {props.sentAt !== null && (
+                <Typography sx={{ mb: '1rem' }}>
+                  {`Si vous repoussez cette date à une date future, les logements automatiquement passés à « En attente de retour » seront remis à « Non suivi ».`}
+                </Typography>
+              )}
               <AppTextInputNext
                 label="Date d’envoi"
                 name="sentAt"

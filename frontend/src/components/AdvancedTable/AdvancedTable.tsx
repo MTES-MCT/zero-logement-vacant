@@ -17,7 +17,14 @@ import {
   type TableOptions
 } from '@tanstack/react-table';
 import classNames from 'classnames';
-import { createRef, memo, useEffect, useState, type MouseEvent } from 'react';
+import {
+  createRef,
+  memo,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent
+} from 'react';
 import { match } from 'ts-pattern';
 
 import SingleCheckbox from '~/components/_app/AppCheckbox/SingleCheckbox';
@@ -157,6 +164,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
     data: props.data ?? [],
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: paginate ? props.manualPagination : true,
     // Sort
     enableSorting: props.enableSorting ?? false,
     getSortedRowModel: getSortedRowModel(),
@@ -179,8 +187,42 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
       });
     }
   });
+  const tableRef = useRef<HTMLTableElement>(null);
+  const paginationRef = useRef<HTMLDivElement>(null);
+  const pageToFocusRef = useRef<number | null>(null);
+  const currentPage = table.getState().pagination.pageIndex + 1;
+  const pageCount = table.getPageCount();
   const headers = table.getLeafHeaders();
   const rows = table.getRowModel().rows;
+  const showPaginationFooter =
+    paginate && (pageCount > 0 || props.manualPagination === true);
+
+  useEffect(() => {
+    if (pageCount > 0 && currentPage > pageCount) {
+      table.setPageIndex(pageCount - 1);
+    }
+  }, [currentPage, pageCount, table]);
+
+  useEffect(() => {
+    if (
+      props.isLoading ||
+      pageToFocusRef.current === null ||
+      pageToFocusRef.current !== currentPage
+    ) {
+      return;
+    }
+
+    if (pageCount > 0 && currentPage > pageCount) {
+      pageToFocusRef.current = pageCount;
+      return;
+    }
+
+    const currentPageLink = paginationRef.current?.querySelector<HTMLElement>(
+      '[aria-current="true"]'
+    );
+    pageToFocusRef.current = null;
+    (currentPageLink ?? tableRef.current)?.focus();
+  }, [currentPage, pageCount, props.isLoading]);
 
   const rowRefs: Record<string, React.RefObject<HTMLTableRowElement>> = {};
   rows.forEach((row) => {
@@ -229,7 +271,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
         <div className={fr.cx('fr-table__wrapper')}>
           <div className={fr.cx('fr-table__container')}>
             <div className={fr.cx('fr-table__content')}>
-              <table>
+              <table ref={tableRef} tabIndex={-1}>
                 {props.caption ? <caption>{props.caption}</caption> : null}
                 <thead>
                   <tr>
@@ -303,7 +345,11 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                   {rows.map((row, i) => (
                     <tr
                       key={i}
-                      aria-selected={all !== row.getIsSelected()}
+                      aria-selected={
+                        enableSelection
+                          ? all !== row.getIsSelected()
+                          : undefined
+                      }
                       ref={rowRefs[row.id]}
                       style={
                         props.tableProps?.fixedRowHeight
@@ -360,7 +406,7 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
         </div>
       </div>
 
-      {paginate ? (
+      {showPaginationFooter ? (
         <PaginationFooter
           direction="row"
           spacing="1rem"
@@ -380,6 +426,8 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
                 value: String(option)
               }))}
               nativeSelectProps={{
+                'aria-label': 'Résultats par page',
+                title: 'Résultats par page',
                 value: String(table.getState().pagination.pageSize),
                 onChange: (event) => {
                   const value = Number(event.target.value);
@@ -391,18 +439,24 @@ function AdvancedTable<Data extends object>(props: AdvancedTableProps<Data>) {
             />
           )}
 
-          <TablePagination
-            count={table.getPageCount()}
-            defaultPage={table.getState().pagination.pageIndex + 1}
-            getPageLinkProps={(page: number) => ({
-              to: '#',
-              onClick: (event: MouseEvent) => {
-                event.preventDefault();
-                table.setPageIndex(page - 1);
-              }
-            })}
-            showFirstLast
-          />
+          {pageCount > 0 ? (
+            <TablePagination
+              ref={paginationRef}
+              count={pageCount}
+              defaultPage={currentPage}
+              getPageLinkProps={(page: number) => ({
+                to: '#',
+                onClick: (event: MouseEvent) => {
+                  event.preventDefault();
+                  if (page !== currentPage) {
+                    pageToFocusRef.current = page;
+                  }
+                  table.setPageIndex(page - 1);
+                }
+              })}
+              showFirstLast
+            />
+          ) : null}
         </PaginationFooter>
       ) : null}
     </Stack>

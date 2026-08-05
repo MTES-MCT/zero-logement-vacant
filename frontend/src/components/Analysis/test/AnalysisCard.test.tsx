@@ -362,6 +362,57 @@ describe('AnalysisCard', () => {
     expect(screen.getByText(/12[,.]3[\s ]%/)).toBeInTheDocument();
   });
 
+  it('lets the user access table results after the first 50 rows', async () => {
+    const user = userEvent.setup();
+    const tableCard = genTableCard({
+      id: 96,
+      title: 'Structures du territoire'
+    });
+    const cardData = genTableDataDTO({
+      id: 96,
+      columns: [
+        {
+          name: 'structure',
+          displayName: 'Structure',
+          baseType: 'string'
+        }
+      ],
+      rows: Array.from({ length: 51 }, (_, index) => [`Structure ${index + 1}`])
+    });
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: tableCard, dashboardId });
+
+    const table = await screen.findByRole('table', {
+      name: 'Structures du territoire'
+    });
+    const pagination = screen.getByRole('navigation', {
+      name: 'Pagination'
+    });
+    expect(
+      within(table).queryByRole('cell', { name: 'Structure 51' })
+    ).not.toBeInTheDocument();
+
+    const nextPageLink = within(pagination).getByRole('link', {
+      name: 'Page suivante'
+    });
+    await user.click(nextPageLink);
+
+    expect(
+      within(table).getByRole('cell', { name: 'Structure 51' })
+    ).toBeInTheDocument();
+    expect(
+      within(table).queryByRole('cell', { name: 'Structure 1' })
+    ).not.toBeInTheDocument();
+    const currentPageLink = within(pagination).getByTitle('Page 2');
+    expect(currentPageLink).toHaveAttribute('aria-current', 'true');
+    expect(currentPageLink).toHaveFocus();
+  });
+
   it('formats numeric cells with fr-FR locale and applies suffix', async () => {
     const tableCard = genTableCard({ id: 91, title: 'Surfaces' });
     const cardData = genTableDataDTO({

@@ -62,7 +62,6 @@ function TableDisplay(props: Readonly<TableDisplayProps>) {
       columns={columns}
       data={data}
       enableSorting
-      paginate={false}
       caption={caption}
       tableProps={{ noCaption: true }}
     />

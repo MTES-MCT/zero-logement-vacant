@@ -4,7 +4,8 @@ description: >
   ZLV production deploy summary workflow.
   Use when preparing a production release (mise en production):
   writing the GitHub deploy PR summary, finding Notion tickets,
-  and creating the corresponding Notion release note page.
+  creating the corresponding Notion release note page, and linking
+  the shipped tickets to it via the "Tâches concernées" relation.
 ---
 
 # Mise en Production — ZLV Workflow
@@ -42,7 +43,9 @@ gh api repos/MTES-MCT/zero-logement-vacant/pulls/N/comments --jq '.[].body'
 gh api repos/MTES-MCT/zero-logement-vacant/issues/N/comments --jq '.[].body'
 ```
 
-Extract any Notion URL found in body or comments. Notion URLs match `https://www.notion.so/...` or `https://notion.so/...`.
+Extract any Notion URL found in body or comments. Notion URLs match `https://www.notion.so/...`, `https://notion.so/...`, or `https://app.notion.com/...` (the `github_linkback` comments ZLV's GitHub↔Notion integration posts use this last form — it's the common case in practice).
+
+Keep a running list of `(PR number, Notion URL)` pairs — one PR can carry more than one Notion link (e.g. a single fix closing two reported tickets). This list is reused in step 6b to link tickets to the release page.
 
 ### 3 — Categorize PRs
 
@@ -155,22 +158,38 @@ Verify with `gh pr view <deploy-pr-number>`.
 
 ### 6 — Create the Notion release page (use the Notion summary from step 4b)
 
-**Database ID:** `ef70347c-cb99-4fad-8c14-0f6f002a901c`  
+**Data source ID:** `ef70347c-cb99-4fad-8c14-0f6f002a901c`  
 **Template page ID:** `12f9ec2a056c80bf84d6d8e6e7d5fded`
 
-Use the Notion MCP tools (available after `/mcp` auth):
+The date to use is **the actual day the deploy runs (today)**, not necessarily the date baked into the deploy PR's title — those can drift apart if the PR was opened one day and merged/deployed the next. If the two dates differ, ask the user which one to use before creating the page.
 
 1. Create the page from the template:
 ```
 mcp__notion__notion-create-pages
-  parent: { database_id: "ef70347c-cb99-4fad-8c14-0f6f002a901c" }
-  properties: { title: [{ text: { content: "Mise en production - DD/MM/YYYY" } }] }
-  template_id (if supported) OR duplicate template page first
+  parent: { type: "data_source_id", data_source_id: "ef70347c-cb99-4fad-8c14-0f6f002a901c" }
+  pages: [{
+    properties: { "Nom": "Mise en production - DD/MM/YYYY", "date:Date:start": "YYYY-MM-DD", "date:Date:is_datetime": 0 },
+    template_id: "12f9ec2a056c80bf84d6d8e6e7d5fded"
+  }]
 ```
 
-2. Append the summary content to the page body using `mcp__notion__notion-update-page` or `mcp__notion__notion-update-data-source`.
+2. Append the Notion summary (step 4b) to the page body with `mcp__notion__notion-update-page` (`insert_content`, `position: {type: "end"}`) — the template only provides a filter-date reminder and an inline database, no content placeholder.
 
-> **Note:** The Notion MCP server may not support template cloning directly. If so, use `mcp__notion__notion-duplicate-page` on the template page ID, then move it into the database and rename it.
+### 6b — Link the shipped tickets ("Tâches concernées")
+
+The release page has a relation property **`Tâches concernées`**, targeting the **"To do - DEV"** data source (`collection://88f9fbab-8dee-4172-9dc4-e5691ba618b7`). Populate it from the `(PR number, Notion URL)` pairs collected in step 2:
+
+1. For each distinct Notion URL from step 2, confirm it's actually a page in that data source (query it, or just try the update — a URL from a different database won't resolve as a valid relation target). Drop/flag any that don't belong there.
+2. **Fetch the release page first** and read its current `Tâches concernées` value — `update_properties` **replaces** the whole array, it does not append. Union the existing URLs with the new ones before writing back, so you never drop a ticket someone already linked manually.
+3. Write the union with `mcp__notion__notion-update-page` (`update_properties`, property name `Tâches concernées`).
+
+**Do not touch the tickets' own `Etat` (status) property or their board position.** Moving a card between columns is a manual step the team owns deliberately (see below) — this workflow only ever adds relation links, never mutates task state.
+
+**Don't gate on the ticket's current `Etat`.** A ticket's board column can lag behind what's actually shipped (e.g. still shown `🎮 revue FONCT` when its PR has already merged and deployed) — link every ticket found via a merged PR's Notion backlink regardless of its current column. Conversely, a ticket sitting in `💚 OK pour MEP` with **no** merged PR referencing it in this batch is *not* part of this release — don't add it just because of its column.
+
+Report both kinds of mismatch to the user as an FYI (worth a nudge to whoever owns the stale card), but don't block on it — linking is non-destructive, so proceed by default with everything found via PR backlinks.
+
+> **Don't bother querying the "Pull Requests GitHub" Notion database directly** (the relation target behind the `Numéro de PR Github` rollup on tasks) — it returned 404 for this integration in practice. The Notion links extracted from PR bodies/comments in step 2 are the reliable path.
 
 ### 7 — Verify
 
@@ -178,6 +197,7 @@ mcp__notion__notion-create-pages
 - [ ] Every PR with a Notion link has it displayed
 - [ ] GitHub deploy PR body updated correctly (`gh pr view`)
 - [ ] Notion page created with correct title and content
+- [ ] `Tâches concernées` contains every ticket linked from a merged PR, plus whatever was already there before this run (nothing dropped)
 
 ---
 
@@ -186,6 +206,8 @@ mcp__notion__notion-create-pages
 | Item | Value |
 |------|-------|
 | Repo slug | `MTES-MCT/zero-logement-vacant` |
-| Notion DB | `ef70347c-cb99-4fad-8c14-0f6f002a901c` |
-| Notion template | `12f9ec2a056c80bf84d6d8e6e7d5fded` |
+| Notion "Notes de version (MEP)" data source | `ef70347c-cb99-4fad-8c14-0f6f002a901c` |
+| Notion release-note template page | `12f9ec2a056c80bf84d6d8e6e7d5fded` |
+| Notion "To do - DEV" data source | `88f9fbab-8dee-4172-9dc4-e5691ba618b7` |
+| Relation property (release → tasks) | `Tâches concernées` |
 | Base branch for prod | `origin/prod` |

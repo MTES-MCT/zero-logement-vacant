@@ -70,6 +70,7 @@ SELECT
     eu.logements_maj_mails,
     eu.logements_maj_phone,
     eu.logements_maj_owners,
+    eu.logements_maj_owners_birthdate,
     eu.logements_maj_owners_rank,
     eu.logements_maj_owners_address,
     eu.logements_maj_dpe,

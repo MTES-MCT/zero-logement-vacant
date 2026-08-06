@@ -226,17 +226,25 @@ models:
       - name: logements_maj_phone
         description: "Nombre de logements avec MAJ telephone proprietaire"
       - name: logements_maj_owners
-        description: "Nombre de logements avec MAJ nom ou rang proprietaire"
+        description: "Nombre de logements avec MAJ du nom du proprietaire"
+      - name: logements_maj_owners_birthdate
+        description: "Nombre de logements avec MAJ de la date de naissance du proprietaire"
+      - name: logements_maj_owners_rank
+        description: "Nombre de logements avec MAJ du rang d un proprietaire"
       - name: logements_maj_owners_address
         description: "Nombre de logements avec MAJ adresse proprietaire"
       - name: logements_maj_dpe
-        description: "Nombre de logements avec MAJ DPE (NULL - pas d evenements DPE dans ZLV)"
+        description: "Nombre de logements dont le DPE constate a ete renseigne par un utilisateur (evenement housing:updated sur actualEnergyConsumption)"
       - name: logements_maj_notes
         description: "Nombre de logements avec des notes utilisateur"
       - name: logements_maj_documents
         description: "Nombre de logements avec au moins 1 document attache"
       - name: logements_maj_enrichissement
-        description: "Nombre total de logements avec MAJ enrichissement (mails + phone + owners + address + notes + documents)"
+        description: |
+          Logements DISTINCTS touches par au moins une famille d enrichissement.
+          Inferieur ou egal a la somme des familles (mails, phone, owners,
+          owners_birthdate, owners_rank, owners_address, notes, documents, dpe),
+          un logement pouvant appartenir a plusieurs familles.
       - name: documents_importes
         description: "Nombre total de documents importes"
       - name: date_dernier_document_importe

@@ -258,27 +258,52 @@ housing_status_counts AS (
 -- un filtre d'assiette. Sens retenu: "logements de mon territoire dont j'ai
 -- enrichi le propriétaire".
 
-owner_enrichment_pairs AS (
+-- Le payload d'un `owner:updated` ne porte que 6 champs: email, phone, name,
+-- birthdate, address, additionalAddress. Tous sont suivis, afin que la somme des
+-- compteurs de détail couvre bien l'agrégat `logements_maj_enrichissement`.
+--
+-- 2 247 événements ne modifient aucun de ces champs (payload vide des deux
+-- côtés, ou valeurs identiques): ils sont exclus, une mise à jour sans
+-- changement n'étant pas un enrichissement.
+owner_updated_changes AS (
     SELECT
-        CAST(ou.establishment_id AS VARCHAR) AS establishment_id,
-        ooh.housing_id,
+        oe.owner_id,
+        oev.created_by,
         oev.created_at,
         (oev.next_new ->> 'email') IS DISTINCT FROM (oev.next_old ->> 'email') AS mail_changed,
         (oev.next_new ->> 'phone') IS DISTINCT FROM (oev.next_old ->> 'phone') AS phone_changed,
         (oev.next_new ->> 'name') IS DISTINCT FROM (oev.next_old ->> 'name') AS name_changed,
+        (oev.next_new ->> 'birthdate') IS DISTINCT FROM (oev.next_old ->> 'birthdate') AS birthdate_changed,
         (
             (oev.next_new ->> 'address') IS DISTINCT FROM (oev.next_old ->> 'address')
             OR (oev.next_new ->> 'additionalAddress') IS DISTINCT FROM (oev.next_old ->> 'additionalAddress')
         ) AS address_changed
     FROM {{ ref('stg_production_owner_events') }} oe
     JOIN {{ ref('stg_production_events') }} oev ON oe.event_id = oev.id
-    JOIN {{ ref('stg_production_owners_housing') }} ooh ON oe.owner_id = ooh.owner_id
-    JOIN {{ ref('int_production_event_authors') }} ou ON oev.created_by = ou.id
+    WHERE oev.type = 'owner:updated'
+),
+
+owner_enrichment_pairs AS (
+    SELECT
+        CAST(ou.establishment_id AS VARCHAR) AS establishment_id,
+        ooh.housing_id,
+        ouc.created_at,
+        ouc.mail_changed,
+        ouc.phone_changed,
+        ouc.name_changed,
+        ouc.birthdate_changed,
+        ouc.address_changed
+    FROM owner_updated_changes ouc
+    JOIN {{ ref('stg_production_owners_housing') }} ooh ON ouc.owner_id = ooh.owner_id
+    JOIN {{ ref('int_production_event_authors') }} ou ON ouc.created_by = ou.id
     JOIN {{ ref('int_production_establishments_housing') }} oeh
         ON ooh.housing_id = oeh.housing_id
        AND CAST(oeh.establishment_id AS VARCHAR) = CAST(ou.establishment_id AS VARCHAR)
-    WHERE oev.type = 'owner:updated'
-      AND ou.user_type = 'user'
+    WHERE ou.user_type = 'user'
+      AND (
+          ouc.mail_changed OR ouc.phone_changed OR ouc.name_changed
+          OR ouc.birthdate_changed OR ouc.address_changed
+      )
 ),
 
 owner_enrichment_events AS (
@@ -287,6 +312,7 @@ owner_enrichment_events AS (
         COUNT(DISTINCT CASE WHEN mail_changed THEN housing_id END) AS logements_maj_mails,
         COUNT(DISTINCT CASE WHEN phone_changed THEN housing_id END) AS logements_maj_phone,
         COUNT(DISTINCT CASE WHEN name_changed THEN housing_id END) AS logements_maj_owners,
+        COUNT(DISTINCT CASE WHEN birthdate_changed THEN housing_id END) AS logements_maj_owners_birthdate,
         COUNT(DISTINCT CASE WHEN address_changed THEN housing_id END) AS logements_maj_owners_address
     FROM owner_enrichment_pairs
     GROUP BY establishment_id
@@ -554,6 +580,7 @@ SELECT
     COALESCE(oee.logements_maj_mails, 0) AS logements_maj_mails,
     COALESCE(oee.logements_maj_phone, 0) AS logements_maj_phone,
     COALESCE(oee.logements_maj_owners, 0) AS logements_maj_owners,
+    COALESCE(oee.logements_maj_owners_birthdate, 0) AS logements_maj_owners_birthdate,
     COALESCE(rce.logements_maj_owners_rank, 0) AS logements_maj_owners_rank,
     COALESCE(oee.logements_maj_owners_address, 0) AS logements_maj_owners_address,
     COALESCE(dpes.logements_maj_dpe, 0) AS logements_maj_dpe,

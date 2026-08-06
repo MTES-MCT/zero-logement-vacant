@@ -130,15 +130,22 @@ models:
           expression: >
             logements_maj_enrichissement >= GREATEST(
               logements_maj_mails, logements_maj_phone, logements_maj_owners,
-              logements_maj_owners_rank, logements_maj_owners_address,
-              logements_maj_notes, logements_maj_documents, logements_maj_dpe
+              logements_maj_owners_birthdate, logements_maj_owners_rank,
+              logements_maj_owners_address, logements_maj_notes,
+              logements_maj_documents, logements_maj_dpe
             )
+      # Sous-additivite: chaque famille d'enrichissement doit avoir son compteur
+      # de detail, sans quoi l'agregat compte des logements qu'aucune colonne
+      # n'explique. Ce test a detecte 767 logements dans ce cas (37
+      # etablissements), causes par des `owner:updated` sans changement et par
+      # `birthdate` non suivi.
       - dbt_utils.expression_is_true:
           expression: >
             logements_maj_enrichissement <= (
               logements_maj_mails + logements_maj_phone + logements_maj_owners
-              + logements_maj_owners_rank + logements_maj_owners_address
-              + logements_maj_notes + logements_maj_documents + logements_maj_dpe
+              + logements_maj_owners_birthdate + logements_maj_owners_rank
+              + logements_maj_owners_address + logements_maj_notes
+              + logements_maj_documents + logements_maj_dpe
             )
       - dbt_utils.expression_is_true:
           expression: communes_inscrites <= total_communes_in_territory
@@ -202,6 +209,13 @@ models:
           toujours superieure ou egale a logements_maj_enrichissement.
       - name: logements_maj_owners
         description: Logements distincts du territoire dont le NOM du proprietaire a ete modifie par un utilisateur de l etablissement
+      - name: logements_maj_owners_birthdate
+        description: |
+          Logements distincts du territoire dont la DATE DE NAISSANCE du
+          proprietaire a ete corrigee par un utilisateur de l etablissement.
+          Cinquieme et dernier champ du payload owner:updated - sans ce compteur
+          l agregat logements_maj_enrichissement comptait des logements
+          qu aucune colonne de detail n expliquait.
       - name: logements_maj_owners_rank
         description: |
           Logements distincts dont le rang d un proprietaire a ete modifie.

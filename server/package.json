@@ -31,7 +31,7 @@
     "@zerologementvacant/pdf": "workspace:*",
     "@zerologementvacant/schemas": "workspace:*",
     "@zerologementvacant/utils": "workspace:*",
-    "adm-zip": "0.5.17",
+    "adm-zip": "0.6.0",
     "async": "3.2.6",
     "axios": "1.18.0",
     "bcryptjs": "2.4.3",

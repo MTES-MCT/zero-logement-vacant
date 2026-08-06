@@ -5,7 +5,7 @@ import { useState } from 'react';
 import * as yup from 'yup';
 
 import { createConfirmationModal } from '~/components/modals/ConfirmationModal/ConfirmationModalNext';
-import { fileValidator, useForm } from '~/hooks/useForm';
+import { fileValidator } from '~/hooks/useForm';
 
 import styles from './geo-perimeter-uploading-modal.module.scss';
 
@@ -28,6 +28,7 @@ function createPerimeterUploadModal() {
       const { onClose, onSubmit, ...rest } = props;
       const FileTypes = ['application/zip', 'application/x-zip-compressed'];
       const [file, setFile] = useState<File | undefined>();
+      const [fileError, setFileError] = useState('');
       const [validationError, setValidationError] = useState('');
 
       const schema = yup
@@ -35,24 +36,28 @@ function createPerimeterUploadModal() {
         .shape({ file: fileValidator(FileTypes).default(undefined) })
         .required();
 
-      const { message, validate } = useForm(schema as any, {
-        file
-      });
-
       const selectFile = (event: any) => {
+        setFileError('');
         setValidationError('');
         setFile(event.target?.files?.[0]);
       };
 
       const submitFile = async () => {
+        setFileError('');
         setValidationError('');
         try {
-          await validate(() => onSubmit(file!));
-        } catch {
+          await schema.validate({ file }, { abortEarly: false });
+        } catch (error) {
+          if (error instanceof yup.ValidationError) {
+            setFileError(error.message);
+            return;
+          }
           setValidationError(
             'Le fichier n’a pas pu être validé. Veuillez réessayer.'
           );
+          return;
         }
+        onSubmit(file!);
       };
 
       const displayedError = props.error || validationError;
@@ -83,14 +88,15 @@ function createPerimeterUploadModal() {
               <Upload
                 nativeInputProps={{
                   onChange: (event: any) => selectFile(event),
-                  accept: '.zip,application/zip,application/x-zip-compressed'
+                  accept: '.zip,application/zip,application/x-zip-compressed',
+                  'aria-invalid': isFileTooLarge || fileError ? true : undefined
                 }}
                 multiple={false}
                 label="Ajouter un fichier"
                 hint="Format : fichier géographique (SIG) au format .zip comprenant l'ensemble des extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.)."
-                state={isFileTooLarge ? 'error' : 'default'}
+                state={isFileTooLarge || fileError ? 'error' : 'default'}
                 stateRelatedMessage={
-                  isFileTooLarge ? displayedError : message('file')
+                  isFileTooLarge ? displayedError : fileError
                 }
                 className={styles.upload}
               />

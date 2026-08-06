@@ -7,16 +7,28 @@ export interface RedactionOptions {
 const RESET_LINK_TOKEN_PATTERN = /(\/reset-links\/)[^/?#]+/g;
 const SENSITIVE_FRAGMENT_URL_PATTERN =
   /\/(?:reset-links\/[^/?#]+|mot-de-passe\/nouveau)(?:[/?#]|$)/;
-const SENSITIVE_KEY_PATTERN =
-  /password|token|authorization|cookie|reset.?link|(^|[_-])secret($|[_-])|(?:api|session)[-_]?key|secret(?:[-_]?access)?[-_]?key|(^|[_-])key($|[_-])/i;
+
+function isSensitiveKey(key: string): boolean {
+  const segments = key.toLowerCase().split(/[-_]/);
+  const normalized = segments.join('');
+  return (
+    ['password', 'token', 'authorization', 'cookie', 'resetlink'].some(
+      (fragment) => normalized.includes(fragment)
+    ) ||
+    normalized.includes('secret') ||
+    segments.includes('key') ||
+    key.endsWith('Key')
+  );
+}
 
 export function redactSensitiveUrl(value: string): string {
   const redacted = value.replace(
     RESET_LINK_TOKEN_PATTERN,
     `$1${FILTERED_VALUE}`
   );
-  return SENSITIVE_FRAGMENT_URL_PATTERN.test(value)
-    ? redacted.replace(/#.*$/, '')
+  const fragmentIndex = redacted.indexOf('#');
+  return SENSITIVE_FRAGMENT_URL_PATTERN.test(value) && fragmentIndex >= 0
+    ? redacted.slice(0, fragmentIndex)
     : redacted;
 }
 
@@ -63,7 +75,7 @@ export function redactSensitiveData<T>(
       return;
     }
     Object.entries(current).forEach(([entryKey, entryValue]) => {
-      if (SENSITIVE_KEY_PATTERN.test(entryKey)) {
+      if (isSensitiveKey(entryKey)) {
         markSensitiveSubtree(entryValue);
       } else {
         findSensitiveObjects(entryValue);
@@ -74,7 +86,7 @@ export function redactSensitiveData<T>(
   findSensitiveObjects(value);
 
   function redact(current: unknown, key?: string): unknown {
-    if (key && SENSITIVE_KEY_PATTERN.test(key)) {
+    if (key && isSensitiveKey(key)) {
       return FILTERED_VALUE;
     }
     if (typeof current === 'string') {

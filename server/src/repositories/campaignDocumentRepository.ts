@@ -1,15 +1,17 @@
 import type { Knex } from 'knex';
+import type { Insertable, Selectable } from 'kysely';
 
-import db from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import db, { fromDateDBO } from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import { CampaignApi } from '~/models/CampaignApi';
 import { CampaignDocumentApi } from '~/models/CampaignDocumentApi';
-import { UserDBO, USERS_TABLE } from '~/repositories/userRepository';
+import { UserDBO, fromUserDBO } from '~/repositories/userRepository';
 
 import {
-  Documents,
-  DOCUMENTS_TABLE,
+  creatorJsonBuildObject,
   fromDocumentDBO,
   type DocumentDBO
 } from './documentRepository';
@@ -38,11 +40,12 @@ async function link(document: CampaignDocumentApi): Promise<void> {
     campaignId: document.campaignId
   });
 
-  await withinTransaction(async (transaction) => {
-    await CampaignDocuments(transaction)
-      .insert(toCampaignDocumentDBO(document))
-      .onConflict(['document_id', 'campaign_id'])
-      .ignore();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .insertInto('documentsCampaigns')
+      .values(toCampaignDocumentInsert(document))
+      .onConflict((oc) => oc.columns(['documentId', 'campaignId']).doNothing()) // Idempotent: ignore duplicate links
+      .execute();
   });
 }
 
@@ -57,12 +60,19 @@ async function linkMany(
   logger.debug('Linking documents to campaigns...', { campaignDocuments });
 
   let inserted: CampaignDocumentDBO[] = [];
-  await withinTransaction(async (transaction) => {
-    inserted = await CampaignDocuments(transaction)
-      .insert(campaignDocuments)
-      .onConflict(['document_id', 'campaign_id'])
-      .ignore()
-      .returning(['document_id', 'campaign_id']);
+  await withinKyselyTransaction(async (trx) => {
+    const rows = await trx
+      .insertInto('documentsCampaigns')
+      .values(campaignDocuments.map(linkToInsert))
+      .onConflict((oc) => oc.columns(['documentId', 'campaignId']).doNothing())
+      // Return only the links actually inserted so callers can emit events
+      // just for new links (existing links are ignored by onConflict).
+      .returning(['documentId', 'campaignId'])
+      .execute();
+    inserted = rows.map((row) => ({
+      document_id: row.documentId,
+      campaign_id: row.campaignId
+    }));
   });
   return inserted;
 }
@@ -74,13 +84,13 @@ async function unlink(link: {
   logger.debug('Unlinking document from campaign...', link);
 
   let deletedCount = 0;
-  await withinTransaction(async (transaction) => {
-    deletedCount = await CampaignDocuments(transaction)
-      .where({
-        document_id: link.documentId,
-        campaign_id: link.campaignId
-      })
-      .delete();
+  await withinKyselyTransaction(async (trx) => {
+    const result = await trx
+      .deleteFrom('documentsCampaigns')
+      .where('documentId', '=', link.documentId)
+      .where('campaignId', '=', link.campaignId)
+      .executeTakeFirst();
+    deletedCount = Number(result?.numDeletedRows ?? 0n);
   });
   return deletedCount;
 }
@@ -95,10 +105,11 @@ async function unlinkMany(params: { documentIds: string[] }): Promise<void> {
     documents: params.documentIds.length
   });
 
-  await withinTransaction(async (transaction) => {
-    await CampaignDocuments(transaction)
-      .whereIn('document_id', params.documentIds)
-      .delete();
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .deleteFrom('documentsCampaigns')
+      .where('documentId', 'in', params.documentIds)
+      .execute();
   });
 
   logger.debug('Documents unlinked from campaigns', {
@@ -119,31 +130,32 @@ async function find(
 ): Promise<ReadonlyArray<CampaignDocumentApi>> {
   logger.debug('Finding document-campaign links...', options);
 
-  const documents = await listQuery()
-    .modify((query) => {
-      if (options?.filters?.documentIds?.length) {
-        query.whereIn(
-          `${CAMPAIGN_DOCUMENT_TABLE}.document_id`,
-          options.filters.documentIds
-        );
-      }
+  let query = listQuery();
 
-      if (options?.filters?.campaignIds?.length) {
-        query.whereIn(
-          `${CAMPAIGN_DOCUMENT_TABLE}.campaign_id`,
-          options.filters.campaignIds
-        );
-      }
+  if (options?.filters?.documentIds?.length) {
+    query = query.where(
+      'documentsCampaigns.documentId',
+      'in',
+      options.filters.documentIds
+    );
+  }
 
-      if (options?.filters?.deleted === true) {
-        query.whereNotNull(`${DOCUMENTS_TABLE}.deleted_at`);
-      } else if (options?.filters?.deleted === false) {
-        query.whereNull(`${DOCUMENTS_TABLE}.deleted_at`);
-      }
-    })
-    .orderBy(`${DOCUMENTS_TABLE}.created_at`, 'desc');
+  if (options?.filters?.campaignIds?.length) {
+    query = query.where(
+      'documentsCampaigns.campaignId',
+      'in',
+      options.filters.campaignIds
+    );
+  }
 
-  return documents.map(fromCampaignDocumentDBO);
+  if (options?.filters?.deleted === true) {
+    query = query.where('documents.deletedAt', 'is not', null);
+  } else if (options?.filters?.deleted === false) {
+    query = query.where('documents.deletedAt', 'is', null);
+  }
+
+  const rows = await query.orderBy('documents.createdAt', 'desc').execute();
+  return rows.map(parseCampaignDocumentRow);
 }
 
 interface GetOptions {
@@ -155,50 +167,45 @@ async function get(
   options?: GetOptions
 ): Promise<CampaignDocumentApi | null> {
   logger.debug('Getting campaign document...', { id });
-  const document = await listQuery()
-    .where(`${CAMPAIGN_DOCUMENT_TABLE}.document_id`, id)
-    .modify((query) => {
-      if (options?.campaign?.length) {
-        query.whereIn(
-          `${CAMPAIGN_DOCUMENT_TABLE}.campaign_id`,
-          options.campaign
-        );
-      }
-    })
-    .first();
 
-  return document ? fromCampaignDocumentDBO(document) : null;
+  let query = listQuery().where('documentsCampaigns.documentId', '=', id);
+
+  if (options?.campaign?.length) {
+    query = query.where(
+      'documentsCampaigns.campaignId',
+      'in',
+      options.campaign
+    );
+  }
+
+  const row = await query.executeTakeFirst();
+  return row ? parseCampaignDocumentRow(row) : null;
 }
 
 async function remove(document: CampaignDocumentApi): Promise<void> {
   logger.debug('Soft-deleting campaign document...', document);
-  await Documents().where('id', document.id).update({ deleted_at: new Date() });
+  await withinKyselyTransaction(async (trx) => {
+    await trx
+      .updateTable('documents')
+      .set({ deletedAt: new Date() })
+      .where('id', '=', document.id)
+      .execute();
+  });
 }
 
+// Base query joining documents, their campaign links, and the creator.
 function listQuery() {
-  return Documents()
-    .select(
-      `${DOCUMENTS_TABLE}.*`,
-      `${CAMPAIGN_DOCUMENT_TABLE}.campaign_id`,
-      db.raw(`json_build_object(
-        'id', ${USERS_TABLE}.id,
-        'email', ${USERS_TABLE}.email,
-        'first_name', ${USERS_TABLE}.first_name,
-        'last_name', ${USERS_TABLE}.last_name,
-        'role', ${USERS_TABLE}.role,
-        'establishment_id', ${USERS_TABLE}.establishment_id,
-        'time_per_week', ${USERS_TABLE}.time_per_week,
-        'phone', ${USERS_TABLE}.phone,
-        'position', ${USERS_TABLE}.position,
-        'updated_at', ${USERS_TABLE}.updated_at
-      ) as creator`)
+  return kysely
+    .selectFrom('documents')
+    .innerJoin(
+      'documentsCampaigns',
+      'documentsCampaigns.documentId',
+      'documents.id'
     )
-    .join(
-      CAMPAIGN_DOCUMENT_TABLE,
-      `${CAMPAIGN_DOCUMENT_TABLE}.document_id`,
-      `${DOCUMENTS_TABLE}.id`
-    )
-    .join(USERS_TABLE, `${USERS_TABLE}.id`, `${DOCUMENTS_TABLE}.created_by`);
+    .innerJoin('users', 'users.id', 'documents.createdBy')
+    .selectAll('documents')
+    .select(['documentsCampaigns.campaignId'])
+    .select(creatorJsonBuildObject.as('creator'));
 }
 
 export function toCampaignDocumentDBO(
@@ -207,6 +214,24 @@ export function toCampaignDocumentDBO(
   return {
     document_id: document.id,
     campaign_id: document.campaignId
+  };
+}
+
+export function toCampaignDocumentInsert(
+  document: CampaignDocumentApi
+): Insertable<DB['documentsCampaigns']> {
+  return {
+    documentId: document.id,
+    campaignId: document.campaignId
+  };
+}
+
+function linkToInsert(
+  link: CampaignDocumentDBO
+): Insertable<DB['documentsCampaigns']> {
+  return {
+    documentId: link.document_id,
+    campaignId: link.campaign_id
   };
 }
 
@@ -220,6 +245,34 @@ export function fromCampaignDocumentDBO(
   return {
     ...fromDocumentDBO(dbo),
     campaignId: dbo.campaign_id
+  };
+}
+
+type CampaignDocumentRow = Selectable<DB['documents']> &
+  Pick<Selectable<DB['documentsCampaigns']>, 'campaignId'> & {
+    creator: UserDBO | null;
+  };
+
+function parseCampaignDocumentRow(
+  row: CampaignDocumentRow
+): CampaignDocumentApi {
+  if (!row.creator) {
+    throw new Error('Creator not fetched');
+  }
+
+  return {
+    id: row.id,
+    filename: row.filename,
+    s3Key: row.s3Key,
+    contentType: row.contentType,
+    sizeBytes: row.sizeBytes,
+    establishmentId: row.establishmentId,
+    createdBy: row.createdBy,
+    createdAt: fromDateDBO(row.createdAt),
+    updatedAt: row.updatedAt ? fromDateDBO(row.updatedAt) : null,
+    deletedAt: row.deletedAt ? fromDateDBO(row.deletedAt) : null,
+    creator: fromUserDBO(row.creator),
+    campaignId: row.campaignId
   };
 }
 

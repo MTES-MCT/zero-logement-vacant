@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import HousingMissingError from '~/errors/housingMissingError';
 import OwnerMissingError from '~/errors/ownerMissingError';
-import { startTransaction } from '~/infra/database/transaction';
+import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import { HousingOwnerEventApi, OwnerEventApi } from '~/models/EventApi';
@@ -201,6 +201,7 @@ const create: RequestHandler<
     entity: 'personnes-physiques',
     siren: null,
     username: null,
+    doNotContact: false,
     createdAt: new Date().toJSON(),
     updatedAt: new Date().toJSON()
   };
@@ -271,6 +272,7 @@ const update: RequestHandler<
     idpersonne: existingOwner.idpersonne,
     siren: existingOwner.siren,
     username: existingOwner.username,
+    doNotContact: body.doNotContact,
     dataSource: existingOwner.dataSource,
     entity: existingOwner.entity,
     createdAt: existingOwner.createdAt,
@@ -285,7 +287,8 @@ const update: RequestHandler<
       email: existingOwner.email,
       phone: existingOwner.phone,
       address: existingOwner.banAddress?.label ?? null,
-      additionalAddress: existingOwner.additionalAddress
+      additionalAddress: existingOwner.additionalAddress,
+      doNotContact: existingOwner.doNotContact
     },
     {
       name: owner.fullName,
@@ -293,7 +296,8 @@ const update: RequestHandler<
       email: owner.email,
       phone: owner.phone,
       address: owner.banAddress?.label ?? null,
-      additionalAddress: owner.additionalAddress
+      additionalAddress: owner.additionalAddress,
+      doNotContact: owner.doNotContact
     }
   );
   const events: OwnerEventApi[] = [];
@@ -324,6 +328,7 @@ const update: RequestHandler<
         'email',
         'phone',
         'additional_address',
+        'do_not_contact',
         'updated_at'
       ]
     }),
@@ -407,7 +412,7 @@ const updateHousingOwners: RequestHandler<
         relativeLocation: null,
         absoluteDistance: null,
         propertyRight: housingOwnerPayload.propertyRight,
-        startDate: new Date(),
+        startDate: new Date().toJSON().substring(0, 'yyyy-mm-dd'.length),
         endDate: null,
         origin: null
       };
@@ -483,7 +488,7 @@ const updateHousingOwners: RequestHandler<
     })
   ];
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     const affectedOwnerIds =
       await housingOwnerRepository.saveMany(housingOwners);
     await Promise.all([

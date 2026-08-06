@@ -64,5 +64,12 @@ export function formatOwnerUpdatedDifferences({
       `Le complément d’adresse du propriétaire “${after.name}” est passée de “${before.additionalAddress ?? FALLBACK_VALUE}” à “${after.additionalAddress}”.`
     );
   }
+  if (before.doNotContact !== after.doNotContact) {
+    diffs.push(
+      after.doNotContact
+        ? `Le propriétaire “${after.name}” a été marqué comme “à ne pas contacter”.`
+        : `Le propriétaire “${after.name}” n’est plus marqué comme “à ne pas contacter”.`
+    );
+  }
   return diffs;
 }

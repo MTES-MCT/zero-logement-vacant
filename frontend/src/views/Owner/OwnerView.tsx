@@ -8,6 +8,7 @@ import { skipToken } from '@reduxjs/toolkit/query';
 import { getOwnerDisplayName } from '@zerologementvacant/models';
 import { useParams } from 'react-router';
 
+import DoNotContactBadge from '~/components/Owner/DoNotContactBadge';
 import OwnerCard from '~/components/Owner/OwnerCard';
 import createOwnerEditionModal from '~/components/Owner/OwnerEditionModal';
 import OwnerHousingCardGrid from '~/components/Owner/OwnerHousingCardGrid';
@@ -48,7 +49,17 @@ function OwnerView() {
           <Typography component="h1" variant="h3">
             {owner ? getOwnerDisplayName(owner) : null}
           </Typography>
-          {owner?.kind ? <OwnerKindIcon kind={owner.kind} /> : null}
+          <Stack
+            direction="row"
+            spacing="0.5rem"
+            useFlexGap
+            sx={{ alignItems: 'center' }}
+          >
+            {owner?.kind ? <OwnerKindIcon kind={owner.kind} /> : null}
+            {owner ? (
+              <DoNotContactBadge doNotContact={owner.doNotContact} />
+            ) : null}
+          </Stack>
         </Stack>
       </Stack>
       <Grid container columnSpacing="3rem">

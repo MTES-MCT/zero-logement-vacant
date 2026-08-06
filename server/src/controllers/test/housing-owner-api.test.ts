@@ -4,60 +4,41 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { HousingOwnerPayloadDTO } from '@zerologementvacant/models';
 import request from 'supertest';
 
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
-import { HousingOwnerApi } from '~/models/HousingOwnerApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  formatHousingOwnerApi,
-  HousingOwners
-} from '~/repositories/housingOwnerRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import {
-  genEstablishmentApi,
-  genHousingApi,
-  genHousingOwnerApi,
-  genOwnerApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { OwnerApi } from '~/models/OwnerApi';
+import { UserApi } from '~/models/UserApi';
+import { factories } from '~/test/factories';
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Housing owner API', () => {
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   let url: string;
 
   beforeAll(async () => {
     url = await createServer().testing();
 
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('PUT /housing/:housingId/owners', () => {
     const testRoute = (housingId: string) => `/housing/${housingId}/owners`;
 
     it('should refresh is_multi_owner for affected owners', async () => {
-      const housing1 = genHousingApi(establishment.geoCodes[0]);
-      const housing2 = genHousingApi(establishment.geoCodes[0]);
-      const owner = genOwnerApi();
-      await Housing().insert([housing1, housing2].map(formatHousingRecordApi));
-      await Owners().insert(formatOwnerApi(owner));
+      // The target housing must sit within the establishment's perimeter, as
+      // the endpoint looks it up scoped to establishment.geoCodes.
+      const [housing1, housing2] = await factories.housing.createList(2, {
+        geoCode: establishment.geoCodes[0]
+      });
+      const owner = await factories.owner.create();
       // owner is already rank=1 in housing1 → will become multi-owner after this call
-      await HousingOwners().insert(
-        formatHousingOwnerApi({
-          ...genHousingOwnerApi(housing1, owner),
-          rank: 1
-        })
-      );
+      await factories
+        .housingOwner({ housing: housing1, owner })
+        .create({ rank: 1 });
 
       const payload: HousingOwnerPayloadDTO[] = [
         {
@@ -75,29 +56,30 @@ describe('Housing owner API', () => {
         .send(payload)
         .use(tokenProvider(user));
 
-      const actual = await Owners().where({ id: owner.id }).first();
-      expect(actual?.is_multi_owner).toBe(true);
+      const actual = await kysely
+        .selectFrom('owners')
+        .selectAll('owners')
+        .where('id', '=', owner.id)
+        .executeTakeFirst();
+      expect(actual?.isMultiOwner).toBe(true);
     });
   });
 
   describe('GET /owners/:id/housings', () => {
     const testRoute = (id: string) => `/owners/${id}/housings`;
 
-    const housings = faker.helpers.multiple(
-      () => genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
-      {
-        count: { min: 2, max: 5 }
-      }
-    );
-    const owner = genOwnerApi();
-    const housingOwners = housings.map<HousingOwnerApi>((housing) =>
-      genHousingOwnerApi(housing, owner)
-    );
+    let owner: OwnerApi;
 
     beforeAll(async () => {
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      await Owners().insert(formatOwnerApi(owner));
-      await HousingOwners().insert(housingOwners.map(formatHousingOwnerApi));
+      owner = await factories.owner.create();
+      const housings = await factories.housing.createList(
+        faker.number.int({ min: 2, max: 5 })
+      );
+      await Promise.all(
+        housings.map((housing) =>
+          factories.housingOwner({ housing, owner }).create()
+        )
+      );
     });
 
     it('should throw an error if the owner is missing', async () => {

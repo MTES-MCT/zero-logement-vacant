@@ -1,106 +1,143 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { NotePayloadDTO } from '@zerologementvacant/models';
+import type { Selectable } from 'kysely';
 
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { HousingApi } from '~/models/HousingApi';
 import { HousingNoteApi, NoteApi } from '~/models/NoteApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  formatHousingRecordApi,
-  Housing
-} from '~/repositories/housingRepository';
+import { UserApi } from '~/models/UserApi';
+import { toHousingInsert } from '~/repositories/housingRepository';
 import noteRepository, {
-  formatHousingNoteApi,
-  formatNoteApi,
-  HousingNotes,
-  NoteRecordDBO,
-  Notes
+  toHousingNoteDBO,
+  toNoteDBO
 } from '~/repositories/noteRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import {
-  genEstablishmentApi,
-  genHousingApi,
-  genHousingNoteApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { factories } from '~/test/factories';
+import { genHousingApi, genHousingNoteApi } from '~/test/testFixtures';
 
 describe('Note repository', () => {
-  const establishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('createByHousing', () => {
-    const establishment = genEstablishmentApi();
-    const creator = genUserApi(establishment.id);
-    const housing = genHousingApi();
-    const note: HousingNoteApi = genHousingNoteApi(creator, housing);
+    let establishment: EstablishmentApi;
+    let creator: UserApi;
+    let housing: HousingApi;
+    let note: HousingNoteApi;
 
     beforeAll(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(toUserDBO(creator));
-      await Housing().insert(formatHousingRecordApi(housing));
+      establishment = await factories.establishment.create();
+      creator = await factories.user.create({
+        establishmentId: establishment.id
+      });
+      housing = await factories.housing.create();
+      note = genHousingNoteApi(creator, housing);
 
       await noteRepository.createByHousing(note);
     });
 
     it('should create the note', async () => {
-      const actual = await Notes().where({ id: note.id }).first();
-      expect(actual).toStrictEqual<NoteRecordDBO>({
+      const actual = await kysely
+        .selectFrom('notes')
+        .selectAll('notes')
+        .where('id', '=', note.id)
+        .executeTakeFirst();
+      expect(actual).toStrictEqual<Selectable<DB['notes']>>({
         id: note.id,
         content: note.content,
-        note_kind: note.noteKind,
-        created_by: note.createdBy,
-        created_at: new Date(note.createdAt),
-        updated_at: note.updatedAt ? new Date(note.updatedAt) : null,
-        deleted_at: null,
+        noteKind: note.noteKind,
+        createdBy: note.createdBy,
+        createdAt: new Date(note.createdAt),
+        updatedAt: note.updatedAt ? new Date(note.updatedAt) : null,
+        deletedAt: null,
         // Weird fields still present in the database
-        contact_kind_deprecated: null,
-        title_deprecated: null
+        contactKindDeprecated: null,
+        titleDeprecated: null
       });
     });
 
     it('should link the note to its housing', async () => {
-      const actual = await HousingNotes()
-        .where({
-          note_id: note.id,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        })
-        .first();
+      const actual = await kysely
+        .selectFrom('housingNotes')
+        .selectAll('housingNotes')
+        .where('noteId', '=', note.id)
+        .where('housingId', '=', housing.id)
+        .where('housingGeoCode', '=', housing.geoCode)
+        .executeTakeFirst();
       expect(actual).toBeDefined();
     });
   });
 
-  describe('findByHousing', () => {
-    const housing = genHousingApi();
-    const notes: ReadonlyArray<HousingNoteApi> = [
-      {
-        ...genHousingNoteApi(user, housing),
-        deletedAt: null
-      },
-      {
-        ...genHousingNoteApi(user, housing),
-        deletedAt: new Date().toJSON()
+  describe('createManyByHousing', () => {
+    // Exercises the chunked insert across a batch boundary. The real-world bug
+    // this guards against (a single unchunked INSERT exceeding Postgres's 65535
+    // bind-parameter limit around ~7,282 notes at 9 params each) only reproduces
+    // at a scale unfit for a test suite; this proves the chunking itself is
+    // correct — no row dropped or duplicated at the INSERT_BATCH_SIZE seam.
+    it('should insert every note when the list spans multiple batches', async () => {
+      const housings = faker.helpers.multiple(() => genHousingApi(), {
+        count: 1200
+      });
+      for (let index = 0; index < housings.length; index += 500) {
+        await kysely
+          .insertInto('fastHousing')
+          .values(housings.slice(index, index + 500).map(toHousingInsert))
+          .execute();
       }
-    ];
+      const notes = housings.map((housing) => genHousingNoteApi(user, housing));
+
+      await noteRepository.createManyByHousing(notes);
+
+      const noteIds = notes.map((note) => note.id);
+      const insertedNotes = await kysely
+        .selectFrom('notes')
+        .selectAll('notes')
+        .where('id', 'in', noteIds)
+        .execute();
+      expect(insertedNotes).toBeArrayOfSize(notes.length);
+      const insertedHousingNotes = await kysely
+        .selectFrom('housingNotes')
+        .selectAll('housingNotes')
+        .where('noteId', 'in', noteIds)
+        .execute();
+      expect(insertedHousingNotes).toBeArrayOfSize(notes.length);
+    }, 30_000);
+  });
+
+  describe('findByHousing', () => {
+    let housing: HousingApi;
+    let notes: ReadonlyArray<HousingNoteApi>;
 
     beforeAll(async () => {
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Notes().insert(notes.map(formatNoteApi));
-      await HousingNotes().insert(notes.map(formatHousingNoteApi));
+      housing = await factories.housing.create();
+      notes = [
+        {
+          ...genHousingNoteApi(user, housing),
+          deletedAt: null
+        },
+        {
+          ...genHousingNoteApi(user, housing),
+          deletedAt: new Date().toJSON()
+        }
+      ];
+      await kysely.insertInto('notes').values(notes.map(toNoteDBO)).execute();
+      await kysely
+        .insertInto('housingNotes')
+        .values(notes.map(toHousingNoteDBO))
+        .execute();
     });
 
-    it('should return all the notes of a housing', async () => {
+    it('should return non-deleted notes of a housing by default', async () => {
       const actual = await noteRepository.findByHousing(housing);
 
-      expect(actual).toIncludeAllPartialMembers(
-        notes.map((note) => ({ id: note.id }))
-      );
+      expect(actual).toHaveLength(1);
+      expect(actual[0]).toMatchObject({ id: notes[0].id });
     });
 
     it('should return the deleted notes of a housing', async () => {
@@ -131,11 +168,12 @@ describe('Note repository', () => {
   });
 
   describe('get', () => {
-    const housing = genHousingApi();
-    const note = genHousingNoteApi(user, housing);
+    let note: HousingNoteApi;
 
     beforeAll(async () => {
-      await Notes().insert(formatNoteApi(note));
+      const housing = genHousingApi();
+      note = genHousingNoteApi(user, housing);
+      await kysely.insertInto('notes').values(toNoteDBO(note)).execute();
     });
 
     it('should return null if the note is missing', async () => {
@@ -158,11 +196,12 @@ describe('Note repository', () => {
   });
 
   describe('update', () => {
-    const housing = genHousingApi();
-    const note = genHousingNoteApi(user, housing);
+    let note: HousingNoteApi;
 
     beforeAll(async () => {
-      await Notes().insert(formatNoteApi(note));
+      const housing = genHousingApi();
+      note = genHousingNoteApi(user, housing);
+      await kysely.insertInto('notes').values(toNoteDBO(note)).execute();
     });
 
     it('should update the note content and updated_at field', async () => {
@@ -176,32 +215,45 @@ describe('Note repository', () => {
         id: note.id
       });
 
-      const actual = await Notes().where({ id: note.id }).first();
-      expect(actual).toMatchObject<Partial<NoteRecordDBO>>({
+      const actual = await kysely
+        .selectFrom('notes')
+        .selectAll('notes')
+        .where('id', '=', note.id)
+        .executeTakeFirst();
+      expect(actual).toMatchObject<Partial<Selectable<DB['notes']>>>({
         id: note.id,
         content: payload.content,
-        updated_at: expect.any(Date)
+        updatedAt: expect.any(Date)
       });
     });
   });
 
   describe('remove', () => {
     it('should soft-delete the note', async () => {
-      const housing = genHousingApi();
+      const housing = await factories.housing.create();
       const note = genHousingNoteApi(user, housing);
       await Promise.all([
-        Housing().insert(formatHousingRecordApi(housing)),
-        Notes().insert(formatNoteApi(note)),
-        HousingNotes().insert(formatHousingNoteApi(note))
+        kysely.insertInto('notes').values(toNoteDBO(note)).execute(),
+        kysely
+          .insertInto('housingNotes')
+          .values(toHousingNoteDBO(note))
+          .execute()
       ]);
 
       await noteRepository.remove(note.id);
 
-      const actualNote = await Notes().where({ id: note.id }).first();
+      const actualNote = await kysely
+        .selectFrom('notes')
+        .selectAll('notes')
+        .where('id', '=', note.id)
+        .executeTakeFirst();
       expect(actualNote).toBeDefined();
-      const actualHousingNote = await HousingNotes()
-        .where({ note_id: note.id, housing_id: housing.id })
-        .first();
+      const actualHousingNote = await kysely
+        .selectFrom('housingNotes')
+        .selectAll('housingNotes')
+        .where('noteId', '=', note.id)
+        .where('housingId', '=', housing.id)
+        .executeTakeFirst();
       expect(actualHousingNote).toBeDefined();
     });
   });

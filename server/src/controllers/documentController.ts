@@ -28,7 +28,7 @@ import FilesMissingError from '~/errors/filesMissingError';
 import { FileValidationError } from '~/errors/fileValidationError';
 import HousingMissingError from '~/errors/housingMissingError';
 import config from '~/infra/config';
-import { startTransaction } from '~/infra/database/transaction';
+import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import {
   CampaignDocumentApi,
@@ -250,7 +250,7 @@ const update: RequestHandler<
       }
     : null;
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       documentRepository.update(updated),
       updateEvent
@@ -339,7 +339,7 @@ const remove: RequestHandler<
     Key: document.s3Key
   });
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       eventRepository.insertManyHousingDocumentEvents(removeEvents),
       eventRepository.insertManyCampaignDocumentEvents(campaignRemoveEvents),
@@ -428,7 +428,7 @@ const linkToHousing: RequestHandler<
     documents.map((document) => [document.id, document])
   );
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     // Only the links that were actually inserted are returned (existing links
     // are ignored on conflict), so events are created for new attachments only.
     const inserted = await housingDocumentRepository.linkMany(links);
@@ -555,7 +555,7 @@ const removeByHousing: RequestHandler<
     housingId: housing.id
   };
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     // Delete the link within the transaction and only record the detach event
     // if a row was actually removed, so a concurrent detach cannot duplicate it.
     const deletedCount = await housingDocumentRepository.unlink({
@@ -612,7 +612,7 @@ const linkToCampaign: RequestHandler<
     documents.map((document) => [document.id, document])
   );
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     // Only the links that were actually inserted are returned (existing links
     // are ignored on conflict), so events are created for new attachments only.
     const inserted = await campaignDocumentRepository.linkMany(links);
@@ -723,7 +723,7 @@ const removeByCampaign: RequestHandler<
     campaignId: campaign.id
   };
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     // Delete the link within the transaction and only record the detach event
     // if a row was actually removed, so a concurrent detach cannot duplicate it.
     const deletedCount = await campaignDocumentRepository.unlink({

@@ -24,59 +24,22 @@ import {
   OWNERSHIP_KIND_VALUES,
   ROOM_COUNT_VALUES,
   VACANCY_RATE_VALUES,
-  VACANCY_YEAR_VALUES,
-  type OwnerRank
+  VACANCY_YEAR_VALUES
 } from '@zerologementvacant/models';
+import type { Selectable } from 'kysely';
 import fp from 'lodash/fp';
 import request from 'supertest';
 
-import db from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { OwnerApi } from '~/models/OwnerApi';
-import { toUserDTO } from '~/models/UserApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  EventRecordDBO,
-  Events,
-  EVENTS_TABLE,
-  GROUP_HOUSING_EVENTS_TABLE,
-  GroupHousingEvents
-} from '~/repositories/eventRepository';
-import {
-  formatGroupApi,
-  formatGroupHousingApi,
-  Groups,
-  GROUPS_HOUSING_TABLE,
-  GroupsHousing
-} from '~/repositories/groupRepository';
-import {
-  formatHousingOwnerApi,
-  HousingOwnerDBO,
-  HousingOwners
-} from '~/repositories/housingOwnerRepository';
-import {
-  formatHousingRecordApi,
-  Housing,
-  HousingRecordDBO,
-  housingTable
-} from '~/repositories/housingRepository';
-import { formatOwnerApi, Owners } from '~/repositories/ownerRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { toUserDTO, UserApi } from '~/models/UserApi';
 import { factories } from '~/test/factories';
-import {
-  genEstablishmentApi,
-  genGroupApi,
-  genHousingApi,
-  genHousingOwnerApi,
-  genOwnerApi,
-  genUserApi,
-  oneOf
-} from '~/test/testFixtures';
+import { genGroupApi, genHousingApi } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Group API', () => {
@@ -86,29 +49,37 @@ describe('Group API', () => {
     url = await createServer().testing();
   });
 
-  const establishment = genEstablishmentApi();
-  const otherEstablishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
-  const otherUser = genUserApi(otherEstablishment.id);
+  let establishment: EstablishmentApi;
+  let otherEstablishment: EstablishmentApi;
+  let user: UserApi;
+  let otherUser: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(
-      [establishment, otherEstablishment].map(formatEstablishmentApi)
-    );
-    await Users().insert([user, otherUser].map(toUserDBO));
+    establishment = await factories.establishment.create();
+    otherEstablishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
+    otherUser = await factories.user.create({
+      establishmentId: otherEstablishment.id
+    });
   });
 
   describe('GET /groups', () => {
     const testRoute = '/groups';
 
-    const groups = [
-      genGroupApi(user, establishment),
-      genGroupApi(user, establishment),
-      genGroupApi(otherUser, otherEstablishment)
-    ];
+    let groups: GroupApi[];
 
     beforeAll(async () => {
-      await Groups().insert(groups.map(formatGroupApi));
+      groups = await Promise.all([
+        factories
+          .group(establishment)
+          .create({}, { associations: { createdBy: user } }),
+        factories
+          .group(establishment)
+          .create({}, { associations: { createdBy: user } }),
+        factories
+          .group(otherEstablishment)
+          .create({}, { associations: { createdBy: otherUser } })
+      ]);
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -133,11 +104,15 @@ describe('Group API', () => {
 
   describe('GET /groups/{id}', () => {
     const testRoute = (id: string): string => `/groups/${id}`;
-    const group = genGroupApi(user, establishment);
-    const anotherGroup = genGroupApi(otherUser, otherEstablishment);
+
+    let group: GroupApi;
+    let anotherGroup: GroupApi;
 
     beforeAll(async () => {
-      await Groups().insert(formatGroupApi(group));
+      group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      anotherGroup = genGroupApi(otherUser, otherEstablishment);
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -179,39 +154,41 @@ describe('Group API', () => {
 
   describe('POST /groups', () => {
     const testRoute = '/groups';
-    const owners = faker.helpers.multiple(() => genOwnerApi());
-    const housings = faker.helpers.multiple(
-      () => {
-        const geoCode = faker.helpers.arrayElement([
-          ...establishment.geoCodes,
-          ...otherEstablishment.geoCodes
-        ]);
-        return genHousingApi(geoCode);
-      },
-      { count: 10 }
-    );
+
+    let owners: OwnerApi[];
+    let housings: HousingApi[];
+
     const basePayload = {
       title: 'Logements prioritaires',
       description: 'Logements les plus énergivores'
     };
 
     beforeAll(async () => {
-      await Owners().insert(owners.map(formatOwnerApi));
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      const housingOwners = housings
-        .flatMap((housing) => {
+      owners = await factories.owner.createList(3);
+      housings = await Promise.all(
+        Array.from({ length: 10 }, () =>
+          factories.housing.create({
+            geoCode: faker.helpers.arrayElement([
+              ...establishment.geoCodes,
+              ...otherEstablishment.geoCodes
+            ])
+          })
+        )
+      );
+      await Promise.all(
+        housings.flatMap((housing) => {
           const randomRanks = faker.helpers.arrayElements(OWNER_RANKS);
           const randomOwners = faker.helpers.arrayElements(
             owners,
             randomRanks.length
           );
-          return randomOwners.map((owner, index) => ({
-            ...genHousingOwnerApi(housing, owner),
-            rank: randomRanks[index]
-          }));
+          return randomOwners.map((owner, index) =>
+            factories
+              .housingOwner({ housing, owner })
+              .create({ rank: randomRanks[index] })
+          );
         })
-        .map(formatHousingOwnerApi);
-      await HousingOwners().insert(housingOwners);
+      );
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -251,14 +228,26 @@ describe('Group API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const housings = await GroupsHousing().where({ group_id: body.id });
-      const owners = await HousingOwners()
-        .whereIn(
-          ['housing_geo_code', 'housing_id'],
-          housings.map((h) => [h.housing_geo_code, h.housing_id])
+      const housings = await kysely
+        .selectFrom('groupsHousing')
+        .selectAll('groupsHousing')
+        .where('groupId', '=', body.id)
+        .execute();
+      const owners = await kysely
+        .selectFrom('ownersHousing')
+        .select('ownerId')
+        .distinctOn('ownerId')
+        .where((eb) =>
+          eb(
+            eb.refTuple('housingGeoCode', 'housingId'),
+            'in',
+            housings.map((housing) =>
+              eb.tuple(housing.housingGeoCode, housing.housingId)
+            )
+          )
         )
-        .where({ rank: 1 })
-        .distinctOn('owner_id');
+        .where('rank', '=', 1)
+        .execute();
       expect(body).toStrictEqual<GroupDTO>({
         id: expect.any(String),
         title: payload.title,
@@ -365,19 +354,21 @@ describe('Group API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const housings = await Housing().whereExists((subquery) => {
-        subquery
-          .select('*')
-          .from(GROUPS_HOUSING_TABLE)
-          .where({
-            group_id: body.id,
-            housing_id: db.ref(`${housingTable}.id`),
-            housing_geo_code: db.ref(`${housingTable}.geo_code`)
-          });
-      });
-      expect(housings).toSatisfyAll<HousingRecordDBO>((housing) => {
-        return housing.status === HousingStatus.FIRST_CONTACT;
-      });
+      const housings = await kysely
+        .selectFrom('fastHousing')
+        .innerJoin('groupsHousing', (join) =>
+          join
+            .onRef('groupsHousing.housingId', '=', 'fastHousing.id')
+            .onRef('groupsHousing.housingGeoCode', '=', 'fastHousing.geoCode')
+        )
+        .selectAll('fastHousing')
+        .where('groupsHousing.groupId', '=', body.id)
+        .execute();
+      expect(housings).toSatisfyAll<Selectable<DB['fastHousing']>>(
+        (housing) => {
+          return housing.status === HousingStatus.FIRST_CONTACT;
+        }
+      );
       expect(body).toStrictEqual<GroupDTO>({
         id: expect.any(String),
         title: payload.title,
@@ -391,8 +382,9 @@ describe('Group API', () => {
     });
 
     it('should create a group with ownerless housings too', async () => {
-      const housing = genHousingApi(establishment.geoCodes[0]);
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+      });
 
       const payload: GroupPayloadDTO = {
         ...basePayload,
@@ -413,13 +405,13 @@ describe('Group API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
 
-      const groupHousing = await GroupsHousing()
-        .where({
-          group_id: body.id,
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id
-        })
-        .first();
+      const groupHousing = await kysely
+        .selectFrom('groupsHousing')
+        .selectAll('groupsHousing')
+        .where('groupId', '=', body.id)
+        .where('housingGeoCode', '=', housing.geoCode)
+        .where('housingId', '=', housing.id)
+        .executeTakeFirst();
       expect(groupHousing).toBeDefined();
     });
 
@@ -441,26 +433,29 @@ describe('Group API', () => {
         })
         .use(tokenProvider(user));
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const groupHousings = await GroupsHousing().where({ group_id: body.id });
-      const events = await Events()
-        .join(
-          GROUP_HOUSING_EVENTS_TABLE,
-          `${GROUP_HOUSING_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
+      const groupHousings = await kysely
+        .selectFrom('groupsHousing')
+        .selectAll('groupsHousing')
+        .where('groupId', '=', body.id)
+        .execute();
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'groupHousingEvents',
+          'groupHousingEvents.eventId',
+          'events.id'
         )
-        .where({
-          group_id: body.id,
-          type: 'housing:group-attached'
-        });
+        .selectAll('events')
+        .where('groupHousingEvents.groupId', '=', body.id)
+        .where('events.type', '=', 'housing:group-attached')
+        .execute();
       expect(events).toBeArrayOfSize(groupHousings.length);
       events.forEach((event) => {
-        expect(event).toMatchObject<
-          Partial<EventRecordDBO<'housing:group-attached'>>
-        >({
+        expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
           type: 'housing:group-attached',
-          next_old: null,
-          next_new: { name: payload.title },
-          created_by: user.id
+          nextOld: null,
+          nextNew: { name: payload.title },
+          createdBy: user.id
         });
       });
     });
@@ -468,28 +463,33 @@ describe('Group API', () => {
 
   describe('PUT /groups/{id}', () => {
     const testRoute = (id: string) => `/groups/${id}`;
-    const group = genGroupApi(user, establishment);
-    const anotherGroup = genGroupApi(otherUser, otherEstablishment);
-    const housingList = [
-      genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(otherEstablishment.geoCodes[0])
-    ];
 
-    const payload: GroupPayloadDTO = {
-      title: 'Logement prioritaires',
-      description: 'Logements les plus énergivores',
-      housing: {
-        all: false,
-        ids: housingList.map((housing) => housing.id),
-        filters: {}
-      }
-    };
+    let group: GroupApi;
+    let housingList: HousingApi[];
+    let payload: GroupPayloadDTO;
 
     beforeAll(async () => {
-      await Groups().insert(formatGroupApi(group));
-      await Groups().insert(formatGroupApi(anotherGroup));
+      group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await factories
+        .group(otherEstablishment)
+        .create({}, { associations: { createdBy: otherUser } });
+      housingList = [
+        genHousingApi(establishment.geoCodes[0]),
+        genHousingApi(establishment.geoCodes[0]),
+        genHousingApi(establishment.geoCodes[0]),
+        genHousingApi(otherEstablishment.geoCodes[0])
+      ];
+      payload = {
+        title: 'Logement prioritaires',
+        description: 'Logements les plus énergivores',
+        housing: {
+          all: false,
+          ids: housingList.map((housing) => housing.id),
+          filters: {}
+        }
+      };
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -515,11 +515,12 @@ describe('Group API', () => {
     });
 
     it('should be hidden if the group has been archived', async () => {
-      const group: GroupApi = {
-        ...genGroupApi(user, establishment),
-        archivedAt: new Date()
-      };
-      await Groups().insert(formatGroupApi(group));
+      const group = await factories
+        .group(establishment)
+        .create(
+          { archivedAt: new Date() },
+          { associations: { createdBy: user } }
+        );
 
       const { status } = await request(url)
         .put(testRoute(group.id))
@@ -600,47 +601,55 @@ describe('Group API', () => {
 
   describe('POST /groups/{id}/housing', () => {
     const testRoute = (id: string) => `/groups/${id}/housing`;
-    const owner = genOwnerApi();
-    const housingList = [
-      genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(otherEstablishment.geoCodes[0])
-    ];
-    const establishmentHousingList = housingList.filter((housing) =>
-      establishment.geoCodes.includes(housing.geoCode)
-    );
-    const group = genGroupApi(user, establishment);
 
-    const payload: GroupPayloadDTO['housing'] = {
-      all: false,
-      ids: housingList.map((housing) => housing.id),
-      filters: {}
-    };
+    let owner: OwnerApi;
+    let housingList: HousingApi[];
+    let establishmentHousingList: HousingApi[];
+    let group: GroupApi;
+    let payload: GroupPayloadDTO['housing'];
 
     beforeAll(async () => {
-      await Owners().insert(formatOwnerApi(owner));
-      await Housing().insert(housingList.map(formatHousingRecordApi));
-      const ownersHousing = housingList.map<HousingOwnerDBO>((housing) => ({
-        owner_id: owner.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode,
-        rank: 1 as OwnerRank,
-        property_right: null,
-        locprop_relative_ban: null,
-        locprop_distance_ban: null,
-        locprop_source: null,
-        start_date: new Date(),
-        end_date: null,
-        origin: null,
-        idprocpte: null,
-        idprodroit: null
-      }));
-      await HousingOwners().insert(ownersHousing);
-      await Groups().insert(formatGroupApi(group));
-      await GroupsHousing().insert(
-        formatGroupHousingApi(group, establishmentHousingList)
+      owner = await factories.owner.create();
+      housingList = await Promise.all([
+        factories.housing.create({
+          geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+        }),
+        factories.housing.create({
+          geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+        }),
+        factories.housing.create({
+          geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+        }),
+        factories.housing.create({
+          geoCode: faker.helpers.arrayElement(otherEstablishment.geoCodes)
+        })
+      ]);
+      establishmentHousingList = housingList.filter((housing) =>
+        establishment.geoCodes.includes(housing.geoCode)
       );
+      group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await Promise.all(
+        housingList.map((housing) =>
+          factories.housingOwner({ housing, owner }).create({ rank: 1 })
+        )
+      );
+      await kysely
+        .insertInto('groupsHousing')
+        .values(
+          establishmentHousingList.map((housing) => ({
+            groupId: group.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
+      payload = {
+        all: false,
+        ids: housingList.map((housing) => housing.id),
+        filters: {}
+      };
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -682,14 +691,10 @@ describe('Group API', () => {
     });
 
     it('should add the housing corresponding to the given criteria to the group', async () => {
-      const housing = genHousingApi(oneOf(establishment.geoCodes));
-      await Housing().insert(formatHousingRecordApi(housing));
-      await HousingOwners().insert({
-        owner_id: owner.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode,
-        rank: 1
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
       });
+      await factories.housingOwner({ housing, owner }).create({ rank: 1 });
 
       const { body, status } = await request(url)
         .post(testRoute(group.id))
@@ -717,16 +722,10 @@ describe('Group API', () => {
     });
 
     it('should create events when some housing get added', async () => {
-      const housing = genHousingApi(
-        faker.helpers.arrayElement(establishment.geoCodes)
-      );
-      await Housing().insert(formatHousingRecordApi(housing));
-      await HousingOwners().insert({
-        owner_id: owner.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode,
-        rank: 1
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes)
       });
+      await factories.housingOwner({ housing, owner }).create({ rank: 1 });
 
       const { body, status } = await request(url)
         .post(testRoute(group.id))
@@ -741,21 +740,22 @@ describe('Group API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const events = await Events()
-        .join(
-          GROUP_HOUSING_EVENTS_TABLE,
-          `${GROUP_HOUSING_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'groupHousingEvents',
+          'groupHousingEvents.eventId',
+          'events.id'
         )
-        .where({
-          group_id: body.id,
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id
-        });
+        .selectAll('events')
+        .where('groupHousingEvents.groupId', '=', body.id)
+        .where('groupHousingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('groupHousingEvents.housingId', '=', housing.id)
+        .execute();
       expect(events).toIncludeAllPartialMembers([
         {
           type: 'housing:group-attached',
-          created_by: user.id
+          createdBy: user.id
         }
       ]);
     });
@@ -789,47 +789,55 @@ describe('Group API', () => {
 
   describe('DELETE /groups/{id}/housing', () => {
     const testRoute = (id: string) => `/groups/${id}/housing`;
-    const owner = genOwnerApi();
-    const housingList = [
-      genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(establishment.geoCodes[0]),
-      genHousingApi(otherEstablishment.geoCodes[0])
-    ];
-    const establishmentHousingList = housingList.filter((housing) =>
-      establishment.geoCodes.includes(housing.geoCode)
-    );
-    const group = genGroupApi(user, establishment);
 
-    const payload: GroupPayloadDTO['housing'] = {
-      all: false,
-      ids: housingList.slice(2, 3).map((housing) => housing.id),
-      filters: {}
-    };
+    let owner: OwnerApi;
+    let housingList: HousingApi[];
+    let establishmentHousingList: HousingApi[];
+    let group: GroupApi;
+    let payload: GroupPayloadDTO['housing'];
 
     beforeAll(async () => {
-      await Owners().insert(formatOwnerApi(owner));
-      await Housing().insert(housingList.map(formatHousingRecordApi));
-      const ownersHousing = housingList.map<HousingOwnerDBO>((housing) => ({
-        owner_id: owner.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode,
-        rank: 1,
-        property_right: null,
-        locprop_relative_ban: null,
-        locprop_distance_ban: null,
-        locprop_source: null,
-        start_date: new Date(),
-        end_date: null,
-        origin: null,
-        idprocpte: null,
-        idprodroit: null
-      }));
-      await HousingOwners().insert(ownersHousing);
-      await Groups().insert(formatGroupApi(group));
-      await GroupsHousing().insert(
-        formatGroupHousingApi(group, establishmentHousingList)
+      owner = await factories.owner.create();
+      housingList = await Promise.all([
+        factories.housing.create({
+          geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+        }),
+        factories.housing.create({
+          geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+        }),
+        factories.housing.create({
+          geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+        }),
+        factories.housing.create({
+          geoCode: faker.helpers.arrayElement(otherEstablishment.geoCodes)
+        })
+      ]);
+      establishmentHousingList = housingList.filter((housing) =>
+        establishment.geoCodes.includes(housing.geoCode)
       );
+      group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await Promise.all(
+        housingList.map((housing) =>
+          factories.housingOwner({ housing, owner }).create({ rank: 1 })
+        )
+      );
+      await kysely
+        .insertInto('groupsHousing')
+        .values(
+          establishmentHousingList.map((housing) => ({
+            groupId: group.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
+      payload = {
+        all: false,
+        ids: housingList.slice(2, 3).map((housing) => housing.id),
+        filters: {}
+      };
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -854,11 +862,12 @@ describe('Group API', () => {
     });
 
     it('should be hidden if the group has been archived', async () => {
-      const group: GroupApi = {
-        ...genGroupApi(user, establishment),
-        archivedAt: new Date()
-      };
-      await Groups().insert(formatGroupApi(group));
+      const group = await factories
+        .group(establishment)
+        .create(
+          { archivedAt: new Date() },
+          { associations: { createdBy: user } }
+        );
 
       const { status } = await request(url)
         .post(testRoute(group.id))
@@ -907,25 +916,24 @@ describe('Group API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const events = await Events()
-        .join(
-          GROUP_HOUSING_EVENTS_TABLE,
-          `${GROUP_HOUSING_EVENTS_TABLE}.event_id`,
-          `${EVENTS_TABLE}.id`
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'groupHousingEvents',
+          'groupHousingEvents.eventId',
+          'events.id'
         )
-        .where({
-          group_id: body.id,
-          type: 'housing:group-detached'
-        });
+        .selectAll('events')
+        .where('groupHousingEvents.groupId', '=', body.id)
+        .where('events.type', '=', 'housing:group-detached')
+        .execute();
       expect(events.length).toBeGreaterThan(0);
       events.forEach((event) => {
-        expect(event).toMatchObject<
-          Partial<EventRecordDBO<'housing:group-detached'>>
-        >({
+        expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
           type: 'housing:group-detached',
-          next_old: { name: group.title },
-          next_new: null,
-          created_by: user.id
+          nextOld: { name: group.title },
+          nextNew: null,
+          createdBy: user.id
         });
       });
     });
@@ -965,33 +973,33 @@ describe('Group API', () => {
     let owner: OwnerApi;
 
     beforeEach(async () => {
-      group = genGroupApi(user, establishment);
+      owner = await factories.owner.create();
+      group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
       anotherGroup = genGroupApi(otherUser, otherEstablishment);
-      housingList = Array.from({ length: 3 }).map(() =>
-        genHousingApi(oneOf(establishment.geoCodes))
+      housingList = await Promise.all(
+        Array.from({ length: 3 }, () =>
+          factories.housing.create({
+            geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+          })
+        )
       );
-      owner = genOwnerApi();
-
-      await Groups().insert(formatGroupApi(group));
-      await Housing().insert(housingList.map(formatHousingRecordApi));
-      await Owners().insert(formatOwnerApi(owner));
-      await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
-      const ownersHousing = housingList.map<HousingOwnerDBO>((housing) => ({
-        owner_id: owner.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode,
-        rank: 1,
-        property_right: null,
-        locprop_relative_ban: null,
-        locprop_distance_ban: null,
-        locprop_source: null,
-        start_date: new Date(),
-        end_date: null,
-        origin: null,
-        idprocpte: null,
-        idprodroit: null
-      }));
-      await HousingOwners().insert(ownersHousing);
+      await kysely
+        .insertInto('groupsHousing')
+        .values(
+          housingList.map((housing) => ({
+            groupId: group.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
+      await Promise.all(
+        housingList.map((housing) =>
+          factories.housingOwner({ housing, owner }).create({ rank: 1 })
+        )
+      );
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -1021,23 +1029,32 @@ describe('Group API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
-      const actual = await GroupHousingEvents()
-        .join(
-          EVENTS_TABLE,
-          `${EVENTS_TABLE}.id`,
-          `${GROUP_HOUSING_EVENTS_TABLE}.event_id`
+      const actual = await kysely
+        .selectFrom('groupHousingEvents')
+        .innerJoin('events', 'events.id', 'groupHousingEvents.eventId')
+        .select([
+          'events.type',
+          'events.createdBy',
+          'groupHousingEvents.groupId'
+        ])
+        .where((eb) =>
+          eb(
+            eb.refTuple(
+              'groupHousingEvents.housingGeoCode',
+              'groupHousingEvents.housingId'
+            ),
+            'in',
+            housingList.map((housing) => eb.tuple(housing.geoCode, housing.id))
+          )
         )
-        .whereIn(
-          ['housing_geo_code', 'housing_id'],
-          housingList.map((housing) => [housing.geoCode, housing.id])
-        )
-        .whereNull('group_id')
-        .where({ type: 'housing:group-removed' });
+        .where('groupHousingEvents.groupId', 'is', null)
+        .where('events.type', '=', 'housing:group-removed')
+        .execute();
       expect(actual.length).toBeGreaterThan(0);
       expect(actual).toPartiallyContain({
         type: 'housing:group-removed',
-        created_by: user.id,
-        group_id: null
+        createdBy: user.id,
+        groupId: null
       });
     });
 
@@ -1069,10 +1086,14 @@ describe('Group API', () => {
         expect(body).toMatchObject({
           archivedAt: expect.any(String)
         });
-        const actual = await Groups().where({ id: group.id }).first();
+        const actual = await kysely
+          .selectFrom('groups')
+          .selectAll('groups')
+          .where('id', '=', group.id)
+          .executeTakeFirst();
         expect(actual).toMatchObject({
           id: group.id,
-          archived_at: expect.any(Date)
+          archivedAt: expect.any(Date)
         });
       });
 
@@ -1082,25 +1103,34 @@ describe('Group API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_OK);
-        const actual = await GroupHousingEvents()
-          .join(
-            EVENTS_TABLE,
-            `${EVENTS_TABLE}.id`,
-            `${GROUP_HOUSING_EVENTS_TABLE}.event_id`
+        const actual = await kysely
+          .selectFrom('groupHousingEvents')
+          .innerJoin('events', 'events.id', 'groupHousingEvents.eventId')
+          .select([
+            'events.type',
+            'events.createdBy',
+            'groupHousingEvents.groupId'
+          ])
+          .where((eb) =>
+            eb(
+              eb.refTuple(
+                'groupHousingEvents.housingGeoCode',
+                'groupHousingEvents.housingId'
+              ),
+              'in',
+              housingList.map((housing) =>
+                eb.tuple(housing.geoCode, housing.id)
+              )
+            )
           )
-          .whereIn(
-            ['housing_geo_code', 'housing_id'],
-            housingList.map((housing) => [housing.geoCode, housing.id])
-          )
-          .where({
-            group_id: group.id,
-            type: 'housing:group-archived'
-          });
+          .where('groupHousingEvents.groupId', '=', group.id)
+          .where('events.type', '=', 'housing:group-archived')
+          .execute();
         expect(actual.length).toBeGreaterThan(0);
         expect(actual).toPartiallyContain({
           type: 'housing:group-archived',
-          created_by: user.id,
-          group_id: group.id
+          createdBy: user.id,
+          groupId: group.id
         });
       });
     });

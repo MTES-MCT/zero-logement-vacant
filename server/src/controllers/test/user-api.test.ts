@@ -10,13 +10,15 @@ import {
   type UserUpdatePayload
 } from '@zerologementvacant/models';
 import bcrypt from 'bcryptjs';
+import { Record } from 'effect';
+import { snakeToCamel } from 'effect/String';
+import type { Insertable } from 'kysely';
 import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 import { vi } from 'vitest';
 
 import { createPasswordVerifier } from '~/infra/auth-password';
-import db from '~/infra/database';
 
 // Generate valid French phone numbers
 function genFrenchPhone(): string {
@@ -41,54 +43,48 @@ const validPhoneArb = fc.oneof(
     )
     .map(([first, rest]) => `0${first}${rest}`)
 );
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { ProspectApi } from '~/models/ProspectApi';
 import { SALT_LENGTH, UserApi } from '~/models/UserApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  formatProspectApi,
-  Prospects
-} from '~/repositories/prospectRepository';
-import { UsersEstablishments } from '~/repositories/user-establishment-repository';
-import { toUserDBO, Users, USERS_TABLE } from '~/repositories/userRepository';
+import { formatProspectApi } from '~/repositories/prospectRepository';
 import { insertUserWithAuthIdentity } from '~/services/authIdentityService';
 import ceremaService from '~/services/ceremaService';
 import { TEST_ACCOUNTS } from '~/services/ceremaService/consultUserService';
-import {
-  genEstablishmentApi,
-  genProspectApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { factories } from '~/test/factories';
+import { genProspectApi, genUserApi } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
 let url: string;
 
 describe('User API', () => {
-  const establishment = genEstablishmentApi();
-  const visitor: UserApi = {
-    ...genUserApi(establishment.id),
-    role: UserRole.VISITOR
-  };
-  const user: UserApi = {
-    ...genUserApi(establishment.id),
-    role: UserRole.USUAL
-  };
-  const admin: UserApi = {
-    ...genUserApi(establishment.id),
-    role: UserRole.ADMIN
-  };
+  let establishment: EstablishmentApi;
+  let visitor: UserApi;
+  let user: UserApi;
+  let admin: UserApi;
 
   beforeAll(async () => {
     url = await createServer().testing();
   });
 
   beforeAll(async () => {
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert([visitor, user, admin].map(toUserDBO));
+    establishment = await factories.establishment.create();
+    [visitor, user, admin] = await Promise.all([
+      factories.user.create({
+        establishmentId: establishment.id,
+        role: UserRole.VISITOR
+      }),
+      factories.user.create({
+        establishmentId: establishment.id,
+        role: UserRole.USUAL
+      }),
+      factories.user.create({
+        establishmentId: establishment.id,
+        role: UserRole.ADMIN
+      })
+    ]);
   });
 
   describe('GET /users', () => {
@@ -128,18 +124,19 @@ describe('User API', () => {
       });
 
       it('should return users attached through multi-structure memberships', async () => {
-        const otherEstablishment = genEstablishmentApi();
-        const multiStructureUser = genUserApi(otherEstablishment.id);
-        await Establishments().insert(
-          formatEstablishmentApi(otherEstablishment)
-        );
-        await Users().insert(toUserDBO(multiStructureUser));
-        await UsersEstablishments().insert({
-          user_id: multiStructureUser.id,
-          establishment_id: establishment.id,
-          establishment_siren: establishment.siren,
-          has_commitment: true
+        const otherEstablishment = await factories.establishment.create();
+        const multiStructureUser = await factories.user.create({
+          establishmentId: otherEstablishment.id
         });
+        await kysely
+          .insertInto('usersEstablishments')
+          .values({
+            userId: multiStructureUser.id,
+            establishmentId: establishment.id,
+            establishmentSiren: establishment.siren,
+            hasCommitment: true
+          })
+          .execute();
 
         const { body, status } = await request(url)
           .get(route)
@@ -154,14 +151,12 @@ describe('User API', () => {
 
     describe('As an authenticated admin', () => {
       it('should return all the users', async () => {
-        const otherEstablishment = genEstablishmentApi();
-        const otherUsers: ReadonlyArray<UserApi> = faker.helpers.multiple(() =>
-          genUserApi(otherEstablishment.id)
+        const otherEstablishment = await factories.establishment.create();
+        await Promise.all(
+          faker.helpers.multiple(() =>
+            factories.user.create({ establishmentId: otherEstablishment.id })
+          )
         );
-        await Establishments().insert(
-          formatEstablishmentApi(otherEstablishment)
-        );
-        await Users().insert(otherUsers.map(toUserDBO));
 
         const { body, status } = await request(url)
           .get(route)
@@ -175,18 +170,19 @@ describe('User API', () => {
       });
 
       it('should filter by establishment', async () => {
-        const otherEstablishment = genEstablishmentApi();
-        const multiStructureUser = genUserApi(otherEstablishment.id);
-        await Establishments().insert(
-          formatEstablishmentApi(otherEstablishment)
-        );
-        await Users().insert(toUserDBO(multiStructureUser));
-        await UsersEstablishments().insert({
-          user_id: multiStructureUser.id,
-          establishment_id: establishment.id,
-          establishment_siren: establishment.siren,
-          has_commitment: true
+        const otherEstablishment = await factories.establishment.create();
+        const multiStructureUser = await factories.user.create({
+          establishmentId: otherEstablishment.id
         });
+        await kysely
+          .insertInto('usersEstablishments')
+          .values({
+            userId: multiStructureUser.id,
+            establishmentId: establishment.id,
+            establishmentSiren: establishment.siren,
+            hasCommitment: true
+          })
+          .execute();
 
         const { body, status } = await request(url)
           .get(route)
@@ -210,7 +206,15 @@ describe('User API', () => {
 
     beforeEach(async () => {
       prospect = genProspectApi(establishment);
-      await Prospects().insert(formatProspectApi(prospect));
+      await kysely
+        .insertInto('prospects')
+        .values(
+          Record.mapKeys(
+            formatProspectApi(prospect) as unknown as Record<string, unknown>,
+            snakeToCamel
+          ) as Insertable<DB['prospects']>
+        )
+        .execute();
       vi.spyOn(ceremaService, 'consultUsers').mockResolvedValue([
         {
           email: prospect.email,
@@ -277,10 +281,11 @@ describe('User API', () => {
       responses.forEach((response) => {
         expect(response.status).toBe(constants.HTTP_STATUS_FORBIDDEN);
       });
-      const users = await db(USERS_TABLE)
-        .count('email as count')
-        .whereIn('email', emails)
-        .first();
+      const users = await kysely
+        .selectFrom('users')
+        .select((eb) => eb.fn.count('email').as('count'))
+        .where('email', 'in', emails)
+        .executeTakeFirst();
       expect(Number(users?.count)).toBe(0);
     });
 
@@ -323,47 +328,48 @@ describe('User API', () => {
         role: UserRole.USUAL
       });
 
-      const user = await Users()
-        .where({
-          establishment_id: establishment.id,
-          email: prospect.email
-        })
-        .first();
+      const user = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('establishmentId', '=', establishment.id)
+        .where('email', '=', prospect.email)
+        .executeTakeFirst();
       expect(user).toMatchObject({
         email: prospect.email,
-        establishment_id: prospect.establishment?.id,
+        establishmentId: prospect.establishment?.id,
         role: UserRole.USUAL
       });
 
-      const authUser = await db('auth_users')
-        .where({ id: body.id, email: prospect.email.toLowerCase() })
-        .first();
+      const authUser = await kysely
+        .selectFrom('authUsers')
+        .selectAll('authUsers')
+        .where('id', '=', body.id)
+        .where('email', '=', prospect.email.toLowerCase())
+        .executeTakeFirst();
       expect(authUser).toMatchObject({
         email: prospect.email.toLowerCase()
       });
 
-      const account = await db('account')
-        .where({
-          user_id: body.id,
-          account_id: prospect.email.toLowerCase(),
-          provider_id: 'credential'
-        })
-        .first();
+      const account = await kysely
+        .selectFrom('account')
+        .selectAll('account')
+        .where('userId', '=', body.id)
+        .where('accountId', '=', prospect.email.toLowerCase())
+        .where('providerId', '=', 'credential')
+        .executeTakeFirst();
       expect(account).toBeDefined();
       await expect(
         createPasswordVerifier({ rehash: null })({
-          hash: account.password,
+          hash: account!.password!,
           password: validPassword
         })
       ).resolves.toBeTrue();
     });
 
     it('should activate user establishment if needed', async () => {
-      const establishment: EstablishmentApi = {
-        ...genEstablishmentApi(),
+      const establishment = await factories.establishment.create({
         available: false
-      };
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      });
 
       const { status } = await request(url)
         .post(testRoute)
@@ -374,9 +380,11 @@ describe('User API', () => {
         });
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const actual = await Establishments()
-        .where('id', establishment.id)
-        .first();
+      const actual = await kysely
+        .selectFrom('establishments')
+        .selectAll('establishments')
+        .where('id', '=', establishment.id)
+        .executeTakeFirst();
       expect(actual).toMatchObject({
         id: establishment.id,
         available: true
@@ -447,12 +455,12 @@ describe('User API', () => {
   });
 
   describe('GET /users/{id}', () => {
-    const user = genUserApi(establishment.id);
+    let user: UserApi;
 
     const testRoute = (id: string) => `/users/${id}`;
 
     beforeAll(async () => {
-      await Users().insert(toUserDBO(user));
+      user = await factories.user.create({ establishmentId: establishment.id });
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -473,11 +481,10 @@ describe('User API', () => {
     it.todo('should allow a user to retrieve himself');
 
     it('should retrieve any user if admin', async () => {
-      const admin: UserApi = {
-        ...genUserApi(establishment.id),
+      const admin = await factories.user.create({
+        establishmentId: establishment.id,
         role: UserRole.ADMIN
-      };
-      await Users().insert(toUserDBO(admin));
+      });
 
       const { body, status } = await request(url)
         .get(testRoute(user.id))
@@ -491,22 +498,26 @@ describe('User API', () => {
   });
 
   describe('PUT /users/{id}', () => {
-    const visitor: UserApi = {
-      ...genUserApi(establishment.id),
-      role: UserRole.VISITOR
-    };
-    const user: UserApi = {
-      ...genUserApi(establishment.id),
-      role: UserRole.USUAL
-    };
-    const admin: UserApi = {
-      ...genUserApi(establishment.id),
-      role: UserRole.ADMIN
-    };
+    let visitor: UserApi;
+    let user: UserApi;
+    let admin: UserApi;
     const testRoute = (id: string) => `/users/${id}`;
 
     beforeAll(async () => {
-      await Users().insert([visitor, user, admin].map(toUserDBO));
+      [visitor, user, admin] = await Promise.all([
+        factories.user.create({
+          establishmentId: establishment.id,
+          role: UserRole.VISITOR
+        }),
+        factories.user.create({
+          establishmentId: establishment.id,
+          role: UserRole.USUAL
+        }),
+        factories.user.create({
+          establishmentId: establishment.id,
+          role: UserRole.ADMIN
+        })
+      ]);
     });
 
     describe('As an unauthenticated guest', () => {
@@ -592,24 +603,29 @@ describe('User API', () => {
       it('should sync password changes to the better-auth credential account', async () => {
         const currentPassword = 'CurrentPassword123!';
         const nextPassword = 'NextPassword123!';
-        const user: UserApi = {
-          ...genUserApi(establishment.id),
+        const user = await factories.user.create({
+          establishmentId: establishment.id,
           password: await bcrypt.hash(currentPassword, SALT_LENGTH)
-        };
-        await Users().insert(toUserDBO(user));
-        await db('auth_users').insert({
-          id: user.id,
-          name: `${user.firstName} ${user.lastName}`.trim(),
-          email: user.email.toLowerCase(),
-          email_verified: true
         });
-        await db('account').insert({
-          id: randomUUID(),
-          account_id: user.email,
-          provider_id: 'credential',
-          user_id: user.id,
-          password: user.password
-        });
+        await kysely
+          .insertInto('authUsers')
+          .values({
+            id: user.id,
+            name: `${user.firstName} ${user.lastName}`.trim(),
+            email: user.email.toLowerCase(),
+            emailVerified: true
+          })
+          .execute();
+        await kysely
+          .insertInto('account')
+          .values({
+            id: randomUUID(),
+            accountId: user.email,
+            providerId: 'credential',
+            userId: user.id,
+            password: user.password
+          })
+          .execute();
 
         const payload: UserUpdatePayload = {
           firstName: user.firstName ?? faker.person.firstName(),
@@ -630,12 +646,15 @@ describe('User API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_OK);
-        const account = await db('account')
-          .where({ user_id: user.id, provider_id: 'credential' })
-          .first();
+        const account = await kysely
+          .selectFrom('account')
+          .selectAll('account')
+          .where('userId', '=', user.id)
+          .where('providerId', '=', 'credential')
+          .executeTakeFirst();
         await expect(
           createPasswordVerifier({ rehash: null })({
-            hash: account.password,
+            hash: account!.password!,
             password: nextPassword
           })
         ).resolves.toBeTrue();
@@ -773,26 +792,35 @@ describe('User API', () => {
 
     describe('As an authenticated admin', () => {
       it('should delete any user', async () => {
-        await db('auth_users').insert({
-          id: user.id,
-          name: [user.firstName, user.lastName].filter(Boolean).join(' '),
-          email: user.email.toLowerCase(),
-          email_verified: true
-        });
-        await db('account').insert({
-          id: randomUUID(),
-          account_id: user.email,
-          provider_id: 'credential',
-          user_id: user.id,
-          password: user.password
-        });
-        await db('session').insert({
-          id: randomUUID(),
-          token: randomUUID(),
-          user_id: user.id,
-          active_establishment_id: establishment.id,
-          expires_at: new Date(Date.now() + 60_000)
-        });
+        await kysely
+          .insertInto('authUsers')
+          .values({
+            id: user.id,
+            name: [user.firstName, user.lastName].filter(Boolean).join(' '),
+            email: user.email.toLowerCase(),
+            emailVerified: true
+          })
+          .execute();
+        await kysely
+          .insertInto('account')
+          .values({
+            id: randomUUID(),
+            accountId: user.email,
+            providerId: 'credential',
+            userId: user.id,
+            password: user.password
+          })
+          .execute();
+        await kysely
+          .insertInto('session')
+          .values({
+            id: randomUUID(),
+            token: randomUUID(),
+            userId: user.id,
+            activeEstablishmentId: establishment.id,
+            expiresAt: new Date(Date.now() + 60_000)
+          })
+          .execute();
 
         const { status } = await request(url)
           .delete(testRoute(user.id))
@@ -800,13 +828,25 @@ describe('User API', () => {
 
         expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
-        const authUser = await db('auth_users').where({ id: user.id }).first();
+        const authUser = await kysely
+          .selectFrom('authUsers')
+          .selectAll('authUsers')
+          .where('id', '=', user.id)
+          .executeTakeFirst();
         expect(authUser).toBeUndefined();
         await expect(
-          db('account').where({ user_id: user.id }).first()
+          kysely
+            .selectFrom('account')
+            .selectAll('account')
+            .where('userId', '=', user.id)
+            .executeTakeFirst()
         ).resolves.toBeUndefined();
         await expect(
-          db('session').where({ user_id: user.id }).first()
+          kysely
+            .selectFrom('session')
+            .selectAll('session')
+            .where('userId', '=', user.id)
+            .executeTakeFirst()
         ).resolves.toBeUndefined();
       });
     });

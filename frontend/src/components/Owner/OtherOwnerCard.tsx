@@ -6,12 +6,14 @@ import type { PropertyRight } from '@zerologementvacant/models';
 
 import Icon from '~/components/ui/Icon';
 
+import DoNotContactBadge from './DoNotContactBadge';
 import PropertyRightTag from './PropertyRightTag';
 
 interface OtherOwnerCardProps {
   id: string;
   name: string;
   propertyRight: PropertyRight | null;
+  doNotContact: boolean;
 }
 
 function OtherOwnerCardNext(props: OtherOwnerCardProps) {
@@ -38,6 +40,8 @@ function OtherOwnerCardNext(props: OtherOwnerCardProps) {
           />
           <Typography sx={{ fontWeight: 700 }}>{props.name}</Typography>
         </Stack>
+
+        <DoNotContactBadge doNotContact={props.doNotContact} />
 
         {!props.propertyRight ? null : (
           <PropertyRightTag value={props.propertyRight} />

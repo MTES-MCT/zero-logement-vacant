@@ -190,7 +190,11 @@ export const configSchema = z.object({
       .int()
       .min(0)
       .default(60 * 60 * 1000),
-    cacheMaxEntries: z.coerce.number().int().min(1).default(10_000)
+    cacheMaxEntries: z.coerce.number().int().min(1).default(10_000),
+    maxConcurrentCardQueries: z.coerce.number().int().min(1).default(2),
+    maxQueuedCardQueries: z.coerce.number().int().min(1).default(20),
+    maxQueueWaitMs: z.coerce.number().int().min(1).default(30_000),
+    retryAfterSeconds: z.coerce.number().int().min(0).default(1)
   }),
   rateLimit: z.object({
     max: z.coerce.number().int().default(10_000)
@@ -346,7 +350,11 @@ const config = configSchema.parse({
     token: env('METABASE_TOKEN'),
     apiToken: env('METABASE_API_TOKEN'),
     cacheTtlMs: env('METABASE_CACHE_TTL_MS'),
-    cacheMaxEntries: env('METABASE_CACHE_MAX_ENTRIES')
+    cacheMaxEntries: env('METABASE_CACHE_MAX_ENTRIES'),
+    maxConcurrentCardQueries: env('METABASE_MAX_CONCURRENT_CARD_QUERIES'),
+    maxQueuedCardQueries: env('METABASE_MAX_QUEUED_CARD_QUERIES'),
+    maxQueueWaitMs: env('METABASE_MAX_QUEUE_WAIT_MS'),
+    retryAfterSeconds: env('METABASE_RETRY_AFTER_SECONDS')
   },
   rateLimit: {
     max: env('RATE_LIMIT_MAX')
@@ -380,5 +388,9 @@ export default config as Omit<Config, 'metabase'> & {
     apiToken: string;
     cacheTtlMs: number;
     cacheMaxEntries: number;
+    maxConcurrentCardQueries: number;
+    maxQueuedCardQueries: number;
+    maxQueueWaitMs: number;
+    retryAfterSeconds: number;
   };
 };

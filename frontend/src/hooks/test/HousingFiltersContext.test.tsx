@@ -9,11 +9,14 @@ import {
   genEstablishmentDTO,
   genUserDTO
 } from '@zerologementvacant/models/fixtures';
+import { http, HttpResponse } from 'msw';
 import type { PropsWithChildren } from 'react';
 import { Provider as StoreProvider } from 'react-redux';
 
 import data from '~/mocks/handlers/data';
+import { mockAPI } from '~/mocks/mock-api';
 import { MockAuthProvider, type MockAuthOptions } from '~/test/auth';
+import config from '~/utils/config';
 
 import configureTestStore from '../../utils/storeUtils';
 import {
@@ -203,6 +206,33 @@ describe('HousingFiltersContext', () => {
         intercommunalities: [intercommunality.id]
       });
       expect(result.current.filters.filters.localities).toBeUndefined();
+    });
+
+    it('loads intercommunalities by administrative kind', async () => {
+      const department: EstablishmentDTO = {
+        ...genEstablishmentDTO(),
+        kind: 'DEP',
+        geoCodes: ['06004', '06012', '06088']
+      };
+      let requestedKind: string | null = null;
+      let requestedKindAdmin: string | null = null;
+      mockAPI.use(
+        http.get(`${config.apiEndpoint}/establishments`, ({ request }) => {
+          const url = new URL(request.url);
+          requestedKind = url.searchParams.get('kind');
+          requestedKindAdmin = url.searchParams.get('kindAdmin');
+          return HttpResponse.json([]);
+        })
+      );
+
+      renderHook(() => useIntercommunalities(), {
+        wrapper: createWrapper(undefined, createAuthOptions(department))
+      });
+
+      await waitFor(() => {
+        expect(requestedKindAdmin).toBe('CA,CC,CU,METRO,EPT');
+      });
+      expect(requestedKind).toBeNull();
     });
   });
 

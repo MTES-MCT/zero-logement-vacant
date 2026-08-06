@@ -5,6 +5,7 @@ from types import ModuleType, SimpleNamespace
 from unittest.mock import MagicMock, Mock
 
 import pytest
+from psycopg2.extensions import parse_dsn
 
 PROJECT_ROOT = Path(__file__).parent.parent
 ESTABLISHMENT_ID = "00000000-0000-0000-0000-000000000001"
@@ -75,7 +76,10 @@ def _location_context(*, dry_run: bool = False):
         },
         log=SimpleNamespace(info=Mock()),
         resources=SimpleNamespace(
-            psycopg2_connection=SimpleNamespace(dsn="postgresql://configured/test")
+            psycopg2_connection=SimpleNamespace(
+                dsn="dbname=test user=writer password=xxx",
+                info=SimpleNamespace(password="configured-secret"),
+            )
         ),
     )
 
@@ -232,19 +236,27 @@ def test_location_asset_rejects_a_different_backfill_scope(monkeypatch):
     calculate.assert_not_called()
 
 
-def test_location_asset_uses_the_configured_database_resource(monkeypatch):
+def test_location_asset_passes_a_reconnectable_database_dsn(monkeypatch):
     calculate = Mock(return_value=_report())
     monkeypatch.setattr(asset_module, "calculate_owner_housing_locations", calculate)
     compute = _compute(asset_module.lovac_owner_housing_locations)
     context = _location_context()
     context.resources = SimpleNamespace(
-        psycopg2_connection=SimpleNamespace(dsn="postgresql://configured/test")
+        psycopg2_connection=SimpleNamespace(
+            dsn="dbname=zlv user=writer password=xxx",
+            info=SimpleNamespace(password="secret with spaces"),
+        )
     )
     backfill_report = {"scope": _report().to_dict()["scope"]}
 
     compute(context, backfill_report)
 
-    assert calculate.call_args.kwargs["db_url"] == "postgresql://configured/test"
+    forwarded_dsn = parse_dsn(calculate.call_args.kwargs["db_url"])
+    assert forwarded_dsn == {
+        "dbname": "zlv",
+        "user": "writer",
+        "password": "secret with spaces",
+    }
 
 
 def test_location_asset_forwards_explicit_full_year_opt_in(monkeypatch):

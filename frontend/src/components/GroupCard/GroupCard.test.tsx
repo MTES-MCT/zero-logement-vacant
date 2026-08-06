@@ -8,7 +8,6 @@ vi.mock('posthog-js/react', async (importOriginal) => {
   const mod = await importOriginal<typeof import('posthog-js/react')>();
   return {
     ...mod,
-    useFeatureFlagEnabled: vi.fn().mockReturnValue(false),
     usePostHog: () => ({ capture: vi.fn() })
   };
 });

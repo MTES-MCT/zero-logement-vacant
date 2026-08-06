@@ -38,16 +38,3 @@ export function isDepartmentalEstablishment(
   ];
   return departments.includes(establishment.kind);
 }
-
-export function isIntercommunalityEstablishment(
-  establishment: Pick<EstablishmentDTO, 'kind'>
-): boolean {
-  const intercommunalities: ReadonlyArray<EstablishmentKind> = [
-    'CA',
-    'CC',
-    'CU',
-    'METRO',
-    'EPT'
-  ];
-  return intercommunalities.includes(establishment.kind);
-}

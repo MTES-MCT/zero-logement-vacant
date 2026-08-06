@@ -26,8 +26,8 @@ export type HousingOwnerApi = Pick<
     ownerId: string;
     housingId: string;
     housingGeoCode: string;
-    startDate: Date | null;
-    endDate: Date | null;
+    startDate: string | null;
+    endDate: string | null;
     origin: string | null;
     /**
      * @deprecated Hard to maintain because it is computed from the housings
@@ -80,7 +80,7 @@ export function toHousingOwnersApi(
     idprodroit: null,
     origin: null,
     rank: (i + 1) as OwnerRank,
-    startDate: new Date(),
+    startDate: new Date().toJSON().substring(0, 'yyyy-mm-dd'.length),
     endDate: null,
     locprop: null,
     relativeLocation: null,

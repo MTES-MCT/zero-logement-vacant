@@ -105,6 +105,33 @@ describe('configSchema', () => {
     expect(result.log.level).toBe('info');
   });
 
+  it('uses safe Metabase queue defaults and accepts operational overrides', () => {
+    const defaults = configSchema.parse(validRaw).metabase;
+    const configured = configSchema.parse({
+      ...validRaw,
+      metabase: {
+        ...validRaw.metabase,
+        maxConcurrentCardQueries: '3',
+        maxQueuedCardQueries: '12',
+        maxQueueWaitMs: '45000',
+        retryAfterSeconds: '2'
+      }
+    }).metabase;
+
+    expect(defaults).toMatchObject({
+      maxConcurrentCardQueries: 2,
+      maxQueuedCardQueries: 20,
+      maxQueueWaitMs: 30_000,
+      retryAfterSeconds: 1
+    });
+    expect(configured).toMatchObject({
+      maxConcurrentCardQueries: 3,
+      maxQueuedCardQueries: 12,
+      maxQueueWaitMs: 45_000,
+      retryAfterSeconds: 2
+    });
+  });
+
   it('normalizes allowed origins before CORS and CSRF checks', () => {
     const result = configSchema.parse({
       ...validRaw,

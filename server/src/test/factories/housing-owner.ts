@@ -36,7 +36,7 @@ export function createHousingOwnerFactory(
     idprodroit: faker.string.alphanumeric(13),
     locprop: faker.helpers.arrayElement([1, 2, 3, 4, 5, 6, 9]),
     propertyRight: faker.helpers.arrayElement(PROPERTY_RIGHT_VALUES),
-    startDate: faker.date.past(),
+    startDate: faker.date.past().toJSON().substring(0, 'yyyy-mm-dd'.length),
     endDate: null,
     relativeLocation: faker.helpers.arrayElement(RELATIVE_LOCATION_VALUES),
     absoluteDistance: null

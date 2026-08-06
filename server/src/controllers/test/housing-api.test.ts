@@ -14,8 +14,12 @@ import {
   Occupancy,
   OCCUPANCY_LABELS,
   OCCUPANCY_VALUES,
+  OwnerRank,
+  PrecisionCategory,
   toOccupancy,
   UserRole,
+  type DatafoncierHousing,
+  type DatafoncierOwner,
   type HousingBatchUpdatePayload
 } from '@zerologementvacant/models';
 import {
@@ -26,87 +30,79 @@ import {
   genIdprocpte,
   genIdprodroit
 } from '@zerologementvacant/models/fixtures';
-import async from 'async';
+import { sql, type Selectable } from 'kysely';
 import randomstring from 'randomstring';
 import request from 'supertest';
 
-import db from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { HousingApi } from '~/models/HousingApi';
-import { OwnerApi } from '~/models/OwnerApi';
 import { UserApi } from '~/models/UserApi';
-import {
-  Buildings,
-  formatBuildingApi
-} from '~/repositories/buildingRepository';
-import {
-  CampaignsHousing,
-  formatCampaignHousingApi
-} from '~/repositories/campaignHousingRepository';
-import { DatafoncierHouses } from '~/repositories/datafoncierHousingRepository';
-import { DatafoncierOwners } from '~/repositories/datafoncierOwnersRepository';
-import { Documents, toDocumentDBO } from '~/repositories/documentRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  EventRecordDBO,
-  Events,
-  EVENTS_TABLE,
-  formatEventApi,
-  HOUSING_EVENTS_TABLE,
-  HousingEvents,
-  HousingOwnerEvents,
-  OwnerEvents,
-  PRECISION_HOUSING_EVENTS_TABLE,
-  PrecisionHousingEvents
-} from '~/repositories/eventRepository';
-import housingDocumentRepository, {
-  HousingDocumentDBO,
-  HousingDocuments
-} from '~/repositories/housingDocumentRepository';
-import {
-  formatHousingOwnersApi,
-  HousingOwners,
-  housingOwnersTable
-} from '~/repositories/housingOwnerRepository';
-import {
-  formatHousingRecordApi,
-  Housing,
-  HousingRecordDBO,
-  housingTable
-} from '~/repositories/housingRepository';
-import {
-  HOUSING_NOTES_TABLE,
-  Notes,
-  type NoteRecordDBO
-} from '~/repositories/noteRepository';
-import {
-  formatOwnerApi,
-  OwnerRecordDBO,
-  Owners,
-  ownerTable
-} from '~/repositories/ownerRepository';
-import {
-  HousingPrecisions,
-  Precisions,
-  type HousingPrecisionDBO
-} from '~/repositories/precisionRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { toDocumentInsert } from '~/repositories/documentRepository';
+import { toEstablishmentInsert } from '~/repositories/establishmentRepository';
+import { toEventInsert } from '~/repositories/eventRepository';
+import housingDocumentRepository from '~/repositories/housingDocumentRepository';
+import { toUserInsert } from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
 import {
-  genBuildingApi,
   genDocumentApi,
   genEstablishmentApi,
   genEventApi,
-  genHousingApi,
-  genOwnerApi,
   genUserApi,
   oneOf
 } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
+
+// Kysely raw insert for df_housing_nat_2024: the codegen key `dfHousingNat2024`
+// doesn't round-trip through CamelCasePlugin to the real table name, and
+// insertInto() only accepts a literal table key — so build the statement with a
+// literal table reference and ST_GeomFromGeoJson() for the PostGIS columns.
+async function insertDatafoncierHousing(
+  datafoncierHousing: DatafoncierHousing
+): Promise<void> {
+  const { ban_geom, geomloc, geomrnb, ...rest } = datafoncierHousing;
+  const columns = Object.keys(rest);
+  const columnRefs = [...columns, 'ban_geom', 'geomloc', 'geomrnb'].map(
+    (column) => sql.ref(column)
+  );
+  const values = [
+    ...columns.map(
+      (column) => sql`${(rest as Record<string, unknown>)[column]}`
+    ),
+    sql`ST_GeomFromGeoJson(${JSON.stringify(ban_geom)})`,
+    sql`ST_GeomFromGeoJson(${JSON.stringify(geomloc)})`,
+    sql`ST_GeomFromGeoJson(${JSON.stringify(geomrnb)})`
+  ];
+  await sql`
+    insert into df_housing_nat_2024 (${sql.join(columnRefs)})
+    values (${sql.join(values)})
+  `.execute(kysely);
+}
+
+// df_owners_nat_2024 has no PostGIS columns, but the codegen key
+// `dfOwnersNat2024` doesn't round-trip through CamelCasePlugin either — so each
+// owner is inserted with a literal table reference (mirrors
+// insertDatafoncierHousing above).
+async function insertDatafoncierOwners(
+  datafoncierOwners: ReadonlyArray<DatafoncierOwner>
+): Promise<void> {
+  await Promise.all(
+    datafoncierOwners.map((datafoncierOwner) => {
+      const columns = Object.keys(datafoncierOwner);
+      const columnRefs = columns.map((column) => sql.ref(column));
+      const values = columns.map(
+        (column) =>
+          sql`${(datafoncierOwner as unknown as Record<string, unknown>)[column]}`
+      );
+      return sql`
+        insert into df_owners_nat_2024 (${sql.join(columnRefs)})
+        values (${sql.join(values)})
+      `.execute(kysely);
+    })
+  );
+}
 
 describe('Housing API', () => {
   let url: string;
@@ -115,45 +111,51 @@ describe('Housing API', () => {
     url = await createServer().testing();
   });
 
-  const establishment = genEstablishmentApi('12345');
-  const user: UserApi = {
-    ...genUserApi(establishment.id),
-    role: UserRole.USUAL
-  };
-  const visitor: UserApi = {
-    ...genUserApi(establishment.id),
-    role: UserRole.VISITOR
-  };
-  const anotherEstablishment = genEstablishmentApi('23456');
-  const anotherUser = genUserApi(anotherEstablishment.id);
+  let establishment: EstablishmentApi;
+  let user: UserApi;
+  let visitor: UserApi;
+  let anotherEstablishment: EstablishmentApi;
 
   beforeAll(async () => {
-    await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi)
-    );
-    await Users().insert([user, visitor, anotherUser].map(toUserDBO));
+    [establishment, anotherEstablishment] = await Promise.all([
+      factories.establishment.create(),
+      factories.establishment.create()
+    ]);
+    [user, visitor] = await Promise.all([
+      factories.user.create({
+        establishmentId: establishment.id,
+        role: UserRole.USUAL
+      }),
+      factories.user.create({
+        establishmentId: establishment.id,
+        role: UserRole.VISITOR
+      })
+    ]);
   });
 
   describe('GET /housing/{id}', () => {
     const testRoute = (id: string) => `/housing/${id}`;
 
-    const housing = genHousingApi(
-      faker.helpers.arrayElement(establishment.geoCodes)
-    );
-    const owner = genOwnerApi();
-    const anotherHousing = genHousingApi(
-      faker.helpers.arrayElement(anotherEstablishment.geoCodes)
-    );
-    const anotherOwner = genOwnerApi();
+    let housing: HousingApi;
+    let anotherHousing: HousingApi;
 
     beforeAll(async () => {
-      await Housing().insert(
-        [housing, anotherHousing].map(formatHousingRecordApi)
-      );
-      await Owners().insert([owner, anotherOwner].map(formatOwnerApi));
-      await HousingOwners().insert([
-        ...formatHousingOwnersApi(housing, [owner]),
-        ...formatHousingOwnersApi(anotherHousing, [anotherOwner])
+      [housing, anotherHousing] = await Promise.all([
+        factories.housing.create({
+          geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+        }),
+        factories.housing.create({
+          geoCode: faker.helpers.arrayElement(anotherEstablishment.geoCodes)
+        })
+      ]);
+      const [owner, anotherOwner] = await factories.owner.createList(2);
+      await Promise.all([
+        factories
+          .housingOwner({ housing, owner })
+          .create({ rank: 1 as OwnerRank }),
+        factories
+          .housingOwner({ housing: anotherHousing, owner: anotherOwner })
+          .create({ rank: 1 as OwnerRank })
       ]);
     });
 
@@ -209,23 +211,26 @@ describe('Housing API', () => {
     const testRoute = '/housing';
 
     beforeAll(async () => {
-      const housings = [
+      const housings = await Promise.all([
         ...Array.from({ length: 5 }, () =>
-          genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+          factories.housing.create({
+            geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+          })
         ),
         ...Array.from({ length: 3 }, () =>
-          genHousingApi(
-            faker.helpers.arrayElement(anotherEstablishment.geoCodes)
-          )
+          factories.housing.create({
+            geoCode: faker.helpers.arrayElement(anotherEstablishment.geoCodes)
+          })
         )
-      ];
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      const owners = housings.map((housing) => housing.owner);
-      await Owners().insert(owners.map(formatOwnerApi));
-      const housingOwners = housings.flatMap((housing) => {
-        return formatHousingOwnersApi(housing, [housing.owner]);
-      });
-      await HousingOwners().insert(housingOwners);
+      ]);
+      await Promise.all(
+        housings.map(async (housing) => {
+          const owner = await factories.owner.create();
+          await factories
+            .housingOwner({ housing, owner })
+            .create({ rank: 1 as OwnerRank });
+        })
+      );
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -276,24 +281,38 @@ describe('Housing API', () => {
       const communeUser = genUserApi(commune.id);
 
       beforeAll(async () => {
-        await Establishments().insert(
-          [department, intercommunality, commune].map(formatEstablishmentApi)
-        );
-        await Users().insert(
-          [departmentUser, intercommunalityUser, communeUser].map(toUserDBO)
-        );
+        // Built synchronously above (the it.each below references them at
+        // collection time), so they are persisted here via Kysely rather than
+        // through the build-and-persist establishment/user factories.
+        await kysely
+          .insertInto('establishments')
+          .values(
+            [department, intercommunality, commune].map(toEstablishmentInsert)
+          )
+          .execute();
+        await kysely
+          .insertInto('users')
+          .values(
+            [departmentUser, intercommunalityUser, communeUser].map(
+              toUserInsert
+            )
+          )
+          .execute();
 
-        const housings = department.geoCodes
-          .concat(intercommunality.geoCodes)
-          .concat(commune.geoCodes)
-          .map((geoCode) => genHousingApi(geoCode));
-        await Housing().insert(housings.map(formatHousingRecordApi));
-        const owners = housings.map((housing) => housing.owner);
-        await Owners().insert(owners.map(formatOwnerApi));
-        const housingOwners = housings.flatMap((housing) => {
-          return formatHousingOwnersApi(housing, [housing.owner]);
-        });
-        await HousingOwners().insert(housingOwners);
+        const housings = await Promise.all(
+          department.geoCodes
+            .concat(intercommunality.geoCodes)
+            .concat(commune.geoCodes)
+            .map((geoCode) => factories.housing.create({ geoCode }))
+        );
+        await Promise.all(
+          housings.map(async (housing) => {
+            const owner = await factories.owner.create();
+            await factories
+              .housingOwner({ housing, owner })
+              .create({ rank: 1 as OwnerRank });
+          })
+        );
       });
 
       it.each([
@@ -376,22 +395,22 @@ describe('Housing API', () => {
             >
           >
         ): Promise<ReadonlyArray<HousingApi>> {
-          const housings = payloads.map((payload) => ({
-            ...genHousingApi(
-              faker.helpers.arrayElement(establishment.geoCodes)
-            ),
-            ...payload
-          }));
-          const owners = housings.map((housing) => housing.owner);
-          await Promise.all([
-            Housing().insert(housings.map(formatHousingRecordApi)),
-            Owners().insert(owners.map(formatOwnerApi))
-          ]);
-          await async.forEach(housings, async (housing) => {
-            await HousingOwners().insert(
-              formatHousingOwnersApi(housing, [housing.owner])
-            );
-          });
+          const housings = await Promise.all(
+            payloads.map((payload) =>
+              factories.housing.create({
+                geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+                ...payload
+              })
+            )
+          );
+          await Promise.all(
+            housings.map(async (housing) => {
+              const owner = await factories.owner.create();
+              await factories
+                .housingOwner({ housing, owner })
+                .create({ rank: 1 as OwnerRank });
+            })
+          );
           return housings;
         }
 
@@ -578,18 +597,21 @@ describe('Housing API', () => {
     });
 
     it('should paginate the response', async () => {
-      const housings = Array.from({ length: 2 }, () =>
-        genHousingApi(faker.helpers.arrayElement(establishment.geoCodes))
+      const housings = await Promise.all(
+        Array.from({ length: 2 }, () =>
+          factories.housing.create({
+            geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+          })
+        )
       );
-      const owners = housings.map((housing) => housing.owner);
-      await Promise.all([
-        Housing().insert(housings.map(formatHousingRecordApi)),
-        Owners().insert(owners.map(formatOwnerApi))
-      ]);
-      const housingOwners = housings.flatMap((housing) => {
-        return formatHousingOwnersApi(housing, [housing.owner]);
-      });
-      await HousingOwners().insert(housingOwners);
+      await Promise.all(
+        housings.map(async (housing) => {
+          const owner = await factories.owner.create();
+          await factories
+            .housingOwner({ housing, owner })
+            .create({ rank: 1 as OwnerRank });
+        })
+      );
 
       const { body, status } = await request(url)
         .get(testRoute)
@@ -605,19 +627,22 @@ describe('Housing API', () => {
     });
 
     it('should sort housings by occupancy', async () => {
-      const housings = OCCUPANCY_VALUES.map<HousingApi>((occupancy) => ({
-        ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
-        occupancy
-      }));
-      const owner = genOwnerApi();
-      await Promise.all([
-        Housing().insert(housings.map(formatHousingRecordApi)),
-        Owners().insert(formatOwnerApi(owner))
-      ]);
-      const housingOwners = housings.flatMap((housing) =>
-        formatHousingOwnersApi(housing, [owner])
+      const housings = await Promise.all(
+        OCCUPANCY_VALUES.map((occupancy) =>
+          factories.housing.create({
+            geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+            occupancy
+          })
+        )
       );
-      await HousingOwners().insert(housingOwners);
+      const owner = await factories.owner.create();
+      await Promise.all(
+        housings.map((housing) =>
+          factories
+            .housingOwner({ housing, owner })
+            .create({ rank: 1 as OwnerRank })
+        )
+      );
 
       const { body, status } = await request(url)
         .get(testRoute)
@@ -645,8 +670,9 @@ describe('Housing API', () => {
     });
 
     it('should fail if the housing already exists', async () => {
-      const housing = genHousingApi(oneOf(establishment.geoCodes));
-      await Housing().insert(formatHousingRecordApi(housing));
+      const housing = await factories.housing.create({
+        geoCode: oneOf(establishment.geoCodes)
+      });
       const payload = {
         localId: housing.localId
       };
@@ -676,27 +702,15 @@ describe('Housing API', () => {
       const idprocpte = genIdprocpte(
         faker.helpers.arrayElement(establishment.geoCodes)
       );
-      const building = genBuildingApi();
+      const building = await factories.building.create();
       const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       const ranks = faker.helpers.arrayElements(ACTIVE_OWNER_RANKS, 3);
       const datafoncierOwners = ranks.map((rank) =>
         genDatafoncierOwner(genIdprodroit(idprocpte, rank))
       );
-      await Buildings().insert(formatBuildingApi(building));
       await Promise.all([
-        DatafoncierHouses().insert({
-          ...datafoncierHousing,
-          geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.geomloc)
-          ]),
-          ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.ban_geom)
-          ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.geomrnb)
-          ])
-        }),
-        DatafoncierOwners().insert(datafoncierOwners)
+        insertDatafoncierHousing(datafoncierHousing),
+        insertDatafoncierOwners(datafoncierOwners)
       ]);
       const payload = {
         localId: datafoncierHousing.idlocal
@@ -719,33 +733,17 @@ describe('Housing API', () => {
       const idprocpte = genIdprocpte(
         faker.helpers.arrayElement(establishment.geoCodes)
       );
-      const building = genBuildingApi();
+      const building = await factories.building.create();
       const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       const datafoncierOwners = genDatafoncierOwners(idprocpte, 3);
-      const existingOwners = datafoncierOwners.map<OwnerApi>(
-        (datafoncierOwner) => {
-          return {
-            ...genOwnerApi(),
-            idpersonne: datafoncierOwner.idpersonne
-          };
-        }
+      const existingOwners = await Promise.all(
+        datafoncierOwners.map((datafoncierOwner) =>
+          factories.owner.create({ idpersonne: datafoncierOwner.idpersonne })
+        )
       );
-      await Buildings().insert(formatBuildingApi(building));
       await Promise.all([
-        DatafoncierHouses().insert({
-          ...datafoncierHousing,
-          geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.geomloc)
-          ]),
-          ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.ban_geom)
-          ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.geomrnb)
-          ])
-        }),
-        DatafoncierOwners().insert(datafoncierOwners),
-        Owners().insert(existingOwners.map(formatOwnerApi))
+        insertDatafoncierHousing(datafoncierHousing),
+        insertDatafoncierOwners(datafoncierOwners)
       ]);
       const payload = {
         localId: datafoncierHousing.idlocal
@@ -758,28 +756,26 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const actualOwners = await Owners()
-        .select(`${ownerTable}.*`)
-        .join(
-          housingOwnersTable,
-          `${housingOwnersTable}.owner_id`,
-          `${ownerTable}.id`
-        )
-        .join(
-          housingTable,
-          `${housingTable}.id`,
-          `${housingOwnersTable}.housing_id`
-        )
-        .where(`${housingTable}.local_id`, datafoncierHousing.idlocal);
+      const actualOwners = await kysely
+        .selectFrom('owners')
+        .innerJoin('ownersHousing', 'ownersHousing.ownerId', 'owners.id')
+        .innerJoin('fastHousing', 'fastHousing.id', 'ownersHousing.housingId')
+        .selectAll('owners')
+        .where('fastHousing.localId', '=', datafoncierHousing.idlocal)
+        .execute();
       expect(actualOwners.length).toBe(datafoncierOwners.length);
-      expect(actualOwners).toSatisfyAll<OwnerRecordDBO>((actualOwner) => {
-        return existingOwners.some((existingOwner) => {
-          return existingOwner.id === actualOwner.id;
-        });
-      });
-      const actualHousing = await Housing()
-        .where({ local_id: datafoncierHousing.idlocal })
-        .first();
+      expect(actualOwners).toSatisfyAll<Selectable<DB['owners']>>(
+        (actualOwner) => {
+          return existingOwners.some((existingOwner) => {
+            return existingOwner.id === actualOwner.id;
+          });
+        }
+      );
+      const actualHousing = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('localId', '=', datafoncierHousing.idlocal)
+        .executeTakeFirst();
       expect(actualHousing).toBeDefined();
     });
 
@@ -787,24 +783,12 @@ describe('Housing API', () => {
       const idprocpte = genIdprocpte(
         faker.helpers.arrayElement(establishment.geoCodes)
       );
-      const building = genBuildingApi();
+      const building = await factories.building.create();
       const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       const datafoncierOwners = genDatafoncierOwners(idprocpte, 3);
-      await Buildings().insert(formatBuildingApi(building));
       await Promise.all([
-        DatafoncierHouses().insert({
-          ...datafoncierHousing,
-          geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.geomloc)
-          ]),
-          ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.ban_geom)
-          ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.geomrnb)
-          ])
-        }),
-        DatafoncierOwners().insert(datafoncierOwners)
+        insertDatafoncierHousing(datafoncierHousing),
+        insertDatafoncierOwners(datafoncierOwners)
       ]);
       const payload = {
         localId: datafoncierHousing.idlocal
@@ -816,10 +800,12 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const actual = await HousingOwners().where({
-        housing_geo_code: body.geoCode,
-        housing_id: body.id
-      });
+      const actual = await kysely
+        .selectFrom('ownersHousing')
+        .selectAll('ownersHousing')
+        .where('housingGeoCode', '=', body.geoCode)
+        .where('housingId', '=', body.id)
+        .execute();
       expect(actual).toBeArrayOfSize(datafoncierOwners.length);
     });
 
@@ -827,24 +813,12 @@ describe('Housing API', () => {
       const idprocpte = genIdprocpte(
         faker.helpers.arrayElement(establishment.geoCodes)
       );
-      const building = genBuildingApi();
+      const building = await factories.building.create();
       const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       const datafoncierOwners = genDatafoncierOwners(idprocpte, 1);
-      await Buildings().insert(formatBuildingApi(building));
       await Promise.all([
-        DatafoncierHouses().insert({
-          ...datafoncierHousing,
-          geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.geomloc)
-          ]),
-          ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.ban_geom)
-          ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.geomrnb)
-          ])
-        }),
-        DatafoncierOwners().insert(datafoncierOwners)
+        insertDatafoncierHousing(datafoncierHousing),
+        insertDatafoncierOwners(datafoncierOwners)
       ]);
       const payload = {
         localId: datafoncierHousing.idlocal
@@ -857,19 +831,19 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const event = await HousingEvents()
-        .join(EVENTS_TABLE, 'id', 'event_id')
-        .where({
-          type: 'housing:created',
-          housing_geo_code: body.geoCode,
-          housing_id: body.id
-        })
-        .first();
-      expect(event).toMatchObject<Partial<EventRecordDBO<'housing:created'>>>({
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'housing:created')
+        .where('housingEvents.housingGeoCode', '=', body.geoCode)
+        .where('housingEvents.housingId', '=', body.id)
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'housing:created',
-        created_by: user.id,
-        next_old: null,
-        next_new: {
+        createdBy: user.id,
+        nextOld: null,
+        nextNew: {
           source: 'datafoncier-manual',
           occupancy: OCCUPANCY_LABELS[toOccupancy(datafoncierHousing.ccthp)]
         }
@@ -880,24 +854,12 @@ describe('Housing API', () => {
       const idprocpte = genIdprocpte(
         faker.helpers.arrayElement(establishment.geoCodes)
       );
-      const building = genBuildingApi();
+      const building = await factories.building.create();
       const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       const datafoncierOwners = genDatafoncierOwners(idprocpte, 1);
-      await Buildings().insert(formatBuildingApi(building));
       await Promise.all([
-        DatafoncierHouses().insert({
-          ...datafoncierHousing,
-          geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.geomloc)
-          ]),
-          ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.ban_geom)
-          ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.geomrnb)
-          ])
-        }),
-        DatafoncierOwners().insert(datafoncierOwners)
+        insertDatafoncierHousing(datafoncierHousing),
+        insertDatafoncierOwners(datafoncierOwners)
       ]);
       const payload = {
         localId: datafoncierHousing.idlocal
@@ -911,17 +873,23 @@ describe('Housing API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
 
-      const housingOwners = await HousingOwners().where({
-        housing_geo_code: body.geoCode,
-        housing_id: body.id
-      });
-      const events = await OwnerEvents()
-        .join(EVENTS_TABLE, 'id', 'event_id')
-        .where({ type: 'owner:created' })
-        .whereIn(
-          'owner_id',
-          housingOwners.map((housingOwner) => housingOwner.owner_id)
-        );
+      const housingOwners = await kysely
+        .selectFrom('ownersHousing')
+        .selectAll('ownersHousing')
+        .where('housingGeoCode', '=', body.geoCode)
+        .where('housingId', '=', body.id)
+        .execute();
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin('ownerEvents', 'ownerEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'owner:created')
+        .where(
+          'ownerEvents.ownerId',
+          'in',
+          housingOwners.map((housingOwner) => housingOwner.ownerId)
+        )
+        .execute();
       expect(events.length).toBe(datafoncierOwners.length);
     });
 
@@ -929,24 +897,12 @@ describe('Housing API', () => {
       const idprocpte = genIdprocpte(
         faker.helpers.arrayElement(establishment.geoCodes)
       );
-      const building = genBuildingApi();
+      const building = await factories.building.create();
       const datafoncierHousing = genDatafoncierHousing(idprocpte, building.id);
       const datafoncierOwners = genDatafoncierOwners(idprocpte, 1);
-      await Buildings().insert(formatBuildingApi(building));
       await Promise.all([
-        DatafoncierHouses().insert({
-          ...datafoncierHousing,
-          geomloc: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.geomloc)
-          ]),
-          ban_geom: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.ban_geom)
-          ]),
-          geomrnb: db.raw('ST_GeomFromGeoJson(?)', [
-            JSON.stringify(datafoncierHousing.geomrnb)
-          ])
-        }),
-        DatafoncierOwners().insert(datafoncierOwners)
+        insertDatafoncierHousing(datafoncierHousing),
+        insertDatafoncierOwners(datafoncierOwners)
       ]);
       const payload = {
         localId: datafoncierHousing.idlocal
@@ -959,13 +915,18 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const events = await HousingOwnerEvents()
-        .join(EVENTS_TABLE, 'id', 'event_id')
-        .where({
-          type: 'housing:owner-attached',
-          housing_geo_code: body.geoCode,
-          housing_id: body.id
-        });
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'housingOwnerEvents',
+          'housingOwnerEvents.eventId',
+          'events.id'
+        )
+        .selectAll('events')
+        .where('events.type', '=', 'housing:owner-attached')
+        .where('housingOwnerEvents.housingGeoCode', '=', body.geoCode)
+        .where('housingOwnerEvents.housingId', '=', body.id)
+        .execute();
       expect(events.length).toBe(datafoncierOwners.length);
     });
   });
@@ -983,21 +944,23 @@ describe('Housing API', () => {
 
     async function createHousings(options?: CreateHousingsOptions) {
       const { count, ...payload } = options ?? {};
-      const housings = faker.helpers.multiple(
-        () => ({
-          ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
-          ...payload
-        }),
-        { count }
+      const housings = await Promise.all(
+        faker.helpers
+          .multiple(() => payload, { count })
+          .map((overrides) =>
+            factories.housing.create({
+              geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+              ...overrides
+            })
+          )
       );
-      await Housing().insert(housings.map(formatHousingRecordApi));
-      await Owners().insert(
-        housings.map((housing) => formatOwnerApi(housing.owner))
-      );
-      await HousingOwners().insert(
-        housings.flatMap((housing) =>
-          formatHousingOwnersApi(housing, [housing.owner])
-        )
+      await Promise.all(
+        housings.map(async (housing) => {
+          const owner = await factories.owner.create();
+          await factories
+            .housingOwner({ housing, owner })
+            .create({ rank: 1 as OwnerRank });
+        })
       );
       return { housings };
     }
@@ -1127,9 +1090,16 @@ describe('Housing API', () => {
       const campaign = await factories
         .campaign(establishment)
         .create({}, { associations: { createdBy: user } });
-      await CampaignsHousing().insert(
-        formatCampaignHousingApi(campaign, housings)
-      );
+      await kysely
+        .insertInto('campaignsHousing')
+        .values(
+          housings.map((housing) => ({
+            campaignId: campaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
       const payload: HousingBatchUpdatePayload = {
         filters: {
           status: HousingStatus.WAITING
@@ -1171,13 +1141,20 @@ describe('Housing API', () => {
         }))
       );
 
-      const actual = await Housing().whereIn(
-        ['geo_code', 'id'],
-        housings.map((housing) => [housing.geoCode, housing.id])
-      );
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where((eb) =>
+          eb(
+            eb.refTuple('geoCode', 'id'),
+            'in',
+            housings.map((housing) => eb.tuple(housing.geoCode, housing.id))
+          )
+        )
+        .execute();
       expect(actual).toBeDefined();
       actual.forEach((housing) => {
-        expect(housing).toMatchObject<Partial<HousingRecordDBO>>({
+        expect(housing).toMatchObject<Partial<Selectable<DB['fastHousing']>>>({
           status: payload.status,
           occupancy: payload.occupancy
         });
@@ -1185,12 +1162,11 @@ describe('Housing API', () => {
     });
 
     it('should remove the substatus correctly', async () => {
-      const housing: HousingApi = {
-        ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
         status: HousingStatus.IN_PROGRESS,
         subStatus: 'En accompagnement'
-      };
-      await Housing().insert(formatHousingRecordApi(housing));
+      });
 
       const payload: HousingBatchUpdatePayload = {
         filters: {
@@ -1208,14 +1184,14 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const actual = await Housing()
-        .where({
-          geo_code: housing.geoCode,
-          id: housing.id
-        })
-        .first();
-      expect(actual).toMatchObject<Partial<HousingRecordDBO>>({
-        sub_status: null
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual).toMatchObject<Partial<Selectable<DB['fastHousing']>>>({
+        subStatus: null
       });
       expect(body).toPartiallyContain<Partial<HousingDTO>>({
         id: housing.id,
@@ -1244,23 +1220,39 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const actual = await Housing().whereIn(
-        ['geo_code', 'id'],
-        housings.map((housing) => [housing.geoCode, housing.id])
-      );
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where((eb) =>
+          eb(
+            eb.refTuple('geoCode', 'id'),
+            'in',
+            housings.map((housing) => eb.tuple(housing.geoCode, housing.id))
+          )
+        )
+        .execute();
       actual.forEach((housing) => {
-        expect(housing).toMatchObject<Partial<HousingRecordDBO>>({
+        expect(housing).toMatchObject<Partial<Selectable<DB['fastHousing']>>>({
           status: HousingStatus.IN_PROGRESS,
-          sub_status: 'En accompagnement'
+          subStatus: 'En accompagnement'
         });
       });
-      const events = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .whereIn(
-          ['housing_geo_code', 'housing_id'],
-          housings.map((housing) => [housing.geoCode, housing.id])
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where((eb) =>
+          eb.or(
+            housings.map((housing) =>
+              eb.and([
+                eb('housingEvents.housingGeoCode', '=', housing.geoCode),
+                eb('housingEvents.housingId', '=', housing.id)
+              ])
+            )
+          )
         )
-        .where({ type: 'housing:status-updated' });
+        .where('events.type', '=', 'housing:status-updated')
+        .execute();
       expect(events).toEqual([]);
     });
 
@@ -1283,27 +1275,34 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const events = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .whereIn(
-          ['housing_geo_code', 'housing_id'],
-          housings.map((housing) => [housing.geoCode, housing.id])
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where((eb) =>
+          eb.or(
+            housings.map((housing) =>
+              eb.and([
+                eb('housingEvents.housingGeoCode', '=', housing.geoCode),
+                eb('housingEvents.housingId', '=', housing.id)
+              ])
+            )
+          )
         )
-        .where({ type: 'housing:status-updated' });
+        .where('events.type', '=', 'housing:status-updated')
+        .execute();
       events.forEach((event) => {
-        expect(event).toMatchObject<
-          Partial<EventRecordDBO<'housing:status-updated'>>
-        >({
+        expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
           type: 'housing:status-updated',
-          next_old: {
+          nextOld: {
             status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED],
             subStatus: null
           },
-          next_new: {
+          nextNew: {
             status: HOUSING_STATUS_LABELS[payload.status!],
             subStatus: payload.subStatus!
           },
-          created_by: user.id
+          createdBy: user.id
         });
       });
     });
@@ -1327,24 +1326,31 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const events = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .whereIn(
-          ['housing_geo_code', 'housing_id'],
-          housings.map((housing) => [housing.geoCode, housing.id])
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where((eb) =>
+          eb.or(
+            housings.map((housing) =>
+              eb.and([
+                eb('housingEvents.housingGeoCode', '=', housing.geoCode),
+                eb('housingEvents.housingId', '=', housing.id)
+              ])
+            )
+          )
         )
-        .where({ type: 'housing:occupancy-updated' });
+        .where('events.type', '=', 'housing:occupancy-updated')
+        .execute();
       events.forEach((event) => {
-        expect(event).toMatchObject<
-          Partial<EventRecordDBO<'housing:occupancy-updated'>>
-        >({
+        expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
           type: 'housing:occupancy-updated',
-          created_by: user.id,
-          next_old: {
+          createdBy: user.id,
+          nextOld: {
             occupancy: OCCUPANCY_LABELS[Occupancy.VACANT],
             occupancyIntended: OCCUPANCY_LABELS[Occupancy.VACANT]
           },
-          next_new: {
+          nextNew: {
             occupancy: OCCUPANCY_LABELS[payload.occupancy!],
             occupancyIntended: OCCUPANCY_LABELS[payload.occupancyIntended!]
           }
@@ -1371,14 +1377,23 @@ describe('Housing API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
-      const actual = await Notes()
-        .join(HOUSING_NOTES_TABLE, 'note_id', 'id')
-        .whereIn(
-          ['housing_geo_code', 'housing_id'],
-          housings.map((housing) => [housing.geoCode, housing.id])
-        );
+      const actual = await kysely
+        .selectFrom('notes')
+        .innerJoin('housingNotes', 'housingNotes.noteId', 'notes.id')
+        .selectAll('notes')
+        .where((eb) =>
+          eb.or(
+            housings.map((housing) =>
+              eb.and([
+                eb('housingNotes.housingGeoCode', '=', housing.geoCode),
+                eb('housingNotes.housingId', '=', housing.id)
+              ])
+            )
+          )
+        )
+        .execute();
       actual.forEach((note) => {
-        expect(note).toMatchObject<Partial<NoteRecordDBO>>({
+        expect(note).toMatchObject<Partial<Selectable<DB['notes']>>>({
           content: 'Nouvelle note'
         });
       });
@@ -1388,7 +1403,10 @@ describe('Housing API', () => {
       const { housings } = await createHousings({
         count: 2
       });
-      const allPrecisions = await Precisions();
+      const allPrecisions = await kysely
+        .selectFrom('precisions')
+        .selectAll('precisions')
+        .execute();
       const precisions = faker.helpers.arrayElements(allPrecisions, 2);
 
       const { body, status } = await request(url)
@@ -1405,12 +1423,20 @@ describe('Housing API', () => {
       expect(body).toHaveLength(2);
 
       // Verify precision links created
-      const links = await HousingPrecisions()
-        .whereIn(
-          ['housing_geo_code', 'housing_id'],
-          housings.map((housing) => [housing.geoCode, housing.id])
+      const links = await kysely
+        .selectFrom('housingPrecisions')
+        .selectAll('housingPrecisions')
+        .where((eb) =>
+          eb.or(
+            housings.map((housing) =>
+              eb.and([
+                eb('housingGeoCode', '=', housing.geoCode),
+                eb('housingId', '=', housing.id)
+              ])
+            )
+          )
         )
-        .select();
+        .execute();
       expect(links).toHaveLength(4); // 2 housings * 2 precisions
     });
 
@@ -1418,7 +1444,10 @@ describe('Housing API', () => {
       const { housings } = await createHousings({
         count: 2
       });
-      const allPrecisions = await Precisions();
+      const allPrecisions = await kysely
+        .selectFrom('precisions')
+        .selectAll('precisions')
+        .execute();
       const precisions = faker.helpers.arrayElements(allPrecisions, 2);
 
       const { status } = await request(url)
@@ -1433,14 +1462,30 @@ describe('Housing API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
-      const events = await Events()
-        .where({ type: 'housing:precision-attached' })
-        .join(PRECISION_HOUSING_EVENTS_TABLE, 'id', 'event_id')
-        .whereIn(
-          ['housing_geo_code', 'housing_id'],
-          housings.map((housing) => [housing.geoCode, housing.id])
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'precisionHousingEvents',
+          'precisionHousingEvents.eventId',
+          'events.id'
         )
-        .select();
+        .selectAll('events')
+        .where('events.type', '=', 'housing:precision-attached')
+        .where((eb) =>
+          eb.or(
+            housings.map((housing) =>
+              eb.and([
+                eb(
+                  'precisionHousingEvents.housingGeoCode',
+                  '=',
+                  housing.geoCode
+                ),
+                eb('precisionHousingEvents.housingId', '=', housing.id)
+              ])
+            )
+          )
+        )
+        .execute();
       expect(events).toHaveLength(4); // 2 housings * 2 precisions
     });
 
@@ -1449,38 +1494,51 @@ describe('Housing API', () => {
         count: 1
       });
       const [housing] = housings;
-      const allPrecisions = await Precisions();
+      const allPrecisions = await kysely
+        .selectFrom('precisions')
+        .selectAll('precisions')
+        .execute();
       const precisions = faker.helpers.arrayElements(allPrecisions, 2);
 
       // First, add the precisions
-      await HousingPrecisions().insert(
-        precisions.map((precision) => ({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
-          precision_id: precision.id,
-          created_at: new Date()
-        }))
-      );
+      await kysely
+        .insertInto('housingPrecisions')
+        .values(
+          precisions.map((precision) => ({
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id,
+            precisionId: precision.id,
+            createdAt: new Date()
+          }))
+        )
+        .execute();
       // Create related events
       const events = precisions.map((precision) =>
         genEventApi({
           type: 'housing:precision-attached',
           nextOld: null,
           nextNew: {
-            category: precision.category,
+            category: precision.category as PrecisionCategory,
             label: precision.label
           },
           creator: user
         })
       );
-      await Events().insert(events.map(formatEventApi));
-      await PrecisionHousingEvents().insert(
-        events.map((event) => ({
-          event_id: event.id,
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id
-        }))
-      );
+      await kysely
+        .insertInto('events')
+        .values(events.map(toEventInsert))
+        .execute();
+      await kysely
+        .insertInto('precisionHousingEvents')
+        .values(
+          events.map((event) => ({
+            eventId: event.id,
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id,
+            precisionId: null
+          }))
+        )
+        .execute();
 
       // Add the same precisions again via API
       const { status } = await request(url)
@@ -1496,25 +1554,27 @@ describe('Housing API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
       // Should still have only the original 2 precision links
-      const links = await HousingPrecisions()
-        .where({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id
-        })
-        .select();
+      const links = await kysely
+        .selectFrom('housingPrecisions')
+        .selectAll('housingPrecisions')
+        .where('housingGeoCode', '=', housing.geoCode)
+        .where('housingId', '=', housing.id)
+        .execute();
       expect(links).toHaveLength(2);
 
       // Should have no new events
-      const eventsAgain = await Events()
-        .where({
-          type: 'housing:precision-attached'
-        })
-        .join(PRECISION_HOUSING_EVENTS_TABLE, 'id', 'event_id')
-        .where({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id
-        })
-        .select();
+      const eventsAgain = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'precisionHousingEvents',
+          'precisionHousingEvents.eventId',
+          'events.id'
+        )
+        .selectAll('events')
+        .where('events.type', '=', 'housing:precision-attached')
+        .where('precisionHousingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('precisionHousingEvents.housingId', '=', housing.id)
+        .execute();
       expect(eventsAgain).toHaveLength(housings.length * precisions.length);
     });
 
@@ -1523,7 +1583,10 @@ describe('Housing API', () => {
         count: 1
       });
       const [housing] = housings;
-      const allPrecisions = await Precisions();
+      const allPrecisions = await kysely
+        .selectFrom('precisions')
+        .selectAll('precisions')
+        .execute();
       const existingPrecisions = faker.helpers.arrayElements(allPrecisions, 2);
       const newPrecisions = faker.helpers.arrayElements(
         allPrecisions.filter(
@@ -1533,14 +1596,17 @@ describe('Housing API', () => {
       );
 
       // Add initial precisions
-      await HousingPrecisions().insert(
-        existingPrecisions.map((precision) => ({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
-          precision_id: precision.id,
-          created_at: new Date()
-        }))
-      );
+      await kysely
+        .insertInto('housingPrecisions')
+        .values(
+          existingPrecisions.map((precision) => ({
+            housingGeoCode: housing.geoCode,
+            housingId: housing.id,
+            precisionId: precision.id,
+            createdAt: new Date()
+          }))
+        )
+        .execute();
 
       const { status } = await request(url)
         .put('/housing')
@@ -1554,12 +1620,12 @@ describe('Housing API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
-      const links = await HousingPrecisions()
-        .where({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id
-        })
-        .select();
+      const links = await kysely
+        .selectFrom('housingPrecisions')
+        .selectAll('housingPrecisions')
+        .where('housingGeoCode', '=', housing.geoCode)
+        .where('housingId', '=', housing.id)
+        .execute();
       expect(links).toHaveLength(
         existingPrecisions.length + newPrecisions.length
       );
@@ -1571,28 +1637,34 @@ describe('Housing API', () => {
       const { housings } = await createHousings({
         count: 2
       });
-      const allPrecisions = await Precisions();
+      const allPrecisions = await kysely
+        .selectFrom('precisions')
+        .selectAll('precisions')
+        .execute();
       const travaux = allPrecisions.filter(
         (precision) => precision.category === 'travaux'
       );
-      const initialPrecisions: HousingPrecisionDBO[] = [
+      const initialPrecisions = [
         {
-          housing_geo_code: housings[0].geoCode,
-          housing_id: housings[0].id,
-          precision_id: travaux[0].id,
-          created_at: new Date()
+          housingGeoCode: housings[0].geoCode,
+          housingId: housings[0].id,
+          precisionId: travaux[0].id,
+          createdAt: new Date()
         },
         {
-          housing_geo_code: housings[1].geoCode,
-          housing_id: housings[1].id,
-          precision_id: travaux[1].id,
-          created_at: new Date()
+          housingGeoCode: housings[1].geoCode,
+          housingId: housings[1].id,
+          precisionId: travaux[1].id,
+          createdAt: new Date()
         }
       ];
       const newPrecision = travaux[1];
 
       // Add initial precision
-      await HousingPrecisions().insert(initialPrecisions);
+      await kysely
+        .insertInto('housingPrecisions')
+        .values(initialPrecisions)
+        .execute();
 
       const { status } = await request(url)
         .put('/housing')
@@ -1606,21 +1678,31 @@ describe('Housing API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
-      const actual = await HousingPrecisions().whereIn(
-        ['housing_geo_code', 'housing_id'],
-        housings.map((housing) => [housing.geoCode, housing.id])
-      );
+      const actual = await kysely
+        .selectFrom('housingPrecisions')
+        .selectAll('housingPrecisions')
+        .where((eb) =>
+          eb.or(
+            housings.map((housing) =>
+              eb.and([
+                eb('housingGeoCode', '=', housing.geoCode),
+                eb('housingId', '=', housing.id)
+              ])
+            )
+          )
+        )
+        .execute();
       expect(actual).toHaveLength(2);
       expect(actual).toIncludeAllPartialMembers([
         {
-          housing_geo_code: housings[0].geoCode,
-          housing_id: housings[0].id,
-          precision_id: newPrecision.id
+          housingGeoCode: housings[0].geoCode,
+          housingId: housings[0].id,
+          precisionId: newPrecision.id
         },
         {
-          housing_geo_code: housings[1].geoCode,
-          housing_id: housings[1].id,
-          precision_id: newPrecision.id
+          housingGeoCode: housings[1].geoCode,
+          housingId: housings[1].id,
+          precisionId: newPrecision.id
         }
       ]);
     });
@@ -1632,7 +1714,10 @@ describe('Housing API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status, body } = await request(url)
         .put(testRoute)
@@ -1651,20 +1736,24 @@ describe('Housing API', () => {
       expect(body).toHaveLength(2);
 
       // Verify both housings have the document linked
-      const actual = await HousingDocuments().where({
-        document_id: document.id
-      });
+      const actual = await kysely
+        .selectFrom('documentsHousings')
+        .selectAll('documentsHousings')
+        .where('documentId', '=', document.id)
+        .execute();
       expect(actual).toHaveLength(2);
-      expect(actual).toIncludeAllPartialMembers<HousingDocumentDBO>([
+      expect(actual).toIncludeAllPartialMembers<
+        Selectable<DB['documentsHousings']>
+      >([
         {
-          housing_geo_code: housings[0].geoCode,
-          housing_id: housings[0].id,
-          document_id: document.id
+          housingGeoCode: housings[0].geoCode,
+          housingId: housings[0].id,
+          documentId: document.id
         },
         {
-          housing_geo_code: housings[1].geoCode,
-          housing_id: housings[1].id,
-          document_id: document.id
+          housingGeoCode: housings[1].geoCode,
+          housingId: housings[1].id,
+          documentId: document.id
         }
       ]);
     });
@@ -1676,7 +1765,10 @@ describe('Housing API', () => {
         creator: user,
         establishmentId: establishment.id
       });
-      await Documents().insert(toDocumentDBO(document));
+      await kysely
+        .insertInto('documents')
+        .values(toDocumentInsert(document))
+        .execute();
 
       const { status, body } = await request(url)
         .put(testRoute)
@@ -1740,14 +1832,14 @@ describe('Housing API', () => {
     async function createHousing(
       options?: Partial<Pick<HousingApi, keyof HousingUpdatePayloadDTO>>
     ) {
-      const housing: HousingApi = {
-        ...genHousingApi(faker.helpers.arrayElement(establishment.geoCodes)),
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
         ...options
-      };
-      const owner = genOwnerApi();
-      await Housing().insert(formatHousingRecordApi(housing));
-      await Owners().insert(formatOwnerApi(owner));
-      await HousingOwners().insert(formatHousingOwnersApi(housing, [owner]));
+      });
+      const owner = await factories.owner.create();
+      await factories
+        .housingOwner({ housing, owner })
+        .create({ rank: 1 as OwnerRank });
       return housing;
     }
 
@@ -1820,13 +1912,17 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const actual = await Housing().where('id', housing.id).first();
-      expect(actual).toMatchObject<Partial<HousingRecordDBO>>({
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual).toMatchObject<Partial<Selectable<DB['fastHousing']>>>({
         id: housing.id,
         status: payload.status,
-        sub_status: payload.subStatus,
+        subStatus: payload.subStatus,
         occupancy: payload.occupancy,
-        occupancy_intended: payload.occupancyIntended
+        occupancyIntended: payload.occupancyIntended
       });
     });
 
@@ -1855,16 +1951,16 @@ describe('Housing API', () => {
 
         expect(status).toBe(constants.HTTP_STATUS_OK);
         expect(body.subStatus).toBeNull();
-        const actual = await Housing()
-          .where({
-            geo_code: housing.geoCode,
-            id: housing.id
-          })
-          .first();
-        expect(actual).toMatchObject<Partial<HousingRecordDBO>>({
+        const actual = await kysely
+          .selectFrom('fastHousing')
+          .selectAll('fastHousing')
+          .where('geoCode', '=', housing.geoCode)
+          .where('id', '=', housing.id)
+          .executeTakeFirst();
+        expect(actual).toMatchObject<Partial<Selectable<DB['fastHousing']>>>({
           id: housing.id,
           status: payload.status,
-          sub_status: null
+          subStatus: null
         });
       }
     );
@@ -1910,10 +2006,12 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const events = await HousingEvents().where({
-        housing_geo_code: housing.geoCode,
-        housing_id: housing.id
-      });
+      const events = await kysely
+        .selectFrom('housingEvents')
+        .selectAll('housingEvents')
+        .where('housingGeoCode', '=', housing.geoCode)
+        .where('housingId', '=', housing.id)
+        .execute();
       expect(events).toHaveLength(0);
     });
 
@@ -1939,27 +2037,25 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const event = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode,
-          type: 'housing:status-updated'
-        })
-        .first();
-      expect(event).toMatchObject<
-        Partial<EventRecordDBO<'housing:status-updated'>>
-      >({
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('housingEvents.housingId', '=', housing.id)
+        .where('housingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('events.type', '=', 'housing:status-updated')
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'housing:status-updated',
-        next_old: {
+        nextOld: {
           status: HOUSING_STATUS_LABELS[housing.status],
           subStatus: housing.subStatus
         },
-        next_new: {
+        nextNew: {
           status: HOUSING_STATUS_LABELS[payload.status],
           subStatus: payload.subStatus
         },
-        created_by: user.id
+        createdBy: user.id
       });
     });
 
@@ -1984,27 +2080,25 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const event = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
-          type: 'housing:occupancy-updated'
-        })
-        .first();
-      expect(event).toMatchObject<
-        Partial<EventRecordDBO<'housing:occupancy-updated'>>
-      >({
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('housingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('housingEvents.housingId', '=', housing.id)
+        .where('events.type', '=', 'housing:occupancy-updated')
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'housing:occupancy-updated',
-        next_old: {
+        nextOld: {
           occupancy: OCCUPANCY_LABELS[housing.occupancy],
           occupancyIntended: OCCUPANCY_LABELS[housing.occupancyIntended!]
         },
-        next_new: {
+        nextNew: {
           occupancy: OCCUPANCY_LABELS[payload.occupancy],
           occupancyIntended: OCCUPANCY_LABELS[payload.occupancyIntended!]
         },
-        created_by: user.id
+        createdBy: user.id
       });
     });
 
@@ -2030,45 +2124,41 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const statusEvent = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
-          type: 'housing:status-updated'
-        })
-        .first();
-      expect(statusEvent).toMatchObject<
-        Partial<EventRecordDBO<'housing:status-updated'>>
-      >({
+      const statusEvent = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('housingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('housingEvents.housingId', '=', housing.id)
+        .where('events.type', '=', 'housing:status-updated')
+        .executeTakeFirst();
+      expect(statusEvent).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'housing:status-updated',
-        next_old: {
+        nextOld: {
           status: HOUSING_STATUS_LABELS[housing.status]
         },
-        next_new: {
+        nextNew: {
           status: HOUSING_STATUS_LABELS[payload.status]
         },
-        created_by: user.id
+        createdBy: user.id
       });
-      const occupancyEvent = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
-          type: 'housing:occupancy-updated'
-        })
-        .first();
-      expect(occupancyEvent).toMatchObject<
-        Partial<EventRecordDBO<'housing:occupancy-updated'>>
-      >({
+      const occupancyEvent = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('housingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('housingEvents.housingId', '=', housing.id)
+        .where('events.type', '=', 'housing:occupancy-updated')
+        .executeTakeFirst();
+      expect(occupancyEvent).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'housing:occupancy-updated',
-        next_old: {
+        nextOld: {
           occupancyIntended: OCCUPANCY_LABELS[housing.occupancyIntended!]
         },
-        next_new: {
+        nextNew: {
           occupancyIntended: OCCUPANCY_LABELS[payload.occupancyIntended!]
         },
-        created_by: user.id
+        createdBy: user.id
       });
     });
 
@@ -2096,10 +2186,14 @@ describe('Housing API', () => {
         actualEnergyConsumption: 'B'
       });
 
-      const actual = await Housing().where('id', housing.id).first();
-      expect(actual).toMatchObject<Partial<HousingRecordDBO>>({
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual).toMatchObject<Partial<Selectable<DB['fastHousing']>>>({
         id: housing.id,
-        actual_dpe: 'B'
+        actualDpe: 'B'
       });
     });
 
@@ -2122,23 +2216,23 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const event = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
-          type: 'housing:updated'
-        })
-        .first();
-      expect(event).toMatchObject<Partial<EventRecordDBO<'housing:updated'>>>({
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('housingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('housingEvents.housingId', '=', housing.id)
+        .where('events.type', '=', 'housing:updated')
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'housing:updated',
-        next_old: {
+        nextOld: {
           actualEnergyConsumption: 'E'
         },
-        next_new: {
+        nextNew: {
           actualEnergyConsumption: 'C'
         },
-        created_by: user.id
+        createdBy: user.id
       });
     });
 
@@ -2161,13 +2255,14 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      const events = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
-          type: 'housing:updated'
-        });
+      const events = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('housingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('housingEvents.housingId', '=', housing.id)
+        .where('events.type', '=', 'housing:updated')
+        .execute();
       expect(events).toHaveLength(0);
     });
 
@@ -2195,23 +2290,23 @@ describe('Housing API', () => {
         actualEnergyConsumption: null
       });
 
-      const event = await Events()
-        .join(HOUSING_EVENTS_TABLE, 'event_id', 'id')
-        .where({
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id,
-          type: 'housing:updated'
-        })
-        .first();
-      expect(event).toMatchObject<Partial<EventRecordDBO<'housing:updated'>>>({
+      const event = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('housingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('housingEvents.housingId', '=', housing.id)
+        .where('events.type', '=', 'housing:updated')
+        .executeTakeFirst();
+      expect(event).toMatchObject<Partial<Selectable<DB['events']>>>({
         type: 'housing:updated',
-        next_old: {
+        nextOld: {
           actualEnergyConsumption: 'F'
         },
-        next_new: {
+        nextNew: {
           actualEnergyConsumption: null
         },
-        created_by: user.id
+        createdBy: user.id
       });
     });
   });

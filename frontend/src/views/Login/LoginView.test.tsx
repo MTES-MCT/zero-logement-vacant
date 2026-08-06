@@ -14,11 +14,12 @@ import LoginView from './LoginView';
 describe('login view', () => {
   const user = userEvent.setup();
 
-  function setup(options?: { auth?: AuthContextValue }) {
+  function setup(options?: { auth?: AuthContextValue; initialEntry?: string }) {
     const store = configureTestStore();
     const router = createMemoryRouter(
       [
         { path: '/connexion', element: <LoginView /> },
+        { path: '/admin', element: <LoginView /> },
         {
           path: '/mot-de-passe/oublie',
           element: 'Mot de passe oublié'
@@ -26,9 +27,13 @@ describe('login view', () => {
         {
           path: '/parc-de-logements',
           element: 'Parc de logements'
+        },
+        {
+          path: '/verification-2fa',
+          element: 'Vérification en deux étapes'
         }
       ],
-      { initialEntries: ['/connexion'] }
+      { initialEntries: [options?.initialEntry ?? '/connexion'] }
     );
     const view = (
       <Provider store={store}>
@@ -129,5 +134,61 @@ describe('login view', () => {
 
     expect(signIn).toHaveBeenCalledTimes(1);
     expect(await screen.findByText(/Connexion en cours/)).toBeInTheDocument();
+  });
+
+  it('should mark required fields as invalid and associate the error to the field when submitted empty (RGAA 11.10)', async () => {
+    setup();
+
+    const logIn = screen.getByRole('button', { name: /^Se connecter/ });
+    await user.click(logIn);
+
+    const email = await screen.findByLabelText(/^Adresse e-mail/);
+    expect(email).toHaveAttribute('aria-invalid', 'true');
+    expect(email).toHaveAttribute('aria-required', 'true');
+    expect(email).toHaveAccessibleDescription(
+      'Veuillez renseigner votre adresse email.'
+    );
+
+    const password = screen.getByLabelText(/^Mot de passe/);
+    expect(password).toHaveAttribute('aria-invalid', 'true');
+    expect(password).toHaveAttribute('aria-required', 'true');
+    expect(password).toHaveAccessibleDescription(
+      'Veuillez renseigner un mot de passe.'
+    );
+  });
+
+  it('should clear the invalid state once a valid value is entered', async () => {
+    setup();
+
+    const logIn = screen.getByRole('button', { name: /^Se connecter/ });
+    await user.click(logIn);
+
+    const email = await screen.findByLabelText(/^Adresse e-mail/);
+    expect(email).toHaveAttribute('aria-invalid', 'true');
+
+    await user.type(email, 'test@test.test');
+    await user.click(logIn);
+
+    expect(email).not.toHaveAttribute('aria-invalid');
+  });
+
+  it('should associate the establishment error to the field when an admin submits without selecting one (RGAA 11.10)', async () => {
+    setup({ initialEntry: '/admin' });
+
+    const email = screen.getByLabelText(/^Adresse e-mail/);
+    await user.type(email, 'admin@zlv.fr');
+    const password = screen.getByLabelText(/^Mot de passe/);
+    await user.type(password, 'password');
+
+    const logIn = screen.getByRole('button', { name: /^Se connecter/ });
+    await user.click(logIn);
+
+    const establishment = await screen.findByLabelText(
+      /^Collectivité \(obligatoire\)/
+    );
+    expect(establishment).toHaveAccessibleDescription(
+      'Veuillez sélectionner un établissement.'
+    );
+    expect(establishment).toHaveAttribute('aria-invalid', 'true');
   });
 });

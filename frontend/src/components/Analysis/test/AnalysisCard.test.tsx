@@ -52,15 +52,84 @@ describe('AnalysisCard', () => {
   });
 
   it('shows an error when the request fails', async () => {
+    let attempts = 0;
     mockAPI.use(
-      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
-        HttpResponse.json({ message: 'Error' }, { status: 500 })
-      )
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () => {
+        attempts++;
+        return HttpResponse.json({ message: 'Error' }, { status: 500 });
+      })
+    );
+
+    setup({ card, dashboardId });
+
+    expect(
+      await screen.findByText('Impossible de charger ce graphique')
+    ).toBeInTheDocument();
+    expect(attempts).toBe(1);
+  });
+
+  it('retries a temporarily unavailable card once', async () => {
+    let attempts = 0;
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () => {
+        attempts++;
+        if (attempts === 1) {
+          return HttpResponse.json(
+            { message: 'Metabase is temporarily unavailable.' },
+            { status: 503, headers: { 'Retry-After': '0' } }
+          );
+        }
+        return HttpResponse.json(
+          genScalarCardDataDTO({ id: 929, data: 51884 })
+        );
+      })
+    );
+
+    setup({ card, dashboardId });
+
+    expect(await screen.findByText(/51[\s ]884/)).toBeInTheDocument();
+    expect(attempts).toBe(2);
+  });
+
+  it('retries a card once when Metabase fails through the API gateway', async () => {
+    let attempts = 0;
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () => {
+        attempts++;
+        if (attempts === 1) {
+          return HttpResponse.json(
+            { message: 'Metabase request failed.' },
+            { status: 502 }
+          );
+        }
+        return HttpResponse.json(
+          genScalarCardDataDTO({ id: 929, data: 51884 })
+        );
+      })
+    );
+
+    setup({ card, dashboardId });
+
+    expect(await screen.findByText(/51[\s ]884/)).toBeInTheDocument();
+    expect(attempts).toBe(2);
+  });
+
+  it('stops after one retry when the card remains unavailable', async () => {
+    let attempts = 0;
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () => {
+        attempts++;
+        return HttpResponse.json(
+          { message: 'Metabase is temporarily unavailable.' },
+          { status: 503, headers: { 'Retry-After': '0' } }
+        );
+      })
     );
 
     setup({ card, dashboardId });
 
     expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(attempts).toBe(2);
   });
 
   it('displays a flat number value', async () => {
@@ -291,6 +360,57 @@ describe('AnalysisCard', () => {
     expect(screen.getByRole('cell', { name: '200054807' })).toBeInTheDocument();
     // fr-FR locale formats 0.123 as "12,3 %" (narrow no-break space U+202F)
     expect(screen.getByText(/12[,.]3[\s ]%/)).toBeInTheDocument();
+  });
+
+  it('lets the user access table results after the first 50 rows', async () => {
+    const user = userEvent.setup();
+    const tableCard = genTableCard({
+      id: 96,
+      title: 'Structures du territoire'
+    });
+    const cardData = genTableDataDTO({
+      id: 96,
+      columns: [
+        {
+          name: 'structure',
+          displayName: 'Structure',
+          baseType: 'string'
+        }
+      ],
+      rows: Array.from({ length: 51 }, (_, index) => [`Structure ${index + 1}`])
+    });
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/dashboards/:did/cards/:cid`, () =>
+        HttpResponse.json(cardData)
+      )
+    );
+
+    setup({ card: tableCard, dashboardId });
+
+    const table = await screen.findByRole('table', {
+      name: 'Structures du territoire'
+    });
+    const pagination = screen.getByRole('navigation', {
+      name: 'Pagination'
+    });
+    expect(
+      within(table).queryByRole('cell', { name: 'Structure 51' })
+    ).not.toBeInTheDocument();
+
+    const nextPageLink = within(pagination).getByRole('link', {
+      name: 'Page suivante'
+    });
+    await user.click(nextPageLink);
+
+    expect(
+      within(table).getByRole('cell', { name: 'Structure 51' })
+    ).toBeInTheDocument();
+    expect(
+      within(table).queryByRole('cell', { name: 'Structure 1' })
+    ).not.toBeInTheDocument();
+    const currentPageLink = within(pagination).getByTitle('Page 2');
+    expect(currentPageLink).toHaveAttribute('aria-current', 'true');
+    expect(currentPageLink).toHaveFocus();
   });
 
   it('formats numeric cells with fr-FR locale and applies suffix', async () => {

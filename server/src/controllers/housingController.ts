@@ -40,7 +40,7 @@ import HousingExistsError from '~/errors/housingExistsError';
 import HousingMissingError from '~/errors/housingMissingError';
 import HousingUpdateForbiddenError from '~/errors/housingUpdateForbiddenError';
 import PrecisionMissingError from '~/errors/precisionMissingError';
-import { startTransaction } from '~/infra/database/transaction';
+import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { createLogger } from '~/infra/logger';
 import type { AddressApi } from '~/models/AddressApi';
 import { type DocumentApi } from '~/models/DocumentApi';
@@ -369,7 +369,7 @@ const create: RequestHandler<
         housingId: housing.id,
         ownerId: owner.id,
         rank: rank,
-        startDate: new Date(),
+        startDate: new Date().toJSON().substring(0, 'yyyy-mm-dd'.length),
         endDate: null,
         origin: 'datafoncier-manual',
         idprocpte: datafoncierOwner.idprocpte,
@@ -435,7 +435,7 @@ const create: RequestHandler<
       };
     });
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       housingRepository.save(housing),
       ownerRepository.betterSaveMany(missingOwners, {
@@ -566,7 +566,7 @@ const update: RequestHandler<
     });
   }
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       housingRepository.update(updated),
       eventRepository.insertManyHousingEvents(events)
@@ -843,7 +843,7 @@ const updateMany: RequestHandler<
           })
       : [];
 
-  await startTransaction(async () => {
+  await startKyselyTransaction(async () => {
     await Promise.all([
       housingRepository.updateMany(ids, {
         status: body.status,

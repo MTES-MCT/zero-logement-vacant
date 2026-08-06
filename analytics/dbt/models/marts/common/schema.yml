@@ -2,3 +2,52 @@ version: 2
 
 models:
   - name: marts_common_cities
+
+  - name: marts_common_morphology
+    description: >
+      Morphologie du parc par commune et par millésime LOVAC. Le modèle expose
+      deux populations distinctes qu'il ne faut jamais confondre : le stock LOVAC
+      — ce que le fichier déclare vacant — et le parc ZLV importé — ce que ZLV a
+      effectivement importé de ce fichier. La seconde est structurellement un
+      sous-ensemble de la première ; l'écart est important sur 2019-2021 et
+      documenté dans
+      docs/decisions/20260805142324-millesime-inclus-provenance-d-import-et-non-presence-lovac.md
+    columns:
+      - name: year
+        description: Millésime LOVAC.
+      - name: geo_code
+        description: Code commune.
+      - name: count_vacant_premisses
+        description: >
+          Locaux vacants du millésime, à la maille de la ligne de fichier. Seul
+          compteur du modèle qui compte des locaux et non des logements.
+      - name: count_vacant_housing
+        description: Logements vacants, dédoublonnés par local_id.
+      - name: count_vacant_housing_private
+        description: Logements vacants du parc privé, dédoublonnés par local_id.
+      - name: count_vacant_housing_private_fil
+        description: >
+          Logements vacants du parc privé en vacance FIL, dédoublonnés par
+          local_id.
+      - name: count_vacant_housing_private_fil_ccthp
+        description: >
+          Logements vacants du parc privé en vacance FIL+CCTHP, dédoublonnés par
+          local_id.
+      - name: count_vacant_housing_private_fil_public
+        description: >
+          Chiffre public du stock de logements vacants de plus de deux ans. Suit
+          le critère déclaré pour le millésime dans le seed
+          lovac_public_criteria — vacance FIL+CCTHP jusqu'en 2024, vacance FIL à
+          partir de 2025. NULL si le millésime n'est pas déclaré, ce que le test
+          test_morphology_public_criterion_declared transforme en échec.
+      - name: count_housing_tagged_lovac_production
+        description: >
+          Parc ZLV importé de ce millésime : logements de l'application portant
+          le millésime dans data_file_years. À comparer au stock LOVAC de la même
+          ligne, jamais à confondre avec lui.
+      - name: count_housing_last_lovac_production
+        description: >
+          Compteur historique du parc ZLV importé, figé sur lovac-2026. Redondant
+          avec count_housing_tagged_lovac_production pour l'année 2026, ce que
+          vérifie le test test_morphology_tagged_lovac_consistency. Préférer la
+          colonne par millésime.

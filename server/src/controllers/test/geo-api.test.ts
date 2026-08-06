@@ -7,22 +7,14 @@ import AdmZip from 'adm-zip';
 import randomstring from 'randomstring';
 import request from 'supertest';
 
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { GeoPerimeterApi } from '~/models/GeoPerimeterApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  formatGeoPerimeterApi,
-  GeoPerimeters
-} from '~/repositories/geoRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import {
-  genEstablishmentApi,
-  genGeoPerimeterApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { UserApi } from '~/models/UserApi';
+import { toGeoPerimeterInsert } from '~/repositories/geoRepository';
+import { factories } from '~/test/factories';
+import { genGeoPerimeterApi } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
 // EICAR test file - standard antivirus test string
@@ -36,32 +28,35 @@ describe('Geo perimeters API', () => {
     url = await createServer().testing();
   });
 
-  const establishment = genEstablishmentApi();
-  const anotherEstablishment = genEstablishmentApi();
-  const user = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let anotherEstablishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi)
-    );
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    anotherEstablishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('GET /geo/perimeters', () => {
     const testRoute = '/geo/perimeters';
 
-    const geoPerimeters: GeoPerimeterApi[] = Array.from({ length: 3 }, () =>
-      genGeoPerimeterApi(establishment.id, user)
-    );
-    const otherGeoPerimeters: GeoPerimeterApi[] = Array.from(
-      { length: 2 },
-      () => genGeoPerimeterApi(anotherEstablishment.id, user)
-    );
+    let geoPerimeters: GeoPerimeterApi[];
+    let otherGeoPerimeters: GeoPerimeterApi[];
 
     beforeAll(async () => {
-      await GeoPerimeters().insert(
-        geoPerimeters.concat(otherGeoPerimeters).map(formatGeoPerimeterApi)
+      geoPerimeters = Array.from({ length: 3 }, () =>
+        genGeoPerimeterApi(establishment.id, user)
       );
+      otherGeoPerimeters = Array.from({ length: 2 }, () =>
+        genGeoPerimeterApi(anotherEstablishment.id, user)
+      );
+      await kysely
+        .insertInto('geoPerimeters')
+        .values(
+          geoPerimeters.concat(otherGeoPerimeters).map(toGeoPerimeterInsert)
+        )
+        .execute();
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -92,10 +87,14 @@ describe('Geo perimeters API', () => {
   describe('DELETE /geo/perimeters', () => {
     const testRoute = '/geo/perimeters';
 
-    const geoPerimeter = genGeoPerimeterApi(establishment.id, user);
+    let geoPerimeter: GeoPerimeterApi;
 
     beforeAll(async () => {
-      await GeoPerimeters().insert(formatGeoPerimeterApi(geoPerimeter));
+      geoPerimeter = genGeoPerimeterApi(establishment.id, user);
+      await kysely
+        .insertInto('geoPerimeters')
+        .values(toGeoPerimeterInsert(geoPerimeter))
+        .execute();
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -134,9 +133,11 @@ describe('Geo perimeters API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
-      const actual = await GeoPerimeters()
-        .where({ id: geoPerimeter.id })
-        .first();
+      const actual = await kysely
+        .selectFrom('geoPerimeters')
+        .selectAll('geoPerimeters')
+        .where('id', '=', geoPerimeter.id)
+        .executeTakeFirst();
       expect(actual).toBeUndefined();
     });
 
@@ -145,7 +146,10 @@ describe('Geo perimeters API', () => {
         anotherEstablishment.id,
         user
       );
-      await GeoPerimeters().insert(formatGeoPerimeterApi(anotherGeoPerimeter));
+      await kysely
+        .insertInto('geoPerimeters')
+        .values(toGeoPerimeterInsert(anotherGeoPerimeter))
+        .execute();
 
       const { status } = await request(url)
         .delete(testRoute)
@@ -154,9 +158,11 @@ describe('Geo perimeters API', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_NO_CONTENT);
 
-      const actual = await GeoPerimeters()
-        .where({ id: anotherGeoPerimeter.id })
-        .first();
+      const actual = await kysely
+        .selectFrom('geoPerimeters')
+        .selectAll('geoPerimeters')
+        .where('id', '=', anotherGeoPerimeter.id)
+        .executeTakeFirst();
       expect(actual).toMatchObject({
         id: anotherGeoPerimeter.id
       });
@@ -166,16 +172,16 @@ describe('Geo perimeters API', () => {
   describe('PUT /geo/perimeters/{id}', () => {
     const testRoute = (id: string) => `/geo/perimeters/${id}`;
 
-    const geoPerimeter = genGeoPerimeterApi(establishment.id, user);
-    const anotherGeoPerimeter = genGeoPerimeterApi(
-      anotherEstablishment.id,
-      user
-    );
+    let geoPerimeter: GeoPerimeterApi;
+    let anotherGeoPerimeter: GeoPerimeterApi;
 
     beforeAll(async () => {
-      await GeoPerimeters().insert(
-        [geoPerimeter, anotherGeoPerimeter].map(formatGeoPerimeterApi)
-      );
+      geoPerimeter = genGeoPerimeterApi(establishment.id, user);
+      anotherGeoPerimeter = genGeoPerimeterApi(anotherEstablishment.id, user);
+      await kysely
+        .insertInto('geoPerimeters')
+        .values([geoPerimeter, anotherGeoPerimeter].map(toGeoPerimeterInsert))
+        .execute();
     });
 
     it('should be forbidden for a non-authenticated user', async () => {
@@ -230,9 +236,11 @@ describe('Geo perimeters API', () => {
         name: newName
       });
 
-      const actual = await GeoPerimeters()
-        .where({ id: geoPerimeter.id })
-        .first();
+      const actual = await kysely
+        .selectFrom('geoPerimeters')
+        .selectAll('geoPerimeters')
+        .where('id', '=', geoPerimeter.id)
+        .executeTakeFirst();
       expect(actual).toMatchObject({
         id: geoPerimeter.id,
         kind: newKind,

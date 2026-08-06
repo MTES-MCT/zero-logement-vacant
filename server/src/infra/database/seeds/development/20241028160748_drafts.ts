@@ -5,15 +5,17 @@ import {
   CampaignDraftDBO,
   campaignsDraftsTable
 } from '~/repositories/campaignDraftRepository';
-import { Campaigns } from '~/repositories/campaignRepository';
+import { CampaignDBO, campaignsTable } from '~/repositories/campaignRepository';
 import {
   DraftDBO,
   DraftRecordDBO,
-  Drafts,
   draftsTable,
   formatDraftApi
 } from '~/repositories/draftRepository';
-import { Establishments } from '~/repositories/establishmentRepository';
+import {
+  EstablishmentDBO,
+  establishmentsTable
+} from '~/repositories/establishmentRepository';
 import {
   formatSenderApi,
   SenderDBO,
@@ -25,9 +27,11 @@ export async function seed(knex: Knex): Promise<void> {
   console.time('20241028160748_drafts');
   await knex.raw(`TRUNCATE TABLE ${draftsTable} CASCADE`);
 
-  const establishments = await Establishments(knex).where({ available: true });
+  const establishments = await knex<EstablishmentDBO>(
+    establishmentsTable
+  ).where({ available: true });
   await async.forEachSeries(establishments, async (establishment) => {
-    const campaigns = await Campaigns(knex).where({
+    const campaigns = await knex<CampaignDBO>(campaignsTable).where({
       establishment_id: establishment.id
     });
 
@@ -60,7 +64,7 @@ export async function seed(knex: Knex): Promise<void> {
     );
   });
 
-  await Drafts(knex);
+  await knex<DraftDBO>(draftsTable);
   console.timeEnd('20241028160748_drafts');
   console.log('\n');
 }

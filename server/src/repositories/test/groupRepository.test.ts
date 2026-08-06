@@ -1,50 +1,38 @@
-import { faker } from '@faker-js/faker/locale/fr';
 import { v4 as uuidv4 } from 'uuid';
 
+import { kysely } from '~/infra/database/kysely';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
+import { UserApi } from '~/models/UserApi';
+import { factories } from '~/test/factories';
+import { genGroupApi } from '~/test/testFixtures';
 
-import {
-  genEstablishmentApi,
-  genGroupApi,
-  genHousingApi,
-  genOwnerApi,
-  genUserApi
-} from '../../test/testFixtures';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '../establishmentRepository';
-import groupRepository, {
-  formatGroupApi,
-  formatGroupHousingApi,
-  GroupHousingDBO,
-  Groups,
-  GroupsHousing
-} from '../groupRepository';
-import { HousingOwners } from '../housingOwnerRepository';
-import { formatHousingRecordApi, Housing } from '../housingRepository';
-import { formatOwnerApi, Owners } from '../ownerRepository';
-import { toUserDBO, Users } from '../userRepository';
+import groupRepository, { toGroupDBO } from '../groupRepository';
 
 describe('Group repository', () => {
   describe('find', () => {
-    const establishment = genEstablishmentApi();
-    const anotherEstablishment = genEstablishmentApi();
-    const user = genUserApi(establishment.id);
-    const anotherUser = genUserApi(anotherEstablishment.id);
-    const groups: GroupApi[] = [
-      genGroupApi(user, establishment),
-      genGroupApi(user, establishment),
-      genGroupApi(user, anotherEstablishment)
-    ];
+    let establishment: EstablishmentApi;
+    let anotherEstablishment: EstablishmentApi;
+    let user: UserApi;
+    let groups: GroupApi[];
 
     beforeAll(async () => {
-      await Establishments().insert(
-        [establishment, anotherEstablishment].map(formatEstablishmentApi)
-      );
-      await Users().insert([user, anotherUser].map(toUserDBO));
-      await Groups().insert(groups.map(formatGroupApi));
+      establishment = await factories.establishment.create();
+      anotherEstablishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
+      await factories.user.create({ establishmentId: anotherEstablishment.id });
+      groups = await Promise.all([
+        factories
+          .group(establishment)
+          .create({}, { associations: { createdBy: user } }),
+        factories
+          .group(establishment)
+          .create({}, { associations: { createdBy: user } }),
+        factories
+          .group(anotherEstablishment)
+          .create({}, { associations: { createdBy: user } })
+      ]);
     });
 
     it('should return groups sorted by descending creation date', async () => {
@@ -69,20 +57,31 @@ describe('Group repository', () => {
     });
 
     describe('geoCodes filter', () => {
-      const establishment3 = genEstablishmentApi();
-      const user3 = genUserApi(establishment3.id);
+      let establishment3: EstablishmentApi;
+      let user3: UserApi;
 
       beforeAll(async () => {
-        await Establishments().insert(formatEstablishmentApi(establishment3));
-        await Users().insert(toUserDBO(user3));
+        establishment3 = await factories.establishment.create();
+        user3 = await factories.user.create({
+          establishmentId: establishment3.id
+        });
       });
 
       it('should return no groups when geoCodes is empty', async () => {
-        const group = genGroupApi(user3, establishment3);
-        const housing = genHousingApi(establishment3.geoCodes[0]);
-        await Groups().insert(formatGroupApi(group));
-        await Housing().insert(formatHousingRecordApi(housing));
-        await GroupsHousing().insert(formatGroupHousingApi(group, [housing]));
+        const housing = await factories.housing.create({
+          geoCode: establishment3.geoCodes[0]
+        });
+        const group = await factories
+          .group(establishment3)
+          .create({}, { associations: { createdBy: user3 } });
+        await kysely
+          .insertInto('groupsHousing')
+          .values({
+            groupId: group.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         const result = await groupRepository.find({
           filters: { establishmentId: establishment3.id, geoCodes: [] }
@@ -92,31 +91,42 @@ describe('Group repository', () => {
       });
 
       it('should return only groups whose housings are all within geoCodes', async () => {
-        const establishment4 = genEstablishmentApi();
-        const user4 = genUserApi(establishment4.id);
-        await Establishments().insert(formatEstablishmentApi(establishment4));
-        await Users().insert(toUserDBO(user4));
+        const establishment4 = await factories.establishment.create();
+        const user4 = await factories.user.create({
+          establishmentId: establishment4.id
+        });
 
         const inGeoCode = establishment4.geoCodes[0];
         const outGeoCode = establishment3.geoCodes[0];
 
-        const groupIn = genGroupApi(user4, establishment4);
-        const groupOut = genGroupApi(user4, establishment4);
-        const housingIn = genHousingApi(inGeoCode);
-        const housingOut = genHousingApi(outGeoCode);
+        const groupIn = await factories
+          .group(establishment4)
+          .create({}, { associations: { createdBy: user4 } });
+        const groupOut = await factories
+          .group(establishment4)
+          .create({}, { associations: { createdBy: user4 } });
+        const housingIn = await factories.housing.create({
+          geoCode: inGeoCode
+        });
+        const housingOut = await factories.housing.create({
+          geoCode: outGeoCode
+        });
 
-        await Groups().insert([
-          formatGroupApi(groupIn),
-          formatGroupApi(groupOut)
-        ]);
-        await Housing().insert([
-          formatHousingRecordApi(housingIn),
-          formatHousingRecordApi(housingOut)
-        ]);
-        await GroupsHousing().insert([
-          ...formatGroupHousingApi(groupIn, [housingIn]),
-          ...formatGroupHousingApi(groupOut, [housingOut])
-        ]);
+        await kysely
+          .insertInto('groupsHousing')
+          .values([
+            {
+              groupId: groupIn.id,
+              housingId: housingIn.id,
+              housingGeoCode: housingIn.geoCode
+            },
+            {
+              groupId: groupOut.id,
+              housingId: housingOut.id,
+              housingGeoCode: housingOut.geoCode
+            }
+          ])
+          .execute();
 
         const result = await groupRepository.find({
           filters: { establishmentId: establishment4.id, geoCodes: [inGeoCode] }
@@ -128,26 +138,39 @@ describe('Group repository', () => {
       });
 
       it('should exclude groups that have any housing outside geoCodes', async () => {
-        const establishment5 = genEstablishmentApi();
-        const user5 = genUserApi(establishment5.id);
-        await Establishments().insert(formatEstablishmentApi(establishment5));
-        await Users().insert(toUserDBO(user5));
+        const establishment5 = await factories.establishment.create();
+        const user5 = await factories.user.create({
+          establishmentId: establishment5.id
+        });
 
         const inGeoCode = establishment5.geoCodes[0];
         const outGeoCode = establishment3.geoCodes[0];
 
-        const group = genGroupApi(user5, establishment5);
-        const housingIn = genHousingApi(inGeoCode);
-        const housingOut = genHousingApi(outGeoCode);
+        const group = await factories
+          .group(establishment5)
+          .create({}, { associations: { createdBy: user5 } });
+        const housingIn = await factories.housing.create({
+          geoCode: inGeoCode
+        });
+        const housingOut = await factories.housing.create({
+          geoCode: outGeoCode
+        });
 
-        await Groups().insert(formatGroupApi(group));
-        await Housing().insert([
-          formatHousingRecordApi(housingIn),
-          formatHousingRecordApi(housingOut)
-        ]);
-        await GroupsHousing().insert(
-          formatGroupHousingApi(group, [housingIn, housingOut])
-        );
+        await kysely
+          .insertInto('groupsHousing')
+          .values([
+            {
+              groupId: group.id,
+              housingId: housingIn.id,
+              housingGeoCode: housingIn.geoCode
+            },
+            {
+              groupId: group.id,
+              housingId: housingOut.id,
+              housingGeoCode: housingOut.geoCode
+            }
+          ])
+          .execute();
 
         const result = await groupRepository.find({
           filters: { establishmentId: establishment5.id, geoCodes: [inGeoCode] }
@@ -159,19 +182,22 @@ describe('Group repository', () => {
   });
 
   describe('findOne', () => {
-    const establishment = genEstablishmentApi();
-    const anotherEstablishment = genEstablishmentApi();
-    const user = genUserApi(establishment.id);
-    const anotherUser = genUserApi(anotherEstablishment.id);
-    const group = genGroupApi(user, establishment);
-    const anotherGroup = genGroupApi(user, anotherEstablishment);
+    let establishment: EstablishmentApi;
+    let anotherEstablishment: EstablishmentApi;
+    let user: UserApi;
+    let group: GroupApi;
 
     beforeAll(async () => {
-      await Establishments().insert(
-        [establishment, anotherEstablishment].map(formatEstablishmentApi)
-      );
-      await Users().insert([user, anotherUser].map(toUserDBO));
-      await Groups().insert([group, anotherGroup].map(formatGroupApi));
+      establishment = await factories.establishment.create();
+      anotherEstablishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
+      await factories.user.create({ establishmentId: anotherEstablishment.id });
+      group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await factories
+        .group(anotherEstablishment)
+        .create({}, { associations: { createdBy: user } });
     });
 
     it('should return null if the group belongs to another establishment', async () => {
@@ -208,22 +234,31 @@ describe('Group repository', () => {
     });
 
     describe('geoCodes filter', () => {
-      const establishment6 = genEstablishmentApi();
-      const user6 = genUserApi(establishment6.id);
+      let establishment6: EstablishmentApi;
+      let user6: UserApi;
 
       beforeAll(async () => {
-        await Establishments().insert(formatEstablishmentApi(establishment6));
-        await Users().insert(toUserDBO(user6));
+        establishment6 = await factories.establishment.create();
+        user6 = await factories.user.create({
+          establishmentId: establishment6.id
+        });
       });
 
       it('should return null when geoCodes is empty', async () => {
-        const targetGroup = genGroupApi(user6, establishment6);
-        const housing = genHousingApi(establishment6.geoCodes[0]);
-        await Groups().insert(formatGroupApi(targetGroup));
-        await Housing().insert(formatHousingRecordApi(housing));
-        await GroupsHousing().insert(
-          formatGroupHousingApi(targetGroup, [housing])
-        );
+        const housing = await factories.housing.create({
+          geoCode: establishment6.geoCodes[0]
+        });
+        const targetGroup = await factories
+          .group(establishment6)
+          .create({}, { associations: { createdBy: user6 } });
+        await kysely
+          .insertInto('groupsHousing')
+          .values({
+            groupId: targetGroup.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         const result = await groupRepository.findOne({
           id: targetGroup.id,
@@ -235,14 +270,18 @@ describe('Group repository', () => {
       });
 
       it('should return null when group has housing outside geoCodes', async () => {
-        const otherEstablishment = genEstablishmentApi();
-        const targetGroup = genGroupApi(user6, establishment6);
-        const outsideHousing = genHousingApi(otherEstablishment.geoCodes[0]);
-        await Groups().insert(formatGroupApi(targetGroup));
-        await Housing().insert(formatHousingRecordApi(outsideHousing));
-        await GroupsHousing().insert(
-          formatGroupHousingApi(targetGroup, [outsideHousing])
-        );
+        const targetGroup = await factories
+          .group(establishment6)
+          .create({}, { associations: { createdBy: user6 } });
+        const outsideHousing = await factories.housing.create();
+        await kysely
+          .insertInto('groupsHousing')
+          .values({
+            groupId: targetGroup.id,
+            housingId: outsideHousing.id,
+            housingGeoCode: outsideHousing.geoCode
+          })
+          .execute();
 
         const result = await groupRepository.findOne({
           id: targetGroup.id,
@@ -255,13 +294,18 @@ describe('Group repository', () => {
 
       it('should return group when all housing is within geoCodes', async () => {
         const inGeoCode = establishment6.geoCodes[0];
-        const targetGroup = genGroupApi(user6, establishment6);
-        const housing = genHousingApi(inGeoCode);
-        await Groups().insert(formatGroupApi(targetGroup));
-        await Housing().insert(formatHousingRecordApi(housing));
-        await GroupsHousing().insert(
-          formatGroupHousingApi(targetGroup, [housing])
-        );
+        const targetGroup = await factories
+          .group(establishment6)
+          .create({}, { associations: { createdBy: user6 } });
+        const housing = await factories.housing.create({ geoCode: inGeoCode });
+        await kysely
+          .insertInto('groupsHousing')
+          .values({
+            groupId: targetGroup.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          })
+          .execute();
 
         const result = await groupRepository.findOne({
           id: targetGroup.id,
@@ -276,45 +320,43 @@ describe('Group repository', () => {
   });
 
   describe('save', () => {
-    const establishment = genEstablishmentApi();
-    const user = genUserApi(establishment.id);
-    const housings: HousingApi[] = [
-      genHousingApi(),
-      genHousingApi(),
-      genHousingApi()
-    ];
+    let establishment: EstablishmentApi;
+    let user: UserApi;
+    let housings: HousingApi[];
 
     beforeAll(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(toUserDBO(user));
-      await Housing().insert(housings.map(formatHousingRecordApi));
+      establishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
+      housings = await factories.housing.createList(3);
     });
 
     it('should create a group that does not exist', async () => {
       const group = genGroupApi(user, establishment);
       await groupRepository.save(group, housings);
 
-      const actualGroup = await Groups()
-        .where({
-          id: group.id,
-          establishment_id: group.establishmentId
-        })
-        .first();
-      expect(actualGroup).toMatchObject(formatGroupApi(group));
+      const actualGroup = await kysely
+        .selectFrom('groups')
+        .selectAll('groups')
+        .where('id', '=', group.id)
+        .where('establishmentId', '=', group.establishmentId)
+        .executeTakeFirst();
+      expect(actualGroup).toMatchObject(toGroupDBO(group));
 
-      const actualHousingList = await GroupsHousing().where({
-        group_id: group.id
-      });
-      const ids = housings.map((housing) => ({ housing_id: housing.id }));
-      expect(actualHousingList).toBeArrayOfSize(housings.length);
-      expect(actualHousingList).toIncludeAllPartialMembers(ids);
+      const actualHousings = await kysely
+        .selectFrom('groupsHousing')
+        .selectAll('groupsHousing')
+        .where('groupId', '=', group.id)
+        .execute();
+      const ids = housings.map((housing) => ({ housingId: housing.id }));
+      expect(actualHousings).toBeArrayOfSize(housings.length);
+      expect(actualHousings).toIncludeAllPartialMembers(ids);
     });
 
     it('should update a group that exists', async () => {
-      const group = genGroupApi(user, establishment);
-      await Groups().insert(formatGroupApi(group));
-      const newHousing = genHousingApi();
-      await Housing().insert(formatHousingRecordApi(newHousing));
+      const group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const newHousing = await factories.housing.create();
       const newGroup: GroupApi = {
         ...group,
         housingCount: 1,
@@ -323,75 +365,164 @@ describe('Group repository', () => {
 
       await groupRepository.save(newGroup, [newHousing]);
 
-      const actualGroup = await Groups()
-        .where({
-          id: group.id,
-          establishment_id: group.establishmentId
-        })
-        .first();
-      expect(actualGroup).toMatchObject(formatGroupApi(newGroup));
+      const actualGroup = await kysely
+        .selectFrom('groups')
+        .selectAll('groups')
+        .where('id', '=', group.id)
+        .where('establishmentId', '=', group.establishmentId)
+        .executeTakeFirst();
+      expect(actualGroup).toMatchObject(toGroupDBO(newGroup));
 
-      const actualHousingList = await GroupsHousing().where({
-        group_id: group.id
-      });
-      expect(actualHousingList).toBeArrayOfSize(1);
-      expect(actualHousingList).toIncludeAllPartialMembers<GroupHousingDBO>([
+      const actualHousings = await kysely
+        .selectFrom('groupsHousing')
+        .selectAll('groupsHousing')
+        .where('groupId', '=', group.id)
+        .execute();
+      expect(actualHousings).toBeArrayOfSize(1);
+      expect(actualHousings).toIncludeAllPartialMembers([
         {
-          group_id: group.id,
-          housing_id: newHousing.id,
-          housing_geo_code: newHousing.geoCode
+          groupId: group.id,
+          housingId: newHousing.id,
+          housingGeoCode: newHousing.geoCode
         }
       ]);
     });
 
     it('should remove housings if passed an empty array', async () => {
-      const group = genGroupApi(user, establishment);
-      await Groups().insert(formatGroupApi(group));
-      await GroupsHousing().insert(formatGroupHousingApi(group, housings));
+      const group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await kysely
+        .insertInto('groupsHousing')
+        .values(
+          housings.map((housing) => ({
+            groupId: group.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
 
       await groupRepository.save(group, []);
 
-      const actual = await GroupsHousing().where({
-        group_id: group.id
-      });
+      const actual = await kysely
+        .selectFrom('groupsHousing')
+        .selectAll('groupsHousing')
+        .where('groupId', '=', group.id)
+        .execute();
       expect(actual).toBeEmpty();
     });
 
     it('should replace existing housings by the new ones', async () => {
-      const group = genGroupApi(user, establishment);
-      await Groups().insert(formatGroupApi(group));
-      await GroupsHousing().insert(formatGroupHousingApi(group, housings));
-      const newHousings = faker.helpers.multiple(() => genHousingApi());
-      await Housing().insert(newHousings.map(formatHousingRecordApi));
+      const group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      await kysely
+        .insertInto('groupsHousing')
+        .values(
+          housings.map((housing) => ({
+            groupId: group.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
+      const newHousings = await factories.housing.createList(3);
 
       await groupRepository.save(group, newHousings);
 
-      const actual = await GroupsHousing().where({
-        group_id: group.id
-      });
+      const actual = await kysely
+        .selectFrom('groupsHousing')
+        .selectAll('groupsHousing')
+        .where('groupId', '=', group.id)
+        .execute();
       expect(actual).toBeArrayOfSize(newHousings.length);
       newHousings.forEach((housing) => {
         expect(actual).toPartiallyContain({
-          group_id: group.id,
-          housing_geo_code: housing.geoCode,
-          housing_id: housing.id
+          groupId: group.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
         });
       });
     });
   });
 
+  describe('removeHousing', () => {
+    let establishment: EstablishmentApi;
+    let user: UserApi;
+
+    beforeAll(async () => {
+      establishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
+    });
+
+    async function createGroupWithHousings(): Promise<{
+      group: GroupApi;
+      housings: HousingApi[];
+    }> {
+      const group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const housings = await factories.housing.createList(3);
+      await kysely
+        .insertInto('groupsHousing')
+        .values(
+          housings.map((housing) => ({
+            groupId: group.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
+      return { group, housings };
+    }
+
+    it('should remove the given housings from the group', async () => {
+      const { group, housings } = await createGroupWithHousings();
+      const [removed, ...kept] = housings;
+
+      await groupRepository.removeHousing(group, [removed]);
+
+      const actual = await kysely
+        .selectFrom('groupsHousing')
+        .selectAll('groupsHousing')
+        .where('groupId', '=', group.id)
+        .execute();
+      expect(actual).toBeArrayOfSize(kept.length);
+      expect(actual).not.toPartiallyContain({
+        groupId: group.id,
+        housingId: removed.id,
+        housingGeoCode: removed.geoCode
+      });
+    });
+
+    it('should do nothing when the housing list is empty', async () => {
+      const { group, housings } = await createGroupWithHousings();
+
+      await groupRepository.removeHousing(group, []);
+
+      const actual = await kysely
+        .selectFrom('groupsHousing')
+        .selectAll('groupsHousing')
+        .where('groupId', '=', group.id)
+        .execute();
+      expect(actual).toBeArrayOfSize(housings.length);
+    });
+  });
+
   describe('archive', () => {
-    const establishment = genEstablishmentApi();
-    const user = genUserApi(establishment.id);
+    let establishment: EstablishmentApi;
+    let user: UserApi;
 
     beforeEach(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(toUserDBO(user));
+      establishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
     });
 
     it('should archive a group', async () => {
-      const group = genGroupApi(user, establishment);
-      await Groups().insert(formatGroupApi(group));
+      const group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
 
       const archived = await groupRepository.archive(group);
 
@@ -403,55 +534,63 @@ describe('Group repository', () => {
   });
 
   describe('remove', () => {
-    const establishment = genEstablishmentApi();
-    const user = genUserApi(establishment.id);
-    const group = genGroupApi(user, establishment);
-    const housingList: HousingApi[] = [
-      genHousingApi(),
-      genHousingApi(),
-      genHousingApi()
-    ];
+    let establishment: EstablishmentApi;
+    let user: UserApi;
+    let group: GroupApi;
 
     beforeEach(async () => {
-      await Establishments().insert(formatEstablishmentApi(establishment));
-      await Users().insert(toUserDBO(user));
-      await Groups().insert(formatGroupApi(group));
-      await Housing().insert(housingList.map(formatHousingRecordApi));
-      await GroupsHousing().insert(formatGroupHousingApi(group, housingList));
+      establishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
+      group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const housings = await factories.housing.createList(3);
+      await kysely
+        .insertInto('groupsHousing')
+        .values(
+          housings.map((housing) => ({
+            groupId: group.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
     });
 
     it('should remove a group if it exists', async () => {
       await groupRepository.remove(group);
 
-      const actualGroup = await Groups()
-        .where({
-          id: group.id,
-          establishment_id: group.establishmentId
-        })
-        .first();
+      const actualGroup = await kysely
+        .selectFrom('groups')
+        .selectAll('groups')
+        .where('id', '=', group.id)
+        .where('establishmentId', '=', group.establishmentId)
+        .executeTakeFirst();
       expect(actualGroup).toBeUndefined();
-      const actualHousingList = await GroupsHousing().where({
-        group_id: group.id
-      });
-      expect(actualHousingList).toBeArrayOfSize(0);
+      const actualHousings = await kysely
+        .selectFrom('groupsHousing')
+        .selectAll('groupsHousing')
+        .where('groupId', '=', group.id)
+        .execute();
+      expect(actualHousings).toBeArrayOfSize(0);
     });
   });
 
   describe('counts', () => {
-    const establishment = genEstablishmentApi();
-    const user = genUserApi(establishment.id);
+    let establishment: EstablishmentApi;
+    let user: UserApi;
 
-    beforeEach(async () => {
-      await Establishments()
-        .insert(formatEstablishmentApi(establishment))
-        .onConflict('id')
-        .ignore();
-      await Users().insert(toUserDBO(user)).onConflict('id').ignore();
+    beforeAll(async () => {
+      establishment = await factories.establishment.create();
+      user = await factories.user.create({ establishmentId: establishment.id });
     });
 
     it('should expose housingCount from the database column', async () => {
       const group = genGroupApi(user, establishment);
-      await Groups().insert({ ...formatGroupApi(group), housing_count: 7 });
+      await kysely
+        .insertInto('groups')
+        .values({ ...toGroupDBO(group), housingCount: 7 })
+        .execute();
 
       const result = await groupRepository.find({
         filters: { establishmentId: establishment.id }
@@ -463,7 +602,10 @@ describe('Group repository', () => {
 
     it('should expose ownerCount from the database column', async () => {
       const group = genGroupApi(user, establishment);
-      await Groups().insert({ ...formatGroupApi(group), owner_count: 4 });
+      await kysely
+        .insertInto('groups')
+        .values({ ...toGroupDBO(group), ownerCount: 4 })
+        .execute();
 
       const result = await groupRepository.find({
         filters: { establishmentId: establishment.id }
@@ -474,10 +616,10 @@ describe('Group repository', () => {
     });
 
     it('should update housingCount via trigger when housing is added', async () => {
-      const group = genGroupApi(user, establishment);
-      const housing = genHousingApi();
-      await Groups().insert(formatGroupApi(group));
-      await Housing().insert(formatHousingRecordApi(housing));
+      const group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const housing = await factories.housing.create();
 
       await groupRepository.addHousing(group, [housing]);
 
@@ -489,30 +631,22 @@ describe('Group repository', () => {
     });
 
     it('should update ownerCount via trigger when a rank-1 owner is added', async () => {
-      const group = genGroupApi(user, establishment);
-      const housing = genHousingApi();
-      const owner = genOwnerApi();
-      await Groups().insert(formatGroupApi(group));
-      await Housing().insert(formatHousingRecordApi(housing));
-      await GroupsHousing().insert(formatGroupHousingApi(group, [housing]));
-      await Owners().insert(formatOwnerApi(owner));
+      const group = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const housing = await factories.housing.create();
+      const owner = await factories.owner.create();
+      await kysely
+        .insertInto('groupsHousing')
+        .values({
+          groupId: group.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
 
-      // Insert directly into owners_housing — the trigger fires on this insert
-      await HousingOwners().insert({
-        owner_id: owner.id,
-        housing_id: housing.id,
-        housing_geo_code: housing.geoCode,
-        rank: 1,
-        start_date: null,
-        end_date: null,
-        origin: null,
-        idprocpte: null,
-        idprodroit: null,
-        locprop_source: null,
-        locprop_relative_ban: null,
-        locprop_distance_ban: null,
-        property_right: null
-      });
+      // Insert directly into ownersHousing — the trigger fires on this insert.
+      await factories.housingOwner({ housing, owner }).create({ rank: 1 });
 
       const result = await groupRepository.find({
         filters: { establishmentId: establishment.id }

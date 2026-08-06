@@ -1951,6 +1951,21 @@ paths:
           schema:
             type: boolean
           description: Filtrer les établissements disponibles pour inscription
+        - in: query
+          name: kindAdmin
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+              minLength: 1
+              maxLength: 50
+            example: [CA, CC, CU, METRO, EPT]
+          description: >-
+            Filtrer par code administratif brut issu du référentiel Gold.
+            Le vocabulaire est extensible ; les codes d'intercommunalité
+            actuellement utilisés sont CA, CC, CU, METRO et EPT.
       responses:
         '200':
           description: Liste des établissements

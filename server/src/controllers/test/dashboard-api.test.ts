@@ -7,18 +7,15 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import config from '~/infra/config';
 import { createServer } from '~/infra/server';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { UserApi } from '~/models/UserApi';
 import { metabaseAPI } from '~/services/metabase/metabase-api';
+import { factories } from '~/test/factories';
 
-import { genEstablishmentApi, genUserApi } from '../../test/testFixtures';
 import { tokenProvider } from '../../test/testUtils';
 
-const establishment = genEstablishmentApi();
-const user = genUserApi(establishment.id);
+let establishment: EstablishmentApi;
+let user: UserApi;
 
 const METABASE_URL = config.metabase.domain;
 
@@ -767,8 +764,8 @@ describe('Dashboard API', () => {
 
   beforeAll(async () => {
     url = await createServer().testing();
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(toUserDBO(user));
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   afterEach(() => {
@@ -1097,6 +1094,48 @@ describe('Dashboard API', () => {
         id: 929,
         type: 'flat-number',
         data: 51884
+      });
+    });
+
+    it('returns 504 when a Metabase card query times out', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/929/card/771/query')
+        .replyWithError(
+          Object.assign(new Error('timeout of 10000ms exceeded'), {
+            code: 'ECONNABORTED'
+          })
+        );
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/929')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_GATEWAY_TIMEOUT);
+      expect(response.body).toMatchObject({
+        name: 'GatewayTimeoutError',
+        message: 'Metabase query timed out'
+      });
+    });
+
+    it('returns 502 when Metabase rejects a card query', async () => {
+      nock(METABASE_URL)
+        .get('/api/dashboard/13')
+        .reply(200, mockMetabaseDashboard);
+      nock(METABASE_URL)
+        .post('/api/dashboard/13/dashcard/929/card/771/query')
+        .reply(503, { message: 'Service unavailable' });
+
+      const response = await request(url)
+        .get('/dashboards/13-analyses/cards/929')
+        .use(tokenProvider(user));
+
+      expect(response.status).toBe(constants.HTTP_STATUS_BAD_GATEWAY);
+      expect(response.body).toMatchObject({
+        name: 'BadGatewayError',
+        message: 'Metabase request failed'
       });
     });
 

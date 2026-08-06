@@ -1,12 +1,10 @@
 import { AddressKinds, RelativeLocation } from '@zerologementvacant/models';
 
+import { kysely } from '~/infra/database/kysely';
 import { createLogger } from '~/infra/logger';
 import { AddressApi } from '~/models/AddressApi';
 import banAddressesRepository from '~/repositories/banAddressesRepository';
-import {
-  HousingOwners,
-  toRelativeLocationDBO
-} from '~/repositories/housingOwnerRepository';
+import { toRelativeLocationDBO } from '~/repositories/housingOwnerRepository';
 
 import {
   hasExplicitForeignCountry,
@@ -374,9 +372,11 @@ export async function updateOwnerHousingDistances(
   logger.info('Updating owner-housing distances', { ownerId });
 
   // Get all housing IDs for this owner
-  const housingOwnerRecords = await HousingOwners()
-    .select('housing_id', 'housing_geo_code')
-    .where('owner_id', ownerId);
+  const housingOwnerRecords = await kysely
+    .selectFrom('ownersHousing')
+    .select(['housingId', 'housingGeoCode'])
+    .where('ownerId', '=', ownerId)
+    .execute();
 
   if (housingOwnerRecords.length === 0) {
     logger.debug('No housings found for owner', { ownerId });
@@ -393,7 +393,7 @@ export async function updateOwnerHousingDistances(
     try {
       // Get housing BAN address
       const housingAddress = await banAddressesRepository.getByRefId(
-        record.housing_id,
+        record.housingId,
         AddressKinds.Housing
       );
 
@@ -404,28 +404,28 @@ export async function updateOwnerHousingDistances(
       );
 
       // Update the owners_housing record
-      await HousingOwners()
-        .where({
-          owner_id: ownerId,
-          housing_id: record.housing_id,
-          housing_geo_code: record.housing_geo_code
+      await kysely
+        .updateTable('ownersHousing')
+        .where('ownerId', '=', ownerId)
+        .where('housingId', '=', record.housingId)
+        .where('housingGeoCode', '=', record.housingGeoCode)
+        .set({
+          locpropRelativeBan: toRelativeLocationDBO(relativeLocation),
+          locpropDistanceBan: absoluteDistance
         })
-        .update({
-          locprop_relative_ban: toRelativeLocationDBO(relativeLocation),
-          locprop_distance_ban: absoluteDistance
-        });
+        .execute();
 
       updatedCount++;
       logger.debug('Updated distance for housing', {
         ownerId,
-        housingId: record.housing_id,
+        housingId: record.housingId,
         relativeLocation,
         absoluteDistance
       });
     } catch (error) {
       logger.error('Failed to update distance for housing', {
         ownerId,
-        housingId: record.housing_id,
+        housingId: record.housingId,
         error
       });
     }

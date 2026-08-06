@@ -9,6 +9,7 @@ import { useMemo, type ReactNode } from 'react';
 
 import AppLink from '~/components/_app/AppLink/AppLink';
 import AdvancedTable from '~/components/AdvancedTable/AdvancedTable';
+import DoNotContactBadge from '~/components/Owner/DoNotContactBadge';
 import ImprovableAddressBadge from '~/components/Owner/ImprovableAddressBadge';
 import OwnerKindTag from '~/components/Owner/OwnerKindTag';
 import OwnerStatusTag from '~/components/Owner/OwnerStatusTag';
@@ -93,7 +94,12 @@ function HousingOwnerTable(props: HousingOwnerTableProps) {
       }),
       columnHelper.accessor('rank', {
         header: 'Rang de contact',
-        cell: ({ cell }) => <RankBadge value={cell.getValue()} />
+        cell: ({ cell, row }) =>
+          row.original.doNotContact ? (
+            <DoNotContactBadge doNotContact />
+          ) : (
+            <RankBadge value={cell.getValue()} />
+          )
       }),
       columnHelper.accessor((housingOwner) => housingOwner.banAddress?.score, {
         id: 'addressStatus',

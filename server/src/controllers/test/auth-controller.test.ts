@@ -2,7 +2,6 @@ import { constants } from 'http2';
 import { randomUUID } from 'node:crypto';
 
 import { UserRole } from '@zerologementvacant/models';
-import bcrypt from 'bcryptjs';
 import request from 'supertest';
 import {
   afterAll,
@@ -31,51 +30,43 @@ vi.mock('../../infra/auth', () => ({
 
 import { auth } from '~/infra/auth';
 import { createPasswordVerifier } from '~/infra/auth-password';
-import db from '~/infra/database';
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
-import { SALT_LENGTH, toUserAccountDTO, UserApi } from '~/models/UserApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import {
-  formatResetLinkApi,
-  ResetLinks
-} from '~/repositories/resetLinkRepository';
-import { UsersEstablishments } from '~/repositories/user-establishment-repository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
+import { toUserAccountDTO, UserApi } from '~/models/UserApi';
 import ceremaService from '~/services/ceremaService';
-import {
-  genEstablishmentApi,
-  genResetLinkApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { factories } from '~/test/factories';
+import { genResetLinkApi } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Account controller', () => {
   let url: string;
-  const establishment = genEstablishmentApi();
-  const user: UserApi = genUserApi(establishment.id);
+  let establishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
     url = await createServer().testing();
-    await Establishments().insert(formatEstablishmentApi(establishment));
-    await Users().insert(
-      toUserDBO({
-        ...user,
-        password: bcrypt.hashSync(user.password, SALT_LENGTH)
-      })
-    );
+    establishment = await factories.establishment.create();
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   afterAll(async () => {
-    await db('session').where({ user_id: user.id }).delete();
-    await db('account').where({ user_id: user.id }).delete();
-    await db('auth_users').where({ id: user.id }).delete();
-    await UsersEstablishments().where({ user_id: user.id }).delete();
-    await ResetLinks().where({ user_id: user.id }).delete();
-    await Users().where('id', user.id).delete();
-    await Establishments().where('id', establishment.id).delete();
+    await kysely.deleteFrom('session').where('userId', '=', user.id).execute();
+    await kysely.deleteFrom('account').where('userId', '=', user.id).execute();
+    await kysely.deleteFrom('authUsers').where('id', '=', user.id).execute();
+    await kysely
+      .deleteFrom('usersEstablishments')
+      .where('userId', '=', user.id)
+      .execute();
+    await kysely
+      .deleteFrom('resetLinks')
+      .where('userId', '=', user.id)
+      .execute();
+    await kysely.deleteFrom('users').where('id', '=', user.id).execute();
+    await kysely
+      .deleteFrom('establishments')
+      .where('id', '=', establishment.id)
+      .execute();
   });
 
   describe('GET /account', () => {
@@ -98,27 +89,34 @@ describe('Account controller', () => {
   describe('POST /account/reset-password', () => {
     it('updates only the Better Auth credential password', async () => {
       const link = genResetLinkApi(user.id);
-      await ResetLinks().insert(formatResetLinkApi(link));
+      await kysely.insertInto('resetLinks').values(link).execute();
       const newPassword = '123QWEasd!@#';
 
-      await db('auth_users')
-        .insert({
+      await kysely
+        .insertInto('authUsers')
+        .values({
           id: user.id,
           name: `${user.firstName} ${user.lastName}`.trim(),
           email: user.email.toLowerCase(),
-          email_verified: true
+          emailVerified: true
         })
-        .onConflict('id')
-        .ignore();
-      await db('account').insert({
-        id: randomUUID(),
-        account_id: user.email,
-        provider_id: 'credential',
-        user_id: user.id,
-        password: user.password
-      });
-      const legacyPasswordBefore = (await Users().where('id', user.id).first())!
-        .password;
+        .onConflict((oc) => oc.column('id').doNothing())
+        .execute();
+      await kysely
+        .insertInto('account')
+        .values({
+          id: randomUUID(),
+          accountId: user.email,
+          providerId: 'credential',
+          userId: user.id,
+          password: user.password
+        })
+        .execute();
+      const legacyPasswordBefore = (await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst())!.password;
 
       const { status } = await request(url)
         .post('/account/reset-password')
@@ -129,14 +127,21 @@ describe('Account controller', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
 
-      const updatedUser = await Users().where('id', user.id).first();
-      const updatedAccount = await db('account')
-        .where({ user_id: user.id, provider_id: 'credential' })
-        .first();
+      const updatedUser = await kysely
+        .selectFrom('users')
+        .selectAll('users')
+        .where('id', '=', user.id)
+        .executeTakeFirst();
+      const updatedAccount = await kysely
+        .selectFrom('account')
+        .selectAll('account')
+        .where('userId', '=', user.id)
+        .where('providerId', '=', 'credential')
+        .executeTakeFirst();
       expect(updatedUser!.password).toBe(legacyPasswordBefore);
       await expect(
         createPasswordVerifier({ rehash: null })({
-          hash: updatedAccount.password,
+          hash: updatedAccount!.password!,
           password: newPassword
         })
       ).resolves.toBeTrue();
@@ -161,13 +166,11 @@ describe('Account controller', () => {
     });
 
     it('rejects an establishment that is not authorised for a usual user', async () => {
-      const usualUser: UserApi = {
-        ...genUserApi(establishment.id),
+      const usualUser = await factories.user.create({
+        establishmentId: establishment.id,
         role: UserRole.USUAL
-      };
-      const otherEstablishment = genEstablishmentApi();
-      await Users().insert(toUserDBO(usualUser));
-      await Establishments().insert(formatEstablishmentApi(otherEstablishment));
+      });
+      const otherEstablishment = await factories.establishment.create();
       mockGetSession.mockResolvedValue({
         user: { id: usualUser.id },
         session: {
@@ -186,29 +189,34 @@ describe('Account controller', () => {
         expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
         expect(mockUpdateSession).not.toHaveBeenCalled();
       } finally {
-        await Establishments().where('id', otherEstablishment.id).delete();
-        await Users().where('id', usualUser.id).delete();
+        await kysely
+          .deleteFrom('establishments')
+          .where('id', '=', otherEstablishment.id)
+          .execute();
+        await kysely
+          .deleteFrom('users')
+          .where('id', '=', usualUser.id)
+          .execute();
       }
     });
 
     it('rejects a stale establishment after Portail DF revokes access', async () => {
-      const usualUser: UserApi = {
-        ...genUserApi(establishment.id),
+      const usualUser = await factories.user.create({
+        establishmentId: establishment.id,
         role: UserRole.USUAL
-      };
-      const targetEstablishment = genEstablishmentApi();
-      await Users().insert(toUserDBO(usualUser));
-      await Establishments().insert(
-        formatEstablishmentApi(targetEstablishment)
-      );
-      await UsersEstablishments().insert({
-        user_id: usualUser.id,
-        establishment_id: targetEstablishment.id,
-        establishment_siren: targetEstablishment.siren,
-        has_commitment: true,
-        created_at: new Date(),
-        updated_at: new Date()
       });
+      const targetEstablishment = await factories.establishment.create();
+      await kysely
+        .insertInto('usersEstablishments')
+        .values({
+          userId: usualUser.id,
+          establishmentId: targetEstablishment.id,
+          establishmentSiren: targetEstablishment.siren,
+          hasCommitment: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .execute();
       mockGetSession.mockResolvedValue({
         user: { id: usualUser.id },
         session: {
@@ -236,30 +244,38 @@ describe('Account controller', () => {
         expect(mockUpdateSession).not.toHaveBeenCalled();
       } finally {
         consultUsers.mockRestore();
-        await UsersEstablishments().where({ user_id: usualUser.id }).delete();
-        await Establishments().where('id', targetEstablishment.id).delete();
-        await Users().where('id', usualUser.id).delete();
+        await kysely
+          .deleteFrom('usersEstablishments')
+          .where('userId', '=', usualUser.id)
+          .execute();
+        await kysely
+          .deleteFrom('establishments')
+          .where('id', '=', targetEstablishment.id)
+          .execute();
+        await kysely
+          .deleteFrom('users')
+          .where('id', '=', usualUser.id)
+          .execute();
       }
     });
 
     it('keeps the current session when Portail DF is unavailable', async () => {
-      const usualUser: UserApi = {
-        ...genUserApi(establishment.id),
+      const usualUser = await factories.user.create({
+        establishmentId: establishment.id,
         role: UserRole.USUAL
-      };
-      const targetEstablishment = genEstablishmentApi();
-      await Users().insert(toUserDBO(usualUser));
-      await Establishments().insert(
-        formatEstablishmentApi(targetEstablishment)
-      );
-      await UsersEstablishments().insert({
-        user_id: usualUser.id,
-        establishment_id: targetEstablishment.id,
-        establishment_siren: targetEstablishment.siren,
-        has_commitment: true,
-        created_at: new Date(),
-        updated_at: new Date()
       });
+      const targetEstablishment = await factories.establishment.create();
+      await kysely
+        .insertInto('usersEstablishments')
+        .values({
+          userId: usualUser.id,
+          establishmentId: targetEstablishment.id,
+          establishmentSiren: targetEstablishment.siren,
+          hasCommitment: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .execute();
       mockGetSession.mockResolvedValue({
         user: { id: usualUser.id },
         session: {
@@ -287,35 +303,45 @@ describe('Account controller', () => {
         expect(mockUpdateSession).not.toHaveBeenCalled();
       } finally {
         consultUsers.mockRestore();
-        await UsersEstablishments().where({ user_id: usualUser.id }).delete();
-        await Establishments().where('id', targetEstablishment.id).delete();
-        await Users().where('id', usualUser.id).delete();
+        await kysely
+          .deleteFrom('usersEstablishments')
+          .where('userId', '=', usualUser.id)
+          .execute();
+        await kysely
+          .deleteFrom('establishments')
+          .where('id', '=', targetEstablishment.id)
+          .execute();
+        await kysely
+          .deleteFrom('users')
+          .where('id', '=', usualUser.id)
+          .execute();
       }
     });
 
     it('rejects a switch when the request user differs from the session user', async () => {
-      const requestUser: UserApi = {
-        ...genUserApi(establishment.id),
-        role: UserRole.USUAL
-      };
-      const sessionUser: UserApi = {
-        ...genUserApi(establishment.id),
-        role: UserRole.USUAL
-      };
-      const targetEstablishment = genEstablishmentApi();
-      await Users().insert([requestUser, sessionUser].map(toUserDBO));
-      await Establishments().insert(
-        formatEstablishmentApi(targetEstablishment)
-      );
+      const [requestUser, sessionUser] = await Promise.all([
+        factories.user.create({
+          establishmentId: establishment.id,
+          role: UserRole.USUAL
+        }),
+        factories.user.create({
+          establishmentId: establishment.id,
+          role: UserRole.USUAL
+        })
+      ]);
+      const targetEstablishment = await factories.establishment.create();
       const now = new Date();
-      await UsersEstablishments().insert({
-        user_id: requestUser.id,
-        establishment_id: targetEstablishment.id,
-        establishment_siren: targetEstablishment.siren,
-        has_commitment: true,
-        created_at: now,
-        updated_at: now
-      });
+      await kysely
+        .insertInto('usersEstablishments')
+        .values({
+          userId: requestUser.id,
+          establishmentId: targetEstablishment.id,
+          establishmentSiren: targetEstablishment.siren,
+          hasCommitment: true,
+          createdAt: now,
+          updatedAt: now
+        })
+        .execute();
       mockGetSession.mockResolvedValue({
         user: { id: sessionUser.id },
         session: {
@@ -334,30 +360,38 @@ describe('Account controller', () => {
         expect(status).toBe(constants.HTTP_STATUS_FORBIDDEN);
         expect(mockUpdateSession).not.toHaveBeenCalled();
       } finally {
-        await UsersEstablishments().where({ user_id: requestUser.id }).delete();
-        await Establishments().where('id', targetEstablishment.id).delete();
-        await Users().whereIn('id', [requestUser.id, sessionUser.id]).delete();
+        await kysely
+          .deleteFrom('usersEstablishments')
+          .where('userId', '=', requestUser.id)
+          .execute();
+        await kysely
+          .deleteFrom('establishments')
+          .where('id', '=', targetEstablishment.id)
+          .execute();
+        await kysely
+          .deleteFrom('users')
+          .where('id', 'in', [requestUser.id, sessionUser.id])
+          .execute();
       }
     });
 
     it('updates the active establishment and returns no access token', async () => {
-      const targetEstablishment = genEstablishmentApi();
-      const usualUser: UserApi = {
-        ...genUserApi(establishment.id),
+      const targetEstablishment = await factories.establishment.create();
+      const usualUser = await factories.user.create({
+        establishmentId: establishment.id,
         role: UserRole.USUAL
-      };
-      await Establishments().insert(
-        formatEstablishmentApi(targetEstablishment)
-      );
-      await Users().insert(toUserDBO(usualUser));
-      await UsersEstablishments().insert({
-        user_id: usualUser.id,
-        establishment_id: targetEstablishment.id,
-        establishment_siren: targetEstablishment.siren,
-        has_commitment: true,
-        created_at: new Date(),
-        updated_at: new Date()
       });
+      await kysely
+        .insertInto('usersEstablishments')
+        .values({
+          userId: usualUser.id,
+          establishmentId: targetEstablishment.id,
+          establishmentSiren: targetEstablishment.siren,
+          hasCommitment: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .execute();
 
       mockGetSession.mockResolvedValue({
         user: { id: usualUser.id },
@@ -404,26 +438,35 @@ describe('Account controller', () => {
             returnHeaders: true
           })
         );
-        const persistedUser = await Users().where({ id: usualUser.id }).first();
-        expect(persistedUser?.establishment_id).toBe(targetEstablishment.id);
+        const persistedUser = await kysely
+          .selectFrom('users')
+          .selectAll('users')
+          .where('id', '=', usualUser.id)
+          .executeTakeFirst();
+        expect(persistedUser?.establishmentId).toBe(targetEstablishment.id);
       } finally {
         consultUsers.mockRestore();
-        await UsersEstablishments().where({ user_id: usualUser.id }).delete();
-        await Users().where('id', usualUser.id).delete();
-        await Establishments().where('id', targetEstablishment.id).delete();
+        await kysely
+          .deleteFrom('usersEstablishments')
+          .where('userId', '=', usualUser.id)
+          .execute();
+        await kysely
+          .deleteFrom('users')
+          .where('id', '=', usualUser.id)
+          .execute();
+        await kysely
+          .deleteFrom('establishments')
+          .where('id', '=', targetEstablishment.id)
+          .execute();
       }
     });
 
     it('allows an admin to switch to any establishment', async () => {
-      const adminUser: UserApi = {
-        ...genUserApi(establishment.id),
+      const adminUser = await factories.user.create({
+        establishmentId: establishment.id,
         role: UserRole.ADMIN
-      };
-      const targetEstablishment = genEstablishmentApi();
-      await Users().insert(toUserDBO(adminUser));
-      await Establishments().insert(
-        formatEstablishmentApi(targetEstablishment)
-      );
+      });
+      const targetEstablishment = await factories.establishment.create();
       mockGetSession.mockResolvedValue({
         user: { id: adminUser.id },
         session: {
@@ -455,8 +498,14 @@ describe('Account controller', () => {
         expect(body.effectiveGeoCodes).toBeUndefined();
         expect(mockUpdateSession).toHaveBeenCalledOnce();
       } finally {
-        await Establishments().where('id', targetEstablishment.id).delete();
-        await Users().where('id', adminUser.id).delete();
+        await kysely
+          .deleteFrom('establishments')
+          .where('id', '=', targetEstablishment.id)
+          .execute();
+        await kysely
+          .deleteFrom('users')
+          .where('id', '=', adminUser.id)
+          .execute();
       }
     });
   });

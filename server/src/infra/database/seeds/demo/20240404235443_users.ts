@@ -5,10 +5,14 @@ import { Knex } from 'knex';
 
 import config from '~/infra/config';
 import { SALT_LENGTH } from '~/models/UserApi';
-import { Establishments } from '~/repositories/establishmentRepository';
+import {
+  EstablishmentDBO,
+  establishmentsTable
+} from '~/repositories/establishmentRepository';
 import { toUserDBO, USERS_TABLE } from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
 
+import { seedBetterAuthIdentities } from '../seed-better-auth-identities';
 import {
   SirenSaintLo,
   SirenStrasbourg,
@@ -27,9 +31,15 @@ export async function seed(knex: Knex): Promise<void> {
   const password = config.auth.testPassword;
 
   const [strasbourg, saintLo, zlv] = await Promise.all([
-    Establishments(knex).where('siren', SirenStrasbourg).first(),
-    Establishments(knex).where('siren', SirenSaintLo).first(),
-    Establishments(knex).where('name', ZeroLogementVacantEstablishment).first()
+    knex<EstablishmentDBO>(establishmentsTable)
+      .where('siren', SirenStrasbourg)
+      .first(),
+    knex<EstablishmentDBO>(establishmentsTable)
+      .where('siren', SirenSaintLo)
+      .first(),
+    knex<EstablishmentDBO>(establishmentsTable)
+      .where('name', ZeroLogementVacantEstablishment)
+      .first()
   ]);
   if (!strasbourg || !saintLo || !zlv) {
     throw new Error('Establishments not found');
@@ -71,7 +81,9 @@ export async function seed(knex: Knex): Promise<void> {
     })
   ];
 
-  const establishments = await Establishments(knex).where({ available: true });
+  const establishments = await knex<EstablishmentDBO>(
+    establishmentsTable
+  ).where({ available: true });
   const randomUsers = establishments.flatMap((establishments) => {
     return factories.user.buildList(faker.number.int({ min: 1, max: 10 }), {
       establishmentId: establishments.id
@@ -79,15 +91,13 @@ export async function seed(knex: Knex): Promise<void> {
   });
 
   const hashedPassword = await bcrypt.hash(password, SALT_LENGTH);
-  const users = baseUsers
-    .concat(randomUsers)
-    .map(toUserDBO)
-    .map((user) => ({
-      ...user,
-      password: hashedPassword
-    }));
+  const users = baseUsers.concat(randomUsers).map((user) => ({
+    ...user,
+    password: hashedPassword
+  }));
   console.log(`Inserting ${users.length} users...\n`);
-  await knex.batchInsert(USERS_TABLE, users);
+  await knex.batchInsert(USERS_TABLE, users.map(toUserDBO));
+  await seedBetterAuthIdentities(knex, users);
 
   console.timeEnd('20240404235457_users');
 }

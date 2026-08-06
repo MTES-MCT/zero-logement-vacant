@@ -103,13 +103,29 @@ SELECT
     WHEN e.kind = 'SDED' THEN 'Service Déconcentré Départemental'
     WHEN e.kind = 'SDER' THEN 'Service Déconcentré Régional'
     WHEN e.kind = 'ASSO' THEN 'Association'
+    WHEN e.kind = 'SIVOM' THEN 'SIVOM'
+    WHEN e.kind = 'CTU' THEN 'Collectivité Territoriale Unique'
+    WHEN e.kind IS NULL OR e.kind = '' THEN 'Inconnu'
     ELSE e.kind
   END AS type_explicite,
-CASE 
+
+  -- Échelon de l'établissement.
+  --
+  -- Département, Région et les services déconcentrés régionaux étaient
+  -- auparavant agrégés dans 'Autre', avec les SIVOM, CTU, PETR et les
+  -- établissements sans type: un filtre sur l'échelon ne permettait donc pas de
+  -- les isoler. 'Autre' ne contient plus que ce qui n'est pas un échelon
+  -- administratif.
+CASE
     WHEN e.kind IN ('CA', 'CC', 'CU', 'ME') THEN 'Intercommunalité'
     WHEN e.kind = 'Commune' THEN 'Commune'
-    WHEN e.kind = 'SDED' THEN 'DDT/M'
-    WHEN e.kind IN ('DEP', 'PETR', 'REG', 'SDER', 'ASSO') THEN 'Autre'
+    WHEN e.kind = 'DEP' THEN 'Département'
+    WHEN e.kind = 'REG' THEN 'Région'
+    WHEN e.kind IN (
+        'SDED',
+        'Service déconcentré de l''État à compétence (inter) départementale'
+    ) THEN 'DDT/M'
+    WHEN e.kind = 'SDER' THEN 'DREAL/SDER'
     ELSE 'Autre'
   END AS type_regroupe
   

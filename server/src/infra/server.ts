@@ -123,7 +123,8 @@ export function createServer(): Server {
       credentials: true,
       // Keep allowedHeaders unset so cors reflects the browser's requested
       // headers, including Sentry's sentry-trace and baggage propagation.
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      exposedHeaders: ['Retry-After']
     })
   );
 

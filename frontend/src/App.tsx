@@ -10,7 +10,6 @@ import {
 import { AuthProvider } from '~/contexts/AuthContext';
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
-import FeatureFlagLayout from '~/layouts/FeatureFlagLayout';
 import GuestLayout from '~/layouts/GuestLayout';
 import sentry from '~/utils/sentry';
 import NotFoundView from '~/views/NotFoundView';
@@ -34,7 +33,6 @@ const UsersView = lazy(() => import('~/views/Account/Profile/UsersView'));
 const ResetPasswordView = lazy(
   () => import('~/views/Account/ResetPasswordView')
 );
-const AnalysisView = lazy(() => import('~/views/Analysis/AnalysisView'));
 const AnalysisViewNext = lazy(
   () => import('~/views/Analysis/AnalysisViewNext')
 );
@@ -76,27 +74,15 @@ const router = sentry.createBrowserRouter(
         />
         <Route
           path="/analyses/parc-vacant"
-          element={
-            <FeatureFlagLayout
-              flag="new-analysis-page"
-              then={<AnalysisViewNext id="38-parcs-de-logements" />}
-              else={<AnalysisView id="13-analyses" />}
-            />
-          }
+          element={<AnalysisViewNext id="38-parcs-de-logements" />}
         />
         <Route
           path="/analyses/lutte"
           element={
-            <FeatureFlagLayout
-              flag="new-analysis-page"
-              then={
-                <AnalysisViewNext
-                  id="39-analyse-de-la-lutte-contre-la-vacance-2026"
-                  title="Analyse de la lutte contre la vacance"
-                  description="Ces statistiques portent sur les mises à jour effectuées sur ZLV. Elles évoluent donc en fonction de vos actions de lutte contre la vacance."
-                />
-              }
-              else={<AnalysisView id="15-analyses-activites" />}
+            <AnalysisViewNext
+              id="39-analyse-de-la-lutte-contre-la-vacance-2026"
+              title="Analyse de la lutte contre la vacance"
+              description="Ces statistiques portent sur les mises à jour effectuées sur ZLV. Elles évoluent donc en fonction de vos actions de lutte contre la vacance."
             />
           }
         />

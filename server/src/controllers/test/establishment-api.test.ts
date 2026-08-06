@@ -11,15 +11,11 @@ import {
 import { GEO_CODE_REGEXP } from '@zerologementvacant/schemas';
 import request from 'supertest';
 
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
 import type { UserApi } from '~/models/UserApi';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import { genEstablishmentApi, genUserApi } from '~/test/testFixtures';
+import { factories } from '~/test/factories';
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Establishment API', () => {
@@ -32,12 +28,10 @@ describe('Establishment API', () => {
   describe('GET /establishments', () => {
     const testRoute = '/establishments';
 
-    const establishments: EstablishmentApi[] = Array.from({ length: 10 }).map(
-      () => genEstablishmentApi()
-    );
+    let establishments: EstablishmentApi[];
 
     beforeAll(async () => {
-      await Establishments().insert(establishments.map(formatEstablishmentApi));
+      establishments = await factories.establishment.createList(10);
     });
 
     test.prop<EstablishmentFiltersDTO>({
@@ -47,6 +41,14 @@ describe('Establishment API', () => {
       available: fc.option(fc.boolean(), { nil: undefined }),
       kind: fc.option(
         fc.array(fc.constantFrom(...ESTABLISHMENT_KIND_VALUES), {
+          minLength: 1
+        }),
+        {
+          nil: undefined
+        }
+      ),
+      kindAdmin: fc.option(
+        fc.array(fc.stringMatching(/^[A-Z][A-Z-]{0,49}$/), {
           minLength: 1
         }),
         {
@@ -78,6 +80,7 @@ describe('Establishment API', () => {
           id: query.id?.join(','),
           available: query.available,
           kind: query.kind?.join(','),
+          kindAdmin: query.kindAdmin?.join(','),
           name: query.name,
           geoCodes: query.geoCodes?.join(','),
           siren: query.siren?.join(','),
@@ -109,6 +112,57 @@ describe('Establishment API', () => {
       expect(body).toSatisfyAll<EstablishmentApi>((establishment) => {
         return establishment.available;
       });
+    });
+
+    it('should filter establishments by administrative kind', async () => {
+      const [metropolis, otherIntercommunality] = await Promise.all([
+        factories.establishment.create({
+          geoCodes: ['06004', '06012', '06088']
+        }),
+        factories.establishment.create({
+          geoCodes: ['06004', '06012'],
+          kind: 'METRO'
+        })
+      ]);
+      await Promise.all([
+        kysely
+          .updateTable('establishments')
+          .set({ kind: 'ME', kindAdmin: 'METRO' })
+          .where('id', '=', metropolis.id)
+          .execute(),
+        kysely
+          .updateTable('establishments')
+          .set({ kindAdmin: 'CA' })
+          .where('id', '=', otherIntercommunality.id)
+          .execute()
+      ]);
+
+      const { body, status } = await request(url)
+        .get(testRoute)
+        .query({ kindAdmin: 'METRO' });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const ids = body.map(
+        (establishment: EstablishmentApi) => establishment.id
+      );
+      expect(ids).toContain(metropolis.id);
+      expect(ids).not.toContain(otherIntercommunality.id);
+    });
+
+    it('should not mix legacy and administrative kinds', async () => {
+      const legacyIntercommunality = await factories.establishment.create({
+        geoCodes: ['06004', '06012'],
+        kind: 'CA'
+      });
+
+      const { body, status } = await request(url)
+        .get(testRoute)
+        .query({ kindAdmin: 'CA' });
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(
+        body.map((establishment: EstablishmentApi) => establishment.id)
+      ).not.toContain(legacyIntercommunality.id);
     });
 
     it('should search establishments by query', async () => {
@@ -144,12 +198,13 @@ describe('Establishment API', () => {
     });
 
     it('should list establishments by related establishment', async () => {
-      const establishments: ReadonlyArray<EstablishmentApi> = [
-        genEstablishmentApi('75001', '75002'),
-        genEstablishmentApi('75002', '75003'),
-        genEstablishmentApi('69001', '69002')
-      ];
-      await Establishments().insert(establishments.map(formatEstablishmentApi));
+      const establishments: ReadonlyArray<EstablishmentApi> = await Promise.all(
+        [
+          factories.establishment.create({ geoCodes: ['75001', '75002'] }),
+          factories.establishment.create({ geoCodes: ['75002', '75003'] }),
+          factories.establishment.create({ geoCodes: ['69001', '69002'] })
+        ]
+      );
 
       const [relatedEstablishment] = establishments;
 
@@ -167,15 +222,15 @@ describe('Establishment API', () => {
     });
 
     describe('Include users', () => {
-      const establishment = genEstablishmentApi();
-      const user: UserApi = {
-        ...genUserApi(establishment.id),
-        role: UserRole.USUAL
-      };
+      let establishment: EstablishmentApi;
+      let user: UserApi;
 
       beforeAll(async () => {
-        await Establishments().insert(formatEstablishmentApi(establishment));
-        await Users().insert(toUserDBO(user));
+        establishment = await factories.establishment.create();
+        user = await factories.user.create({
+          establishmentId: establishment.id,
+          role: UserRole.USUAL
+        });
       });
 
       it('should include users if the user is authenticated', async () => {
@@ -212,8 +267,7 @@ describe('Establishment API', () => {
     });
 
     it('should return the establishment', async () => {
-      const establishment = genEstablishmentApi();
-      await Establishments().insert(formatEstablishmentApi(establishment));
+      const establishment = await factories.establishment.create();
 
       const { body, status } = await request(url).get(
         testRoute(establishment.id)

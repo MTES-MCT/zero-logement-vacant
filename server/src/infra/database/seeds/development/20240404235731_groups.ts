@@ -3,31 +3,37 @@ import async from 'async';
 import { Knex } from 'knex';
 
 import {
-  Establishments,
+  EstablishmentDBO,
+  establishmentsTable,
   parseEstablishmentApi
 } from '~/repositories/establishmentRepository';
 import {
   formatGroupApi,
+  GroupDBO,
   GroupHousingDBO,
-  Groups,
   GROUPS_HOUSING_TABLE,
-  GROUPS_TABLE,
-  GroupsHousing
+  GROUPS_TABLE
 } from '~/repositories/groupRepository';
-import { Housing } from '~/repositories/housingRepository';
-import { fromUserDBO, Users } from '~/repositories/userRepository';
+import { HousingDBO, housingTable } from '~/repositories/housingRepository';
+import {
+  fromUserDBO,
+  USERS_TABLE,
+  UserDBO
+} from '~/repositories/userRepository';
 import { genGroupApi } from '~/test/testFixtures';
 
 export async function seed(knex: Knex): Promise<void> {
   console.time('20240404235731_groups');
-  await GroupsHousing(knex).delete();
-  await Groups(knex).delete();
+  await knex<GroupHousingDBO>(GROUPS_HOUSING_TABLE).delete();
+  await knex<GroupDBO>(GROUPS_TABLE).delete();
 
-  const establishments = await Establishments(knex).where({ available: true });
+  const establishments = await knex<EstablishmentDBO>(
+    establishmentsTable
+  ).where({ available: true });
   await async.forEachSeries(establishments, async (establishment) => {
     const [users, housings] = await Promise.all([
-      Users(knex).where({ establishment_id: establishment.id }),
-      Housing(knex)
+      knex<UserDBO>(USERS_TABLE).where({ establishment_id: establishment.id }),
+      knex<HousingDBO>(housingTable)
         .whereIn('geo_code', establishment.localities_geo_code)
         .limit(2000)
     ]);

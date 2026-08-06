@@ -217,6 +217,41 @@ describe('CachedMetabaseService.getCardValue', () => {
     expect(inner.getCardValue).toHaveBeenCalledTimes(1);
   });
 
+  it('coalesces concurrent identical card queries into one underlying fetch', async () => {
+    const pending = Promise.withResolvers<CardValue>();
+    const inner = genFakeService({
+      getCardValue: vi.fn(() => pending.promise)
+    });
+    const cached = createCachedMetabaseService(inner, {
+      ttlMs: 60_000,
+      max: 100
+    });
+    const parameters = [
+      { id: 'p1', slug: 'id', type: 'category', value: 'est-1' }
+    ];
+
+    const query = () =>
+      cached.getCardValue(
+        13,
+        100,
+        200,
+        parameters,
+        null,
+        null,
+        'flat-number',
+        null,
+        'number',
+        0,
+        null
+      );
+    const queries = [query(), query(), query()];
+
+    pending.resolve(42 as CardValue);
+    await expect(Promise.all(queries)).resolves.toEqual([42, 42, 42]);
+
+    expect(inner.getCardValue).toHaveBeenCalledTimes(1);
+  });
+
   it('does not share cache entries across establishments', async () => {
     const inner = genFakeService();
     const cached = createCachedMetabaseService(inner, {

@@ -1,5 +1,6 @@
 import db from '~/infra/database';
-import { withinTransaction } from '~/infra/database/transaction';
+import { runInBatches } from '~/infra/database/batch';
+import { withinKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { CampaignApi } from '~/models/CampaignApi';
 import { HousingApi } from '~/models/HousingApi';
 
@@ -11,18 +12,26 @@ const insertHousingList = async (
   campaignId: string,
   housingList: HousingApi[]
 ): Promise<void> => {
-  await withinTransaction(async (transaction) => {
-    await CampaignsHousing(transaction)
-      .insert(
-        housingList.map((housing) => ({
-          campaign_id: campaignId,
-          housing_id: housing.id,
-          housing_geo_code: housing.geoCode
-        }))
-      )
-      .onConflict(['campaign_id', 'housing_id', 'housing_geo_code'])
-      .ignore()
-      .returning('housing_id');
+  if (housingList.length === 0) {
+    return;
+  }
+
+  await withinKyselyTransaction(async (trx) => {
+    await runInBatches(housingList, async (batch) => {
+      await trx
+        .insertInto('campaignsHousing')
+        .values(
+          batch.map((housing) => ({
+            campaignId,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .onConflict((oc) =>
+          oc.columns(['campaignId', 'housingId', 'housingGeoCode']).doNothing()
+        )
+        .execute();
+    });
   });
 };
 
@@ -34,14 +43,23 @@ async function removeMany(
     return;
   }
 
-  await withinTransaction(async (transaction) => {
-    await CampaignsHousing(transaction)
-      .where({ campaign_id: campaign.id })
-      .whereIn(
-        ['housing_geo_code', 'housing_id'],
-        housings.map((housing) => [housing.geoCode, housing.id])
-      )
-      .delete();
+  await withinKyselyTransaction(async (trx) => {
+    await runInBatches(housings, async (batch) => {
+      await trx
+        .deleteFrom('campaignsHousing')
+        .where('campaignId', '=', campaign.id)
+        .where((eb) =>
+          eb.or(
+            batch.map((housing) =>
+              eb.and([
+                eb('housingGeoCode', '=', housing.geoCode),
+                eb('housingId', '=', housing.id)
+              ])
+            )
+          )
+        )
+        .execute();
+    });
   });
 }
 

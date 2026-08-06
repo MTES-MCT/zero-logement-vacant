@@ -3,24 +3,16 @@ import { constants } from 'http2';
 import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import request from 'supertest';
 
+import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
+import { EstablishmentApi } from '~/models/EstablishmentApi';
 import { LocalityApi } from '~/models/LocalityApi';
-import { EstablishmentLocalities } from '~/repositories/establishmentLocalityRepository';
-import {
-  Establishments,
-  formatEstablishmentApi
-} from '~/repositories/establishmentRepository';
+import { UserApi } from '~/models/UserApi';
 import localityRepository, {
-  formatLocalityApi,
-  Localities,
-  LocalityDBO
+  toLocalityInsert
 } from '~/repositories/localityRepository';
-import { toUserDBO, Users } from '~/repositories/userRepository';
-import {
-  genEstablishmentApi,
-  genLocalityApi,
-  genUserApi
-} from '~/test/testFixtures';
+import { factories } from '~/test/factories';
+import { genLocalityApi } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Locality API', () => {
@@ -31,26 +23,36 @@ describe('Locality API', () => {
   });
 
   const locality = genLocalityApi();
-  const establishment = genEstablishmentApi(locality.geoCode);
-  const user = genUserApi(establishment.id);
   const anotherLocality = genLocalityApi();
-  const anotherEstablishment = genEstablishmentApi(anotherLocality.geoCode);
+  let establishment: EstablishmentApi;
+  let anotherEstablishment: EstablishmentApi;
+  let user: UserApi;
 
   beforeAll(async () => {
-    await Localities().insert(
-      [locality, anotherLocality].map(formatLocalityApi)
-    );
-    await Establishments().insert(
-      [establishment, anotherEstablishment].map(formatEstablishmentApi)
-    );
-    await EstablishmentLocalities().insert([
-      { establishment_id: establishment.id, locality_id: locality.id },
-      {
-        establishment_id: anotherEstablishment.id,
-        locality_id: anotherLocality.id
-      }
-    ]);
-    await Users().insert(toUserDBO(user));
+    await kysely
+      .insertInto('localities')
+      .values([locality, anotherLocality].map(toLocalityInsert))
+      .execute();
+
+    establishment = await factories.establishment.create({
+      geoCodes: [locality.geoCode]
+    });
+    anotherEstablishment = await factories.establishment.create({
+      geoCodes: [anotherLocality.geoCode]
+    });
+
+    await kysely
+      .insertInto('establishmentsLocalities')
+      .values([
+        { establishmentId: establishment.id, localityId: locality.id },
+        {
+          establishmentId: anotherEstablishment.id,
+          localityId: anotherLocality.id
+        }
+      ])
+      .execute();
+
+    user = await factories.user.create({ establishmentId: establishment.id });
   });
 
   describe('GET /localities/{geoCode}', () => {
@@ -196,13 +198,15 @@ describe('Locality API', () => {
         taxRate: 10
       });
 
-      const actual = await Localities()
-        .where({ geo_code: locality.geoCode })
-        .first();
-      expect(actual).toMatchObject<Partial<LocalityDBO>>({
-        geo_code: locality.geoCode,
-        tax_kind: 'THLV',
-        tax_rate: 10
+      const actual = await kysely
+        .selectFrom('localities')
+        .selectAll('localities')
+        .where('geoCode', '=', locality.geoCode)
+        .executeTakeFirst();
+      expect(actual).toMatchObject({
+        geoCode: locality.geoCode,
+        taxKind: 'THLV',
+        taxRate: 10
       });
     });
 
@@ -224,12 +228,14 @@ describe('Locality API', () => {
         taxKind: 'None'
       });
 
-      const actual = await Localities()
-        .where({ geo_code: locality.geoCode })
-        .first();
-      expect(actual).toMatchObject<Partial<LocalityDBO>>({
-        geo_code: locality.geoCode,
-        tax_kind: 'None'
+      const actual = await kysely
+        .selectFrom('localities')
+        .selectAll('localities')
+        .where('geoCode', '=', locality.geoCode)
+        .executeTakeFirst();
+      expect(actual).toMatchObject({
+        geoCode: locality.geoCode,
+        taxKind: 'None'
       });
     });
   });

@@ -1,9 +1,13 @@
 import type { CardType, TableColumnMeta } from '@zerologementvacant/models';
 import axios from 'axios';
 
+import BadGatewayError from '~/errors/badGatewayError';
+import GatewayTimeoutError from '~/errors/gatewayTimeoutError';
 import config from '~/infra/config';
+import { createLogger } from '~/infra/logger';
 
 import { createCachedMetabaseService } from './metabase-cache';
+import { createConcurrencyLimitedMetabaseService } from './metabase-concurrency';
 import {
   findDashcardRef,
   normalizeBaseType,
@@ -73,6 +77,13 @@ interface MetabaseAPIOptions {
   apiToken: string;
 }
 
+interface MetabaseRequestContext {
+  method: 'GET' | 'POST';
+  path: string;
+}
+
+const logger = createLogger('metabase-api');
+
 class MetabaseAPI implements MetabaseService {
   private readonly http;
 
@@ -84,9 +95,34 @@ class MetabaseAPI implements MetabaseService {
     });
   }
 
+  private async request<T>(
+    context: MetabaseRequestContext,
+    request: () => Promise<T>
+  ): Promise<T> {
+    try {
+      return await request();
+    } catch (error) {
+      if (!axios.isAxiosError(error)) {
+        throw error;
+      }
+      logger.error('Metabase request failed', {
+        upstream: 'metabase',
+        code: error.code ?? null,
+        status: error.response?.status ?? null,
+        method: context.method,
+        path: context.path
+      });
+      if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+        throw new GatewayTimeoutError('Metabase query timed out');
+      }
+      throw new BadGatewayError('Metabase request failed');
+    }
+  }
+
   async fetchDashboardRaw(id: number): Promise<MetabaseDashboardRaw> {
-    const { data } = await this.http.get<MetabaseDashboardRaw>(
-      `/api/dashboard/${id}`
+    const path = `/api/dashboard/${id}`;
+    const { data } = await this.request({ method: 'GET', path }, () =>
+      this.http.get<MetabaseDashboardRaw>(path)
     );
     return data;
   }
@@ -118,9 +154,9 @@ class MetabaseAPI implements MetabaseService {
     decimals: number,
     tableColumns: ReadonlyArray<TableColumnRef> | null
   ): Promise<CardValue> {
-    const { data } = await this.http.post<MetabaseQueryResult>(
-      `/api/dashboard/${dashboardId}/dashcard/${dashcardId}/card/${cardId}/query`,
-      { parameters }
+    const path = `/api/dashboard/${dashboardId}/dashcard/${dashcardId}/card/${cardId}/query`;
+    const { data } = await this.request({ method: 'POST', path }, () =>
+      this.http.post<MetabaseQueryResult>(path, { parameters })
     );
 
     if (cardType === 'pie-chart') {
@@ -219,8 +255,20 @@ const baseMetabaseAPI = createMetabaseAPI({
   domain: config.metabase.domain,
   apiToken: config.metabase.apiToken
 });
+const concurrencyLimitedMetabaseAPI = createConcurrencyLimitedMetabaseService(
+  baseMetabaseAPI,
+  {
+    maxConcurrency: config.metabase.maxConcurrentCardQueries,
+    maxQueuedQueries: config.metabase.maxQueuedCardQueries,
+    maxQueueWaitMs: config.metabase.maxQueueWaitMs,
+    retryAfterSeconds: config.metabase.retryAfterSeconds
+  }
+);
 
-export const metabaseAPI = createCachedMetabaseService(baseMetabaseAPI, {
-  ttlMs: config.metabase.cacheTtlMs,
-  max: config.metabase.cacheMaxEntries
-});
+export const metabaseAPI = createCachedMetabaseService(
+  concurrencyLimitedMetabaseAPI,
+  {
+    ttlMs: config.metabase.cacheTtlMs,
+    max: config.metabase.cacheMaxEntries
+  }
+);

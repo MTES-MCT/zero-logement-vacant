@@ -125,7 +125,11 @@ function CampaignRecipients(props: Readonly<CampaignRecipientsProps>) {
           styles: multilineStyles
         },
         cell: ({ cell, row }) =>
-          !row.original.owner ? null : (
+          // A do-not-contact owner is not a recipient: the housing then has no
+          // primary recipient until the user designates another owner.
+          !row.original.owner || row.original.owner.doNotContact ? (
+            'Pas de destinataire principal'
+          ) : (
             <AppLink
               isSimple
               size="sm"

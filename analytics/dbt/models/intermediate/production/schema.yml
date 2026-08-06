@@ -14,7 +14,21 @@ models:
       - name: type
         description: "Type d'événement (housing:status-updated, housing:occupancy-updated, etc.)"
       - name: user_source
-        description: "Source de l'événement (zlv=automatique, user=utilisateur)"
+        description: |
+          Source de l'événement (zlv=automatique, user=utilisateur). Déduit de
+          l'email de l'auteur, y compris pour les utilisateurs supprimés.
+      - name: establishment_id
+        description: |
+          Établissement de l'utilisateur ayant créé l'événement. Résolu depuis
+          stg_production_users (utilisateurs supprimés inclus), ce qui rend
+          l'événement attribuable même après suppression du compte. NULL
+          uniquement lorsque created_by est absent de la table users (~2% des
+          événements utilisateurs).
+      - name: created_by_deleted_user
+        description: |
+          TRUE si l'auteur de l'événement a depuis été supprimé. L'événement
+          reste attribué à son établissement, mais l'utilisateur n'apparaît plus
+          dans les effectifs (user_number).
       - name: version
         description: "Version du format (old=texte, new=JSON)"
         tests:
@@ -118,3 +132,51 @@ models:
 
   - name: int_production_notes_as_events
     description: "Notes transformées en pseudo-événements pour traitement unifié"
+
+  - name: int_production_event_authors
+    description: |
+      Auteurs d'événements: tous les utilisateurs, supprimés inclus. À utiliser
+      pour rattacher un événement à un établissement. `int_production_users`
+      filtre les comptes supprimés et convient aux effectifs, pas à
+      l'attribution.
+    columns:
+      - name: id
+        description: "Identifiant de l'utilisateur"
+        tests:
+          - unique
+          - not_null
+      - name: establishment_id
+        description: "Établissement de rattachement de l'utilisateur"
+      - name: user_type
+        description: "zlv pour un compte @beta.gouv.fr, user sinon"
+        tests:
+          - accepted_values:
+              values: ['zlv', 'user']
+      - name: deleted_at
+        description: "Date de suppression du compte, NULL si actif"
+
+  - name: int_production_establishments_echelons
+    description: |
+      Échelons inscrits par établissement: combien d'établissements des échelons
+      inférieurs couvrant son périmètre comptent au moins un utilisateur.
+      "Inscrit" = `user_number > 0`, à distinguer de "ouvert" (`available` ET au
+      moins un utilisateur). Les compteurs valent NULL — et non 0 — lorsque
+      l'échelon n'est pas un sous-échelon de l'établissement mesuré.
+    columns:
+      - name: establishment_id
+        description: "Identifiant de l'établissement"
+        tests:
+          - unique
+          - not_null
+      - name: echelon_rank
+        description: "1 commune, 2 intercommunalité, 3 département, 4 région. NULL si le kind n'est pas un échelon administratif."
+      - name: total_communes_in_territory
+        description: "Nombre de communes du périmètre"
+      - name: communes_inscrites
+        description: "Communes du périmètre ayant au moins un utilisateur inscrit"
+      - name: intercommunalites_inscrites
+        description: "Intercommunalités du périmètre ayant au moins un utilisateur inscrit"
+      - name: departements_inscrits
+        description: "Départements du périmètre ayant au moins un utilisateur inscrit"
+      - name: sded_inscrits
+        description: "Services déconcentrés départementaux du périmètre ayant au moins un utilisateur inscrit"

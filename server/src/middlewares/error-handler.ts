@@ -11,7 +11,12 @@ import { createLogger } from '~/infra/logger';
 const logger = createLogger('error-handler');
 
 function stackFrames(error: Error): string | undefined {
-  return error.stack?.split('\n').slice(1).join('\n') || undefined;
+  return (
+    error.stack
+      ?.split('\n')
+      .filter((line) => /^\s+at\s/.test(line))
+      .join('\n') || undefined
+  );
 }
 
 function diagnosticId(error: Error): string {

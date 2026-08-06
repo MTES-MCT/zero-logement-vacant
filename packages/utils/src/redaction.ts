@@ -1,17 +1,77 @@
 export const FILTERED_VALUE = '[Filtered]';
 
-const RESET_LINK_TOKEN_PATTERN = /(\/reset-links\/)[^/?#]+/g;
-const SENSITIVE_KEY_PATTERN =
-  /password|token|authorization|cookie|reset.?link|(^|_)key($|_)/i;
-
-export function redactSensitiveUrl(value: string): string {
-  return value
-    .replace(RESET_LINK_TOKEN_PATTERN, `$1${FILTERED_VALUE}`)
-    .replace(/#.*$/, '');
+export interface RedactionOptions {
+  transformError?: (error: Error) => unknown;
 }
 
-export function redactSensitiveData<T>(value: T): T {
+const RESET_LINK_TOKEN_PATTERN = /(\/reset-links\/)[^/?#]+/g;
+const SENSITIVE_FRAGMENT_URL_PATTERN =
+  /\/(?:reset-links\/[^/?#]+|mot-de-passe\/nouveau)(?:[/?#]|$)/;
+const SENSITIVE_KEY_PATTERN =
+  /password|token|authorization|cookie|reset.?link|(^|[_-])secret($|[_-])|(?:api|session)[-_]?key|secret(?:[-_]?access)?[-_]?key|(^|[_-])key($|[_-])/i;
+
+export function redactSensitiveUrl(value: string): string {
+  const redacted = value.replace(
+    RESET_LINK_TOKEN_PATTERN,
+    `$1${FILTERED_VALUE}`
+  );
+  return SENSITIVE_FRAGMENT_URL_PATTERN.test(value)
+    ? redacted.replace(/#.*$/, '')
+    : redacted;
+}
+
+export function redactSensitiveData<T>(
+  value: T,
+  options: RedactionOptions = {}
+): T {
   const seen = new WeakMap<object, unknown>();
+  const sensitiveObjects = new WeakSet<object>();
+  const scanned = new WeakSet<object>();
+
+  function markSensitiveSubtree(current: unknown): void {
+    if (current === null || typeof current !== 'object') {
+      return;
+    }
+    if (sensitiveObjects.has(current)) {
+      return;
+    }
+    sensitiveObjects.add(current);
+    if (Array.isArray(current)) {
+      current.forEach(markSensitiveSubtree);
+      return;
+    }
+    const prototype = Object.getPrototypeOf(current);
+    if (prototype === Object.prototype || prototype === null) {
+      Object.values(current).forEach(markSensitiveSubtree);
+    }
+  }
+
+  function findSensitiveObjects(current: unknown): void {
+    if (current === null || typeof current !== 'object') {
+      return;
+    }
+    if (scanned.has(current)) {
+      return;
+    }
+    scanned.add(current);
+    if (Array.isArray(current)) {
+      current.forEach(findSensitiveObjects);
+      return;
+    }
+    const prototype = Object.getPrototypeOf(current);
+    if (prototype !== Object.prototype && prototype !== null) {
+      return;
+    }
+    Object.entries(current).forEach(([entryKey, entryValue]) => {
+      if (SENSITIVE_KEY_PATTERN.test(entryKey)) {
+        markSensitiveSubtree(entryValue);
+      } else {
+        findSensitiveObjects(entryValue);
+      }
+    });
+  }
+
+  findSensitiveObjects(value);
 
   function redact(current: unknown, key?: string): unknown {
     if (key && SENSITIVE_KEY_PATTERN.test(key)) {
@@ -22,6 +82,12 @@ export function redactSensitiveData<T>(value: T): T {
     }
     if (current === null || typeof current !== 'object') {
       return current;
+    }
+    if (sensitiveObjects.has(current)) {
+      return FILTERED_VALUE;
+    }
+    if (current instanceof Error) {
+      return options.transformError?.(current) ?? current;
     }
     if (current instanceof Date) {
       return current;
@@ -45,7 +111,12 @@ export function redactSensitiveData<T>(value: T): T {
     const clone: Record<string, unknown> = {};
     seen.set(current, clone);
     Object.entries(current).forEach(([entryKey, entryValue]) => {
-      clone[entryKey] = redact(entryValue, entryKey);
+      Object.defineProperty(clone, entryKey, {
+        configurable: true,
+        enumerable: true,
+        value: redact(entryValue, entryKey),
+        writable: true
+      });
     });
     return clone;
   }

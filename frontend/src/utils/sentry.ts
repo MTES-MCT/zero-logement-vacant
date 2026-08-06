@@ -21,6 +21,14 @@ export function sanitizeBreadcrumb<T extends Sentry.Breadcrumb>(
   return redactSensitiveData(breadcrumb);
 }
 
+function describeException(
+  exception: unknown
+): Readonly<Record<string, string>> {
+  return exception instanceof Error
+    ? { name: exception.name }
+    : { type: typeof exception };
+}
+
 function init(): void {
   if (config.sentry.enabled) {
     console.log('Initializing Sentry with:', {
@@ -51,7 +59,7 @@ function init(): void {
         // Replay for debugging
         Sentry.replayIntegration({
           maskAllInputs: true,
-          maskAllText: false,
+          maskAllText: true,
           blockAllMedia: false,
           networkDetailDenyUrls: [
             /\/reset-links(?:\/|$)/,
@@ -112,12 +120,15 @@ function init(): void {
 
     // Global error handlers for uncaught errors
     window.addEventListener('error', (event) => {
-      console.error('Global error:', event.error);
+      console.error('Global error:', describeException(event.error));
       Sentry.captureException(event.error);
     });
 
     window.addEventListener('unhandledrejection', (event) => {
-      console.error('Unhandled promise rejection:', event.reason);
+      console.error(
+        'Unhandled promise rejection:',
+        describeException(event.reason)
+      );
       Sentry.captureException(event.reason);
     });
 

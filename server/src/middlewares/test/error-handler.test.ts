@@ -62,7 +62,7 @@ describe('Error handler', () => {
     app.get(
       unexpectedErrorRoute,
       async (request: Request, response: Response, next: NextFunction) => {
-        const error = new Error(sensitiveValue);
+        const error = new Error(`Safe diagnostic summary\n${sensitiveValue}`);
         next(error);
       }
     );

@@ -128,13 +128,23 @@ describe('apply()', () => {
 
     const summary = await apply(planFile);
 
-    expect(summary).toEqual({ updated: 2, eventsDeleted: 0, eventsCreated: 0 });
+    expect(summary).toEqual({
+      updated: 2,
+      eventsDeleted: 0,
+      eventsCreated: 0,
+      skipped: 0
+    });
   });
 
   it('does nothing for an empty plan file', async () => {
     const planFile = writePlan([]);
     const summary = await apply(planFile);
-    expect(summary).toEqual({ updated: 0, eventsDeleted: 0, eventsCreated: 0 });
+    expect(summary).toEqual({
+      updated: 0,
+      eventsDeleted: 0,
+      eventsCreated: 0,
+      skipped: 0
+    });
   });
 
   it('inserts createEvents into events and housing_events tables', async () => {
@@ -305,5 +315,123 @@ describe('apply()', () => {
     // Re-applying the same plan inserts nothing (onConflict ignore).
     const second = await apply(planFile);
     expect(second.eventsCreated).toBe(0);
+  });
+
+  it('skips a row whose expect precondition no longer holds', async () => {
+    // The plan assumed WAITING, but the housing has since moved to FIRST_CONTACT.
+    const housing = await factories.housing.create({
+      status: HousingStatus.FIRST_CONTACT,
+      subStatus: null
+    });
+    const event = genEventApi({
+      creator,
+      type: 'housing:status-updated',
+      nextOld: { status: 'never-contacted' },
+      nextNew: { status: 'waiting' }
+    });
+    await Events().insert(formatEventApi(event));
+    await HousingEvents().insert(
+      formatHousingEventApi({
+        ...event,
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
+      })
+    );
+
+    const planFile = writePlan([
+      {
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode,
+        expect: { status: HousingStatus.WAITING, subStatus: null },
+        update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null },
+        deleteEventIds: [event.id]
+      }
+    ]);
+
+    const summary = await apply(planFile);
+
+    expect(summary).toEqual({
+      updated: 0,
+      eventsDeleted: 0,
+      eventsCreated: 0,
+      skipped: 1
+    });
+    // Neither the status nor the event was touched.
+    const [row] = await Housing().where({ id: housing.id });
+    expect(row.status).toBe(HousingStatus.FIRST_CONTACT);
+    expect(await Events().where('id', event.id)).toHaveLength(1);
+  });
+
+  it('applies a row whose expect precondition still holds', async () => {
+    const housing = await factories.housing.create({
+      status: HousingStatus.WAITING,
+      subStatus: null
+    });
+    const event = genEventApi({
+      creator,
+      type: 'housing:status-updated',
+      nextOld: { status: 'never-contacted' },
+      nextNew: { status: 'waiting' }
+    });
+    await Events().insert(formatEventApi(event));
+    await HousingEvents().insert(
+      formatHousingEventApi({
+        ...event,
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
+      })
+    );
+
+    const planFile = writePlan([
+      {
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode,
+        expect: { status: HousingStatus.WAITING, subStatus: null },
+        update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null },
+        deleteEventIds: [event.id]
+      }
+    ]);
+
+    const summary = await apply(planFile);
+
+    expect(summary).toEqual({
+      updated: 1,
+      eventsDeleted: 1,
+      eventsCreated: 0,
+      skipped: 0
+    });
+    const [row] = await Housing().where({ id: housing.id });
+    expect(row.status).toBe(HousingStatus.NEVER_CONTACTED);
+    expect(await Events().where('id', event.id)).toHaveLength(0);
+  });
+
+  it('skips a row via a custom revalidate check even when expect still matches', async () => {
+    const housing = await factories.housing.create({
+      status: HousingStatus.WAITING,
+      subStatus: null
+    });
+
+    const planFile = writePlan([
+      {
+        housingId: housing.id,
+        housingGeoCode: housing.geoCode,
+        expect: { status: HousingStatus.WAITING, subStatus: null },
+        update: { status: HousingStatus.NEVER_CONTACTED, subStatus: null }
+      }
+    ]);
+
+    const summary = await apply(planFile, {
+      revalidate: async (rows) =>
+        new Set(rows.map((row) => `${row.housingGeoCode}:${row.housingId}`))
+    });
+
+    expect(summary).toEqual({
+      updated: 0,
+      eventsDeleted: 0,
+      eventsCreated: 0,
+      skipped: 1
+    });
+    const [row] = await Housing().where({ id: housing.id });
+    expect(row.status).toBe(HousingStatus.WAITING);
   });
 });

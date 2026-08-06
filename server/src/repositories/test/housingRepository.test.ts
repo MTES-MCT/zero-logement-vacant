@@ -2931,6 +2931,89 @@ describe('Housing repository', () => {
         subStatus: null
       });
     });
+
+    it('should return the ids of the rows actually updated', async () => {
+      const housing = await factories.housing.create({
+        status: HousingStatus.FIRST_CONTACT,
+        subStatus: 'N’habite pas à l’adresse indiquée'
+      });
+
+      const actual = await housingRepository.updateMany(
+        [{ geoCode: housing.geoCode, id: housing.id }],
+        { status: HousingStatus.NEVER_CONTACTED, subStatus: null }
+      );
+
+      expect(actual).toStrictEqual([
+        { geoCode: housing.geoCode, id: housing.id }
+      ]);
+    });
+
+    describe('onlyIfStatus', () => {
+      it('updates only the rows whose current status matches', async () => {
+        const matching = await factories.housing.create({
+          status: HousingStatus.NEVER_CONTACTED,
+          subStatus: null
+        });
+        const nonMatching = await factories.housing.create({
+          status: HousingStatus.FIRST_CONTACT,
+          subStatus: null
+        });
+
+        const actual = await housingRepository.updateMany(
+          [
+            { geoCode: matching.geoCode, id: matching.id },
+            { geoCode: nonMatching.geoCode, id: nonMatching.id }
+          ],
+          { status: HousingStatus.WAITING, subStatus: null },
+          { onlyIfStatus: HousingStatus.NEVER_CONTACTED }
+        );
+
+        expect(actual).toStrictEqual([
+          { geoCode: matching.geoCode, id: matching.id }
+        ]);
+
+        const rows = await kysely
+          .selectFrom('fastHousing')
+          .select(['geoCode', 'id', 'status'])
+          .where('geoCode', 'in', [matching.geoCode, nonMatching.geoCode])
+          .where('id', 'in', [matching.id, nonMatching.id])
+          .execute();
+        expect(rows).toIncludeAllMembers([
+          {
+            geoCode: matching.geoCode,
+            id: matching.id,
+            status: HousingStatus.WAITING
+          },
+          {
+            geoCode: nonMatching.geoCode,
+            id: nonMatching.id,
+            status: HousingStatus.FIRST_CONTACT
+          }
+        ]);
+      });
+
+      it('returns an empty array and writes nothing when no row matches onlyIfStatus', async () => {
+        const housing = await factories.housing.create({
+          status: HousingStatus.WAITING,
+          subStatus: null
+        });
+
+        const actual = await housingRepository.updateMany(
+          [{ geoCode: housing.geoCode, id: housing.id }],
+          { status: HousingStatus.NEVER_CONTACTED },
+          { onlyIfStatus: HousingStatus.FIRST_CONTACT }
+        );
+
+        expect(actual).toStrictEqual([]);
+        const row = await kysely
+          .selectFrom('fastHousing')
+          .select('status')
+          .where('geoCode', '=', housing.geoCode)
+          .where('id', '=', housing.id)
+          .executeTakeFirstOrThrow();
+        expect(row.status).toBe(HousingStatus.WAITING);
+      });
+    });
   });
 
   describe('remove', () => {

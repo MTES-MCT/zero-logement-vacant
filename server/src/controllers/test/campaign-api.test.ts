@@ -6,6 +6,7 @@ import {
   CampaignDTO,
   CampaignRemovalPayload,
   CampaignUpdatePayload,
+  HOUSING_STATUS_LABELS,
   HOUSING_STATUS_VALUES,
   HousingStatus,
   UserRole,
@@ -17,15 +18,17 @@ import randomstring from 'randomstring';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import config from '~/infra/config';
 import type { DB } from '~/infra/database/db';
 import { kysely } from '~/infra/database/kysely';
 import { createServer } from '~/infra/server';
 import { EstablishmentApi } from '~/models/EstablishmentApi';
-import { CampaignEventApi } from '~/models/EventApi';
+import { CampaignEventApi, HousingEventApi } from '~/models/EventApi';
 import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { UserApi } from '~/models/UserApi';
 import { toEventInsert } from '~/repositories/eventRepository';
+import userRepository from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
 import { genEventApi } from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
@@ -353,6 +356,46 @@ describe('Campaign API', () => {
         .execute();
     });
 
+    /**
+     * Creates a group with one housing per status, isolated from the shared
+     * `group`/`groupHousings` fixtures above. The sentAt-gating tests use this
+     * instead of the shared fixtures because other tests in this block send
+     * randomized `sentAt` values against the shared group, which would flip
+     * its NEVER_CONTACTED housings unpredictably.
+     */
+    async function createGroupWithHousings(): Promise<{
+      group: GroupApi;
+      housings: ReadonlyArray<HousingApi>;
+    }> {
+      const geoCode = faker.helpers.arrayElement(establishment.geoCodes);
+      const isolatedGroup = await factories
+        .group(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const isolatedHousings = await Promise.all(
+        HOUSING_STATUS_VALUES.map((status) =>
+          factories.housing.create({ geoCode, status })
+        )
+      );
+      await Promise.all(
+        isolatedHousings.map(async (housing) => {
+          const owner = await factories.owner.create();
+          await factories.housingOwner({ housing, owner }).create();
+        })
+      );
+      await kysely
+        .insertInto('groupsHousing')
+        .values(
+          isolatedHousings.map((housing) => ({
+            groupId: isolatedGroup.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }))
+        )
+        .execute();
+
+      return { group: isolatedGroup, housings: isolatedHousings };
+    }
+
     test.prop<CampaignCreationPayload>(
       {
         title: fc.stringMatching(/\S/),
@@ -529,22 +572,25 @@ describe('Campaign API', () => {
       );
     });
 
-    it('should change each "never contacted" housing’ status to "waiting"', async () => {
+    it('does not flip housings when sentAt is null', async () => {
+      const { housings: isolatedHousings, group: isolatedGroup } =
+        await createGroupWithHousings();
+
       const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
         sentAt: null
       };
 
-      const { status } = await request(url)
-        .post(testRoute(group.id))
+      const { body, status } = await request(url)
+        .post(testRoute(isolatedGroup.id))
         .send(payload)
         .type('json')
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const neverContactedHousings = groupHousings.filter(
-        (groupHousing) => groupHousing.status === HousingStatus.NEVER_CONTACTED
+      const neverContactedHousings = isolatedHousings.filter(
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
       );
       const actual = await kysely
         .selectFrom('fastHousing')
@@ -560,8 +606,48 @@ describe('Campaign API', () => {
         )
         .execute();
       expect(actual).toSatisfyAll<Selectable<DB['fastHousing']>>(
-        (housing) => housing.status === HousingStatus.WAITING
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
       );
+
+      const statusEvents = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'housing:status-updated')
+        .where((eb) =>
+          eb(
+            eb.refTuple(
+              'housingEvents.housingGeoCode',
+              'housingEvents.housingId'
+            ),
+            'in',
+            isolatedHousings.map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
+            )
+          )
+        )
+        .execute();
+      expect(statusEvents).toBeArrayOfSize(0);
+
+      const links = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', body.id)
+        .execute();
+      expect(links).toBeArrayOfSize(isolatedHousings.length);
+
+      const attachEvents = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignHousingEvents',
+          'campaignHousingEvents.eventId',
+          'events.id'
+        )
+        .selectAll('events')
+        .where('campaignHousingEvents.campaignId', '=', body.id)
+        .where('events.type', '=', 'housing:campaign-attached')
+        .execute();
+      expect(attachEvents).toBeArrayOfSize(isolatedHousings.length);
     });
 
     it('should not change housings that are not "never contacted"', async () => {
@@ -603,21 +689,44 @@ describe('Campaign API', () => {
       );
     });
 
-    it('should create an event "housing:status-updated" for each "never contacted" housing that became "waiting"', async () => {
+    it('flips housings immediately when sentAt is already past', async () => {
+      const { housings: isolatedHousings, group: isolatedGroup } =
+        await createGroupWithHousings();
+
       const payload: CampaignCreationPayload = {
         title: 'Logements prioritaires',
         description: 'Campagne pour les logements prioritaires',
-        sentAt: null
+        sentAt: '2020-01-01'
       };
 
-      const { status } = await request(url)
-        .post(testRoute(group.id))
+      const { body, status } = await request(url)
+        .post(testRoute(isolatedGroup.id))
         .send(payload)
         .type('json')
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_CREATED);
-      const events = await kysely
+      const neverContactedHousings = isolatedHousings.filter(
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
+      );
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where((eb) =>
+          eb(
+            eb.refTuple('geoCode', 'id'),
+            'in',
+            neverContactedHousings.map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
+            )
+          )
+        )
+        .execute();
+      expect(actual).toSatisfyAll<Selectable<DB['fastHousing']>>(
+        (housing) => housing.status === HousingStatus.WAITING
+      );
+
+      const statusEvents = await kysely
         .selectFrom('events')
         .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
         .selectAll('events')
@@ -629,17 +738,165 @@ describe('Campaign API', () => {
               'housingEvents.housingId'
             ),
             'in',
-            groupHousings.map((groupHousing) =>
-              eb.tuple(groupHousing.geoCode, groupHousing.id)
+            neverContactedHousings.map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
             )
           )
         )
         .execute();
-      const neverContactedHousings = groupHousings.filter(
-        (groupHousing) => groupHousing.status === HousingStatus.NEVER_CONTACTED
+      expect(statusEvents).toBeArrayOfSize(neverContactedHousings.length);
+      // The automated flip is attributed to the system account, not the caller.
+      const system = await userRepository.getByEmail(config.app.system);
+      expect(statusEvents).toSatisfyAll(
+        (event) => event.createdBy === system?.id
       );
-      expect(events.length).toBeGreaterThan(0);
-      expect(events.length).toBe(neverContactedHousings.length);
+
+      const links = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', body.id)
+        .execute();
+      expect(links).toBeArrayOfSize(isolatedHousings.length);
+
+      const attachEvents = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignHousingEvents',
+          'campaignHousingEvents.eventId',
+          'events.id'
+        )
+        .selectAll('events')
+        .where('campaignHousingEvents.campaignId', '=', body.id)
+        .where('events.type', '=', 'housing:campaign-attached')
+        .execute();
+      expect(attachEvents).toBeArrayOfSize(isolatedHousings.length);
+      // ...while attaching housings — a genuine user action — stays the user's.
+      expect(attachEvents).toSatisfyAll((event) => event.createdBy === user.id);
+    });
+
+    it('fails instead of silently skipping the flip when the system account cannot be resolved', async () => {
+      const { housings: isolatedHousings, group: isolatedGroup } =
+        await createGroupWithHousings();
+      // Point at a nonexistent account instead of soft-deleting the shared,
+      // globally-seeded system user: that row is read by every parallel test
+      // file's own resolveSystemUser() call, so mutating it races them.
+      const originalSystem = config.app.system;
+      config.app.system = 'missing-system-account@zerologementvacant.test';
+
+      try {
+        const payload: CampaignCreationPayload = {
+          title: 'Logements prioritaires',
+          description: 'Campagne pour les logements prioritaires',
+          sentAt: '2020-01-01'
+        };
+
+        const { status } = await request(url)
+          .post(testRoute(isolatedGroup.id))
+          .send(payload)
+          .type('json')
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+        const neverContactedHousings = isolatedHousings.filter(
+          (housing) => housing.status === HousingStatus.NEVER_CONTACTED
+        );
+        const actual = await kysely
+          .selectFrom('fastHousing')
+          .selectAll('fastHousing')
+          .where((eb) =>
+            eb(
+              eb.refTuple('geoCode', 'id'),
+              'in',
+              neverContactedHousings.map((housing) =>
+                eb.tuple(housing.geoCode, housing.id)
+              )
+            )
+          )
+          .execute();
+        expect(actual).toSatisfyAll<Selectable<DB['fastHousing']>>(
+          (housing) => housing.status === HousingStatus.NEVER_CONTACTED
+        );
+      } finally {
+        config.app.system = originalSystem;
+      }
+    });
+
+    it('does not flip housings when sentAt is in the future', async () => {
+      const { housings: isolatedHousings, group: isolatedGroup } =
+        await createGroupWithHousings();
+
+      const payload: CampaignCreationPayload = {
+        title: 'Logements prioritaires',
+        description: 'Campagne pour les logements prioritaires',
+        sentAt: '2999-01-01'
+      };
+
+      const { body, status } = await request(url)
+        .post(testRoute(isolatedGroup.id))
+        .send(payload)
+        .type('json')
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_CREATED);
+      const neverContactedHousings = isolatedHousings.filter(
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
+      );
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where((eb) =>
+          eb(
+            eb.refTuple('geoCode', 'id'),
+            'in',
+            neverContactedHousings.map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
+            )
+          )
+        )
+        .execute();
+      expect(actual).toSatisfyAll<Selectable<DB['fastHousing']>>(
+        (housing) => housing.status === HousingStatus.NEVER_CONTACTED
+      );
+
+      const statusEvents = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'housing:status-updated')
+        .where((eb) =>
+          eb(
+            eb.refTuple(
+              'housingEvents.housingGeoCode',
+              'housingEvents.housingId'
+            ),
+            'in',
+            isolatedHousings.map((housing) =>
+              eb.tuple(housing.geoCode, housing.id)
+            )
+          )
+        )
+        .execute();
+      expect(statusEvents).toBeArrayOfSize(0);
+
+      const links = await kysely
+        .selectFrom('campaignsHousing')
+        .selectAll('campaignsHousing')
+        .where('campaignId', '=', body.id)
+        .execute();
+      expect(links).toBeArrayOfSize(isolatedHousings.length);
+
+      const attachEvents = await kysely
+        .selectFrom('events')
+        .innerJoin(
+          'campaignHousingEvents',
+          'campaignHousingEvents.eventId',
+          'events.id'
+        )
+        .selectAll('events')
+        .where('campaignHousingEvents.campaignId', '=', body.id)
+        .where('events.type', '=', 'housing:campaign-attached')
+        .execute();
+      expect(attachEvents).toBeArrayOfSize(isolatedHousings.length);
     });
   });
 
@@ -780,6 +1037,441 @@ describe('Campaign API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+    });
+
+    it('flips housings when sentAt is set to today or the past', async () => {
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+        status: HousingStatus.NEVER_CONTACTED,
+        subStatus: null
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+
+      const payload: CampaignUpdatePayload = {
+        title: campaign.title,
+        description: campaign.description,
+        sentAt: '2020-01-01'
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual?.status).toBe(HousingStatus.WAITING);
+    });
+
+    it('does not flip housings when sentAt is set to the future', async () => {
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+        status: HousingStatus.NEVER_CONTACTED,
+        subStatus: null
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+
+      const payload: CampaignUpdatePayload = {
+        title: campaign.title,
+        description: campaign.description,
+        sentAt: '2999-01-01'
+      };
+
+      await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
+    });
+
+    it('reverts auto-flipped housings when sentAt is postponed to the future', async () => {
+      const system = (await userRepository.getByEmail(config.app.system))!;
+      const sentCampaign = await factories
+        .campaign(establishment)
+        .create(
+          { sentAt: '2020-01-01' },
+          { associations: { createdBy: user } }
+        );
+
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+        status: HousingStatus.WAITING,
+        subStatus: null
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: sentCampaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+      // Pristine system-authored auto-flip: the mark that this WAITING came from
+      // the send-date rule.
+      const flip: HousingEventApi = {
+        ...genEventApi({
+          type: 'housing:status-updated',
+          creator: system,
+          nextOld: {
+            status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+          },
+          nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
+      };
+      await kysely.insertInto('events').values(toEventInsert(flip)).execute();
+      await kysely
+        .insertInto('housingEvents')
+        .values({
+          eventId: flip.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+
+      const payload: CampaignUpdatePayload = {
+        title: sentCampaign.title,
+        description: sentCampaign.description,
+        sentAt: '2999-01-01'
+      };
+      const { status } = await request(url)
+        .put(testRoute(sentCampaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
+
+      const statusEvents = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'housing:status-updated')
+        .where('housingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('housingEvents.housingId', '=', housing.id)
+        .where('events.createdBy', '=', system.id)
+        .execute();
+      const revertEvents = statusEvents.filter(
+        (event) =>
+          (event.nextNew as { status?: string } | null)?.status ===
+          HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+      );
+      expect(revertEvents).toHaveLength(1);
+    });
+
+    it('does not revert a manually-set WAITING housing when postponed', async () => {
+      const sentCampaign = await factories
+        .campaign(establishment)
+        .create(
+          { sentAt: '2020-01-01' },
+          { associations: { createdBy: user } }
+        );
+
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+        status: HousingStatus.WAITING,
+        subStatus: null
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: sentCampaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+      // A caseworker set WAITING by hand — the flip event is authored by the user,
+      // not the system, so it must not be reverted.
+      const manual: HousingEventApi = {
+        ...genEventApi({
+          type: 'housing:status-updated',
+          creator: user,
+          nextOld: {
+            status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+          },
+          nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
+      };
+      await kysely.insertInto('events').values(toEventInsert(manual)).execute();
+      await kysely
+        .insertInto('housingEvents')
+        .values({
+          eventId: manual.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+
+      const payload: CampaignUpdatePayload = {
+        title: sentCampaign.title,
+        description: sentCampaign.description,
+        sentAt: '2999-01-01'
+      };
+      await request(url)
+        .put(testRoute(sentCampaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual?.status).toBe(HousingStatus.WAITING);
+    });
+
+    it('does not revert a WAITING housing when a draft campaign gets its first sentAt set to the future', async () => {
+      const system = (await userRepository.getByEmail(config.app.system))!;
+      // `campaign` (from beforeEach) has sentAt: null — a draft that has never
+      // been sent, so it cannot be the source of an auto-flip to revert.
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+        status: HousingStatus.WAITING,
+        subStatus: null
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+      // Pristine system-authored auto-flip, as if some other, now-unlinked
+      // campaign had genuinely sent and flipped this housing.
+      const flip: HousingEventApi = {
+        ...genEventApi({
+          type: 'housing:status-updated',
+          creator: system,
+          nextOld: {
+            status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+          },
+          nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
+      };
+      await kysely.insertInto('events').values(toEventInsert(flip)).execute();
+      await kysely
+        .insertInto('housingEvents')
+        .values({
+          eventId: flip.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+
+      const payload: CampaignUpdatePayload = {
+        title: campaign.title,
+        description: campaign.description,
+        sentAt: '2999-01-01'
+      };
+      const { status } = await request(url)
+        .put(testRoute(campaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual?.status).toBe(HousingStatus.WAITING);
+    });
+
+    it('does not re-run the flip when sentAt is unchanged', async () => {
+      const alreadySentCampaign = await factories
+        .campaign(establishment)
+        .create(
+          { sentAt: '2020-01-01' },
+          { associations: { createdBy: user } }
+        );
+
+      // Added after the campaign was already sent: if update() re-ran the
+      // flip on every save (even with sentAt unchanged), this housing would
+      // get swept up the next time the campaign's metadata is edited.
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+        status: HousingStatus.NEVER_CONTACTED,
+        subStatus: null
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: alreadySentCampaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+
+      const payload: CampaignUpdatePayload = {
+        title: faker.lorem.word(),
+        description: faker.lorem.words(),
+        sentAt: alreadySentCampaign.sentAt
+      };
+
+      const { status } = await request(url)
+        .put(testRoute(alreadySentCampaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
+    });
+
+    it('does not revert auto-flipped housings when sentAt is moved to an earlier past date', async () => {
+      const system = (await userRepository.getByEmail(config.app.system))!;
+      const sentCampaign = await factories
+        .campaign(establishment)
+        .create(
+          { sentAt: '2020-06-01' },
+          { associations: { createdBy: user } }
+        );
+
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+        status: HousingStatus.WAITING,
+        subStatus: null
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: sentCampaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+      // Pristine system-authored auto-flip: the mark that this WAITING came from
+      // the send-date rule.
+      const flip: HousingEventApi = {
+        ...genEventApi({
+          type: 'housing:status-updated',
+          creator: system,
+          nextOld: {
+            status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+          },
+          nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
+      };
+      await kysely.insertInto('events').values(toEventInsert(flip)).execute();
+      await kysely
+        .insertInto('housingEvents')
+        .values({
+          eventId: flip.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+
+      // Still in the past (and still reached), just earlier than the campaign's
+      // current sentAt — this is "the campaign was actually sent earlier than I
+      // first entered", not "it wasn't sent yet", so shouldRevert must not fire.
+      const payload: CampaignUpdatePayload = {
+        title: sentCampaign.title,
+        description: sentCampaign.description,
+        sentAt: '2015-01-01'
+      };
+      const { status } = await request(url)
+        .put(testRoute(sentCampaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual?.status).toBe(HousingStatus.WAITING);
+
+      const statusEvents = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'housing:status-updated')
+        .where('housingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('housingEvents.housingId', '=', housing.id)
+        .execute();
+      expect(statusEvents).toHaveLength(1);
+      expect(statusEvents[0].id).toBe(flip.id);
+    });
+
+    it('fails instead of silently skipping the flip when the system account cannot be resolved', async () => {
+      // Point at a nonexistent account instead of soft-deleting the shared,
+      // globally-seeded system user: that row is read by every parallel test
+      // file's own resolveSystemUser() call, so mutating it races them.
+      const originalSystem = config.app.system;
+      config.app.system = 'missing-system-account@zerologementvacant.test';
+
+      try {
+        const payload: CampaignUpdatePayload = {
+          title: faker.lorem.word(),
+          description: faker.lorem.words(),
+          sentAt: '2020-01-01'
+        };
+
+        const { status } = await request(url)
+          .put(testRoute(campaign.id))
+          .send(payload)
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR);
+        const actual = await kysely
+          .selectFrom('campaigns')
+          .selectAll()
+          .where('id', '=', campaign.id)
+          .executeTakeFirst();
+        expect(actual?.title).toBe(campaign.title);
+      } finally {
+        config.app.system = originalSystem;
+      }
     });
   });
 

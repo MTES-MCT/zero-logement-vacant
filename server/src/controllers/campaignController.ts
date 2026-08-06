@@ -22,6 +22,8 @@ import { logger } from '~/infra/logger';
 import {
   CampaignApi,
   CampaignSortableApi,
+  isSendDateInFuture,
+  isSendDateReached,
   toCampaignDTO
 } from '~/models/CampaignApi';
 import { CampaignQuery } from '~/models/CampaignFiltersApi';
@@ -38,6 +40,13 @@ import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
 import senderRepository from '~/repositories/senderRepository';
+import {
+  flipCampaignHousingsToWaiting,
+  flipHousingsToWaiting,
+  resolveSystemUser,
+  revertCampaignHousingsToNeverContacted
+} from '~/services/campaign-housing-service';
+import { today } from '~/utils/date';
 
 const list: RequestHandler<
   never,
@@ -169,15 +178,22 @@ const createFromGroup: RequestHandler<
     updatedAt: new Date().toJSON()
   };
 
-  const housings = await housingRepository.find({
-    filters: {
-      establishmentIds: [auth.establishmentId],
-      groupIds: [group.id]
-    },
-    pagination: {
-      paginate: false
-    }
-  });
+  const shouldFlip = isSendDateReached(campaign.sentAt, today());
+  // Resolved outside the transaction, concurrently with the independent
+  // housings fetch: a misconfigured/deleted system account now fails the
+  // request outright rather than silently skipping the flip.
+  const [housings, system] = await Promise.all([
+    housingRepository.find({
+      filters: {
+        establishmentIds: [auth.establishmentId],
+        groupIds: [group.id]
+      },
+      pagination: {
+        paginate: false
+      }
+    }),
+    shouldFlip ? resolveSystemUser() : Promise.resolve(null)
+  ]);
   const campaignHousingEvents = housings.map<CampaignHousingEventApi>(
     (housing) => ({
       id: uuidv4(),
@@ -197,22 +213,6 @@ const createFromGroup: RequestHandler<
   const neverContactedHousings = housings.filter(
     (housing) => housing.status === HousingStatus.NEVER_CONTACTED
   );
-  const housingEvents = neverContactedHousings.map<HousingEventApi>(
-    (housing) => ({
-      id: uuidv4(),
-      type: 'housing:status-updated',
-      nextOld: {
-        status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
-      },
-      nextNew: {
-        status: HOUSING_STATUS_LABELS[HousingStatus.WAITING]
-      },
-      createdAt: new Date().toJSON(),
-      createdBy: auth.userId,
-      housingGeoCode: housing.geoCode,
-      housingId: housing.id
-    })
-  );
 
   await startKyselyTransaction(async () => {
     await senderRepository.save(sender);
@@ -222,18 +222,15 @@ const createFromGroup: RequestHandler<
 
     await Promise.all([
       campaignHousingRepository.insertHousingList(campaign.id, housings),
-      housingRepository.updateMany(
-        neverContactedHousings.map((housing) =>
-          Struct.pick(housing, 'geoCode', 'id')
-        ),
-        {
-          status: HousingStatus.WAITING,
-          subStatus: null
-        }
-      ),
-      eventRepository.insertManyCampaignHousingEvents(campaignHousingEvents),
-      eventRepository.insertManyHousingEvents(housingEvents)
+      eventRepository.insertManyCampaignHousingEvents(campaignHousingEvents)
     ]);
+
+    // Gate the NEVER_CONTACTED -> WAITING flip on the sending date. Pass the
+    // in-memory housings: housingRepository.find would not see the campaign
+    // links just inserted in this transaction.
+    if (system) {
+      await flipHousingsToWaiting(neverContactedHousings, system);
+    }
   });
 
   response.status(constants.HTTP_STATUS_CREATED).json(toCampaignDTO(campaign));
@@ -278,7 +275,39 @@ const update: RequestHandler<
     sentAt: body.sentAt ?? campaign.sentAt
   };
 
-  await campaignRepository.save(updated);
+  // A genuine sentAt change either flips housings to waiting (date reached) or,
+  // when postponed to the future, reverts the ones the send-date rule
+  // auto-flipped. Never on a metadata-only edit. The two are mutually exclusive.
+  // shouldRevert additionally requires the *previous* sentAt to have already
+  // been reached — otherwise this is a campaign's first-ever sentAt, which by
+  // definition never auto-flipped anything, and must not revert other
+  // campaigns' genuine flips.
+  const currentDate = today();
+  const sentAtChanged = updated.sentAt !== campaign.sentAt;
+  const shouldFlip =
+    sentAtChanged && isSendDateReached(updated.sentAt, currentDate);
+  const shouldRevert =
+    sentAtChanged &&
+    isSendDateReached(campaign.sentAt, currentDate) &&
+    isSendDateInFuture(updated.sentAt, currentDate);
+  // Resolved outside the transaction: a misconfigured/deleted system account
+  // now fails the request outright rather than silently skipping the change.
+  const system = shouldFlip || shouldRevert ? await resolveSystemUser() : null;
+
+  await startKyselyTransaction(async () => {
+    await campaignRepository.save(updated);
+    if (system && shouldFlip) {
+      await flipCampaignHousingsToWaiting(updated, system);
+    }
+    if (system && shouldRevert) {
+      await revertCampaignHousingsToNeverContacted(
+        updated,
+        system,
+        currentDate
+      );
+    }
+  });
+
   response.status(constants.HTTP_STATUS_OK).json(toCampaignDTO(updated));
 };
 

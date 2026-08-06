@@ -1,6 +1,10 @@
 import type { Knex } from 'knex';
+import type { Kysely, Transaction } from 'kysely';
+import { sql } from 'kysely';
 
 import db from '~/infra/database';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import { createLogger } from '~/infra/logger';
 
 const logger = createLogger('housingsCountsMaintenance');
@@ -138,6 +142,72 @@ export async function recomputeHousingsCounts(
     const start = Date.now();
     logger.info(`Recomputing ${name}`);
     await executor.raw(sql);
+    logger.info(`Recomputed ${name} in ${Date.now() - start}ms`);
+  }
+}
+
+/**
+ * Kysely counterparts of the four functions above, for callers migrated off
+ * Knex (currently the repair harness's `apply()`). Import-lovac stays on the
+ * `Knex`-typed versions above by design; both share the same
+ * `MANAGED_TABLES`/`RECOMPUTES`/`KNOWN_TRIGGERS` contract so there is one
+ * source of truth for the trigger list regardless of which engine calls it.
+ */
+type KyselyExecutor = Kysely<DB> | Transaction<DB>;
+
+export async function ensureKnownHousingsTriggersKysely(
+  executor: KyselyExecutor = kysely
+): Promise<void> {
+  const { rows } = await sql<PgTriggerRow>`
+    SELECT t.tgname  AS name,
+           c.relname AS table
+    FROM pg_trigger t
+    JOIN pg_class c ON c.oid = t.tgrelid
+    WHERE c.relname IN (${sql.join(MANAGED_TABLES)})
+      AND NOT t.tgisinternal
+  `.execute(executor);
+
+  const known = new Set(Object.keys(KNOWN_TRIGGERS));
+  const unknown = rows.filter((row) => !known.has(row.name));
+  if (unknown.length > 0) {
+    const list = unknown.map((row) => `${row.table}.${row.name}`).join(', ');
+    throw new Error(
+      `Unknown user triggers on managed tables: ${list}. ` +
+        `Register them in KNOWN_TRIGGERS and add a recompute entry to ` +
+        `RECOMPUTES in housings-counts-maintenance.ts.`
+    );
+  }
+}
+
+export async function disableHousingsTriggersKysely(
+  executor: KyselyExecutor = kysely
+): Promise<void> {
+  for (const table of MANAGED_TABLES) {
+    logger.info(`Disabling user triggers on ${table}`);
+    await sql`ALTER TABLE ${sql.ref(table)} DISABLE TRIGGER USER`.execute(
+      executor
+    );
+  }
+}
+
+export async function enableHousingsTriggersKysely(
+  executor: KyselyExecutor = kysely
+): Promise<void> {
+  for (const table of MANAGED_TABLES) {
+    logger.info(`Enabling user triggers on ${table}`);
+    await sql`ALTER TABLE ${sql.ref(table)} ENABLE TRIGGER USER`.execute(
+      executor
+    );
+  }
+}
+
+export async function recomputeHousingsCountsKysely(
+  executor: KyselyExecutor = kysely
+): Promise<void> {
+  for (const [name, recomputeSql] of Object.entries(RECOMPUTES)) {
+    const start = Date.now();
+    logger.info(`Recomputing ${name}`);
+    await sql.raw(recomputeSql).execute(executor);
     logger.info(`Recomputed ${name} in ${Date.now() - start}ms`);
   }
 }

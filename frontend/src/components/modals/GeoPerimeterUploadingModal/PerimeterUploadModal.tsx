@@ -28,31 +28,37 @@ function createPerimeterUploadModal() {
       const { onClose, onSubmit, ...rest } = props;
       const FileTypes = ['application/zip', 'application/x-zip-compressed'];
       const [file, setFile] = useState<File | undefined>();
+      const [validationError, setValidationError] = useState('');
 
       const schema = yup
         .object()
         .shape({ file: fileValidator(FileTypes).default(undefined) })
         .required();
 
-      const { isValid, message, validate } = useForm(schema as any, {
+      const { message, validate } = useForm(schema as any, {
         file
       });
 
       const selectFile = (event: any) => {
+        setValidationError('');
         setFile(event.target?.files?.[0]);
       };
 
-      const submitFile = () => {
-        validate().then(() => {
-          if (isValid()) {
-            onSubmit(file!);
-          }
-        });
+      const submitFile = async () => {
+        setValidationError('');
+        try {
+          await validate(() => onSubmit(file!));
+        } catch {
+          setValidationError(
+            'Le fichier n’a pas pu être validé. Veuillez réessayer.'
+          );
+        }
       };
 
+      const displayedError = props.error || validationError;
       // Check if error is file_too_large to display it differently
-      const isFileTooLarge = props.error?.includes('trop volumineux');
-      const shouldShowAlert = !!props.error && !isFileTooLarge;
+      const isFileTooLarge = displayedError.includes('trop volumineux');
+      const shouldShowAlert = !!displayedError && !isFileTooLarge;
 
       return (
         <modal.Component
@@ -63,11 +69,11 @@ function createPerimeterUploadModal() {
           {...rest}
         >
           <Grid container spacing={2}>
-            {shouldShowAlert && props.error && (
+            {shouldShowAlert && (
               <Grid size={12}>
                 <Alert
                   severity="error"
-                  description={props.error}
+                  description={displayedError}
                   closable={false}
                   small
                 />
@@ -84,7 +90,7 @@ function createPerimeterUploadModal() {
                 hint="Format : fichier géographique (SIG) au format .zip comprenant l'ensemble des extensions qui constituent le fichier (.cpg, .dbf, .shp, etc.)."
                 state={isFileTooLarge ? 'error' : 'default'}
                 stateRelatedMessage={
-                  isFileTooLarge ? props.error : message('file')
+                  isFileTooLarge ? displayedError : message('file')
                 }
                 className={styles.upload}
               />

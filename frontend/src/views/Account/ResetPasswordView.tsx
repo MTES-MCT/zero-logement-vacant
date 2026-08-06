@@ -143,6 +143,7 @@ function ResetPasswordView() {
               title="Erreur"
               description={error}
               className="fr-my-3w"
+              closable
               severity="error"
             />
           )}

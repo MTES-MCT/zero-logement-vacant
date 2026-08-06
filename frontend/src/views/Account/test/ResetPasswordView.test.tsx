@@ -1,11 +1,16 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
+import { StrictMode } from 'react';
 import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
 import { mockAPI } from '~/mocks/mock-api';
 import config from '~/utils/config';
+import {
+  clearPasswordResetToken,
+  protectPasswordResetToken
+} from '~/utils/password-reset-token';
 
 import configureTestStore from '../../../utils/storeUtils';
 import ResetPasswordView from '../ResetPasswordView';
@@ -59,6 +64,54 @@ describe('ResetPasswordView', () => {
     );
     expect(uppercaseCriterion).not.toHaveClass('fr-error-text');
     expect(uppercaseCriterion).not.toHaveClass('fr-valid-text');
+  });
+
+  it('should retain the protected reset token through the StrictMode remount', async () => {
+    const requestedIds: string[] = [];
+    mockAPI.use(
+      http.get(`${config.apiEndpoint}/reset-links/:id`, ({ params }) => {
+        requestedIds.push(String(params.id));
+        return HttpResponse.json({ valid: true });
+      })
+    );
+    const originalState = window.history.state;
+    const originalUrl = window.location.href;
+
+    try {
+      window.history.replaceState(
+        originalState,
+        '',
+        `/mot-de-passe/nouveau#${linkId}`
+      );
+      expect(protectPasswordResetToken()).toBe(true);
+      expect(window.location.hash).toBe('');
+
+      const router = createMemoryRouter(
+        [
+          {
+            path: '/mot-de-passe/nouveau',
+            element: <ResetPasswordView />
+          }
+        ],
+        { initialEntries: ['/mot-de-passe/nouveau'] }
+      );
+      render(
+        <StrictMode>
+          <Provider store={configureTestStore()}>
+            <RouterProvider router={router} />
+          </Provider>
+        </StrictMode>
+      );
+
+      expect(
+        await screen.findByLabelText(/^Créer votre mot de passe/)
+      ).toBeVisible();
+      expect(requestedIds.length).toBeGreaterThan(0);
+      expect(new Set(requestedIds)).toEqual(new Set([linkId]));
+    } finally {
+      clearPasswordResetToken();
+      window.history.replaceState(originalState, '', originalUrl);
+    }
   });
 
   it('should mark a mismatched password confirmation as invalid and associate the error to the field (RGAA 11.10)', async () => {
@@ -173,6 +226,14 @@ describe('ResetPasswordView', () => {
       'Votre mot de passe n’a pas pu être enregistré. Veuillez réessayer.'
     );
     expect(password).toHaveValue('MotDePasse123');
+
+    const closeAlert = screen.getByRole('button', {
+      name: 'Masquer le message'
+    });
+    closeAlert.focus();
+    await user.keyboard('{Enter}');
+
+    expect(alert).not.toBeInTheDocument();
   });
 
   it('should reset a password without special characters and announce success', async () => {

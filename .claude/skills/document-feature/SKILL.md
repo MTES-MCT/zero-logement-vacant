@@ -107,7 +107,7 @@ shape, learned from "Historique et notes" and "Génération de PDF":
 
 ### 8 — Preview, then publish
 
-1. Show the full draft to the requesting user before writing anything to Notion.
+1. Show the full draft to the requesting user and wait for their explicit go-ahead — do not proceed to step 2 until they approve or request changes.
 2. Search Notion (`mcp__notion__notion-search`, scoped under [Documentation fonctionnelle et technique](https://app.notion.com/p/zlv/Documentation-fonctionnelle-et-technique-3ad9ec2a056c80a7b37ccee62c2a9222)) for an existing page on the same topic.
    - Found → update it in place (`mcp__notion__notion-update-page`).
    - Not found → create a new child page (`mcp__notion__notion-create-pages`) under the section confirmed with the user — default inferred from the existing tree (e.g. "Fonctionnalités").

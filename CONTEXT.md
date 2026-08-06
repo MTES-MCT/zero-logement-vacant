@@ -18,10 +18,17 @@ publication (2019 à 2026). Chaque millésime est un instantané complet et
 autonome, pas un delta par rapport au précédent.
 _Avoid_: année LOVAC, version LOVAC, cru
 
+**Ligne LOVAC** :
+Un enregistrement d'un millésime LOVAC. Un même local peut apparaître sur
+plusieurs lignes d'un même millésime, parfois avec des années de début de
+vacance divergentes. Compter des lignes n'est donc jamais compter des
+logements.
+_Avoid_: enregistrement, occurrence, ligne (seul)
+
 **Local** :
 Une unité immobilière telle que le fichier LOVAC la décrit, quelle que soit sa
 nature (habitation, commerce, dépendance).
-_Avoid_: bien, unité, ligne LOVAC
+_Avoid_: bien, unité
 
 **Logement** :
 Un local à usage d'habitation, c'est-à-dire un appartement ou une maison
@@ -123,6 +130,8 @@ _Avoid_: contact, envoi, logement ciblé
 Toute amélioration de la connaissance d'un logement ou de son propriétaire par un
 utilisateur : coordonnées, identité, adresse, rang, note, document, DPE constaté.
 Distinct de la mise à jour de situation, qui porte sur le suivi et l'occupation.
+Un enregistrement qui ne change aucune valeur n'est pas un enrichissement, même
+s'il produit un événement.
 _Avoid_: complétion, qualification, fiabilisation
 
 **Acte** :

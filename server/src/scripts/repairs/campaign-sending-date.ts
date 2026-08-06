@@ -4,11 +4,13 @@ import {
   HOUSING_STATUS_LABELS,
   HousingStatus
 } from '@zerologementvacant/models';
+import type { Kysely, Transaction } from 'kysely';
 import { v4 as uuidv4 } from 'uuid';
 
 import config from '~/infra/config';
 import { fromDateDBO } from '~/infra/database';
 import { runInBatches } from '~/infra/database/batch';
+import type { DB } from '~/infra/database/db';
 import { kysely } from '~/infra/database/kysely';
 import { isSendDateReached } from '~/models/CampaignApi';
 import type { CampaignApi } from '~/models/CampaignApi';
@@ -17,6 +19,7 @@ import type {
   HousingEventApi
 } from '~/models/EventApi';
 import type { HousingApi } from '~/models/HousingApi';
+import { findLatestStatusUpdatedEvents } from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
 import { today } from '~/utils/date';
@@ -49,6 +52,47 @@ export interface HousingWithContext extends HousingApi {
 
 function key(housing: Pick<HousingApi, 'id' | 'geoCode'>): string {
   return `${housing.geoCode}:${housing.id}`;
+}
+
+/**
+ * The `campaignsHousing ⋈ campaigns` sentAt lookup for one chunk of housings,
+ * shared between `buildCandidates` (plan time, no lock) and `revalidate`
+ * (apply time, `forUpdate: true` — the lock is what closes the plan-to-apply
+ * drift window, held until apply()'s transaction commits). One query
+ * definition keeps the two from silently diverging.
+ */
+async function queryCampaignSentAtByHousing(
+  executor: Kysely<DB> | Transaction<DB>,
+  chunk: ReadonlyArray<[geoCode: string, id: string]>,
+  options: { forUpdate?: boolean } = {}
+): Promise<
+  Array<{
+    housingGeoCode: string;
+    housingId: string;
+    campaignId: string;
+    sentAt: Date | null;
+  }>
+> {
+  const query = executor
+    .selectFrom('campaignsHousing')
+    .innerJoin('campaigns', 'campaigns.id', 'campaignsHousing.campaignId')
+    .where((eb) =>
+      eb(
+        eb.refTuple(
+          'campaignsHousing.housingGeoCode',
+          'campaignsHousing.housingId'
+        ),
+        'in',
+        chunk.map(([geoCode, id]) => eb.tuple(geoCode, id))
+      )
+    )
+    .select([
+      'campaignsHousing.housingGeoCode as housingGeoCode',
+      'campaignsHousing.housingId as housingId',
+      'campaigns.id as campaignId',
+      'campaigns.sentAt as sentAt'
+    ]);
+  return options.forUpdate ? query.forUpdate().execute() : query.execute();
 }
 
 export const campaignSendingDateRepair: Repair<HousingWithContext> = {
@@ -102,56 +146,9 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
       const attachedByHousing = new Map<string, CampaignHousingEventApi[]>();
 
       await runInBatches(pairs, async (chunk) => {
-        const [campaignRows, statusRows, attachedRows] = await Promise.all([
-          kysely
-            .selectFrom('campaignsHousing')
-            .innerJoin(
-              'campaigns',
-              'campaigns.id',
-              'campaignsHousing.campaignId'
-            )
-            .where((eb) =>
-              eb(
-                eb.refTuple(
-                  'campaignsHousing.housingGeoCode',
-                  'campaignsHousing.housingId'
-                ),
-                'in',
-                chunk.map(([geoCode, id]) => eb.tuple(geoCode, id))
-              )
-            )
-            .select([
-              'campaignsHousing.housingGeoCode as housingGeoCode',
-              'campaignsHousing.housingId as housingId',
-              'campaigns.id as campaignId',
-              'campaigns.sentAt as sentAt'
-            ])
-            .execute(),
-          kysely
-            .selectFrom('housingEvents')
-            .innerJoin('events', 'events.id', 'housingEvents.eventId')
-            .where('events.type', '=', 'housing:status-updated')
-            .where((eb) =>
-              eb(
-                eb.refTuple(
-                  'housingEvents.housingGeoCode',
-                  'housingEvents.housingId'
-                ),
-                'in',
-                chunk.map(([geoCode, id]) => eb.tuple(geoCode, id))
-              )
-            )
-            .orderBy('events.createdAt', 'desc')
-            .select([
-              'housingEvents.housingGeoCode as housingGeoCode',
-              'housingEvents.housingId as housingId',
-              'events.id as id',
-              'events.nextOld as nextOld',
-              'events.nextNew as nextNew',
-              'events.createdAt as createdAt',
-              'events.createdBy as createdBy'
-            ])
-            .execute(),
+        const [campaignRows, statusEvents, attachedRows] = await Promise.all([
+          queryCampaignSentAtByHousing(kysely, chunk),
+          findLatestStatusUpdatedEvents(kysely, chunk),
           kysely
             .selectFrom('campaignHousingEvents')
             .innerJoin('events', 'events.id', 'campaignHousingEvents.eventId')
@@ -188,19 +185,19 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
           campaignsByHousing.set(k, list);
         }
 
-        for (const row of statusRows) {
-          const k = `${row.housingGeoCode}:${row.housingId}`;
-          // Rows are DESC by createdAt, so the first seen per housing is latest.
-          if (!statusEventByHousing.has(k)) {
+        for (const [geoCode, id] of chunk) {
+          const k = `${geoCode}:${id}`;
+          const event = statusEvents.get(k);
+          if (event) {
             statusEventByHousing.set(k, {
-              id: row.id,
+              id: event.id,
               type: 'housing:status-updated',
-              nextOld: row.nextOld,
-              nextNew: row.nextNew,
-              createdAt: fromDateDBO(row.createdAt),
-              createdBy: row.createdBy,
-              housingGeoCode: row.housingGeoCode,
-              housingId: row.housingId
+              nextOld: event.nextOld,
+              nextNew: event.nextNew,
+              createdAt: fromDateDBO(event.createdAt),
+              createdBy: event.createdBy,
+              housingGeoCode: geoCode,
+              housingId: id
             } as HousingEventApi);
           }
         }
@@ -306,50 +303,51 @@ export const campaignSendingDateRepair: Repair<HousingWithContext> = {
 
   // The generic `expect` (status/subStatus) can't express "no sibling campaign
   // has since reached its sending date" — the full-revert branch's real
-  // precondition. Between `plan` and the manually-run `apply`, the mere passage
-  // of time can turn a not-yet-sent sibling into a sent one, which would make
-  // reverting the housing wrong (a genuinely sent campaign must keep it
-  // WAITING). Re-derive `hasSentCampaign` live for full-revert rows only
-  // (`update` is set); re-author rows have the opposite precondition and are
-  // left to the residual gap already documented for that branch.
-  async revalidate(planRows: PlanRow[]): Promise<Set<string>> {
-    const revertRows = planRows.filter((row) => row.update !== undefined);
+  // precondition, and the re-author branch's exact opposite ("some sibling
+  // still has"). Between `plan` and the manually-run `apply`, the mere passage
+  // of time — or a caseworker postponing a campaign — can flip either
+  // precondition, which would make the planned action wrong (see `decide`'s
+  // two branches). Re-derive `hasSentCampaign` live for every row and check it
+  // against whichever precondition that row's branch requires. Runs inside
+  // apply()'s own transaction and takes the `campaigns` rows under a row lock
+  // (`forUpdate`), so the lock persists until that transaction commits and no
+  // concurrent sentAt change to those exact campaigns can land in between —
+  // the same guarantee the generic `expect` re-check gives `fast_housing`.
+  async revalidate(
+    planRows: PlanRow[],
+    trx: Transaction<DB>
+  ): Promise<Set<string>> {
     const stale = new Set<string>();
-    if (revertRows.length === 0) {
+    if (planRows.length === 0) {
       return stale;
     }
 
     const now = today();
-    const pairs = revertRows.map(
+    const hasSentCampaign = new Set<string>();
+    const pairs = planRows.map(
       (row) => [row.housingGeoCode, row.housingId] as [string, string]
     );
     await runInBatches(pairs, async (chunk) => {
-      const campaignRows = await kysely
-        .selectFrom('campaignsHousing')
-        .innerJoin('campaigns', 'campaigns.id', 'campaignsHousing.campaignId')
-        .where((eb) =>
-          eb(
-            eb.refTuple(
-              'campaignsHousing.housingGeoCode',
-              'campaignsHousing.housingId'
-            ),
-            'in',
-            chunk.map(([geoCode, id]) => eb.tuple(geoCode, id))
-          )
-        )
-        .select([
-          'campaignsHousing.housingGeoCode as housingGeoCode',
-          'campaignsHousing.housingId as housingId',
-          'campaigns.sentAt as sentAt'
-        ])
-        .execute();
+      const campaignRows = await queryCampaignSentAtByHousing(trx, chunk, {
+        forUpdate: true
+      });
       for (const row of campaignRows) {
         const sentAt = row.sentAt ? fromDateDBO(row.sentAt).slice(0, 10) : null;
         if (isSendDateReached(sentAt, now)) {
-          stale.add(`${row.housingGeoCode}:${row.housingId}`);
+          hasSentCampaign.add(`${row.housingGeoCode}:${row.housingId}`);
         }
       }
     });
+
+    for (const row of planRows) {
+      const k = `${row.housingGeoCode}:${row.housingId}`;
+      const sent = hasSentCampaign.has(k);
+      // Full-revert rows (`update` set) expect no sibling to have sent;
+      // re-author rows expect the opposite.
+      if (row.update !== undefined ? sent : !sent) {
+        stale.add(k);
+      }
+    }
 
     return stale;
   }

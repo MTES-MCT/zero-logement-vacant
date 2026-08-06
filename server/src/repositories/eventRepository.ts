@@ -2,6 +2,7 @@ import { EventPayloads, EventType } from '@zerologementvacant/models';
 import type {
   ExpressionBuilder,
   Insertable,
+  Kysely,
   Selectable,
   Transaction
 } from 'kysely';
@@ -118,6 +119,67 @@ async function insertManyHousingEvents(
   );
 }
 
+export interface LatestStatusUpdatedEventRow {
+  id: string;
+  nextOld: unknown;
+  nextNew: unknown;
+  createdAt: Date;
+  createdBy: string;
+}
+
+/**
+ * The latest `housing:status-updated` event for each housing in `chunk`,
+ * keyed by `${geoCode}:${id}`. Shared by the postpone-revert check
+ * (`campaign-housing-service.ts`) and the campaign-sending-date repair, which
+ * both need "is this housing's most recent status flip the pristine system
+ * auto-flip" — one query keeps their notion of "latest" from silently
+ * diverging. Callers own their own batching over the full housing list (their
+ * concurrency/locking needs differ), so this takes a single chunk.
+ */
+export async function findLatestStatusUpdatedEvents(
+  executor: Kysely<DB> | Transaction<DB>,
+  chunk: ReadonlyArray<[geoCode: string, id: string]>
+): Promise<Map<string, LatestStatusUpdatedEventRow>> {
+  const rows = await executor
+    .selectFrom('housingEvents')
+    .innerJoin('events', 'events.id', 'housingEvents.eventId')
+    .where('events.type', '=', 'housing:status-updated')
+    .where((eb) =>
+      eb(
+        eb.refTuple('housingEvents.housingGeoCode', 'housingEvents.housingId'),
+        'in',
+        chunk.map(([geoCode, id]) => eb.tuple(geoCode, id))
+      )
+    )
+    .orderBy('events.createdAt', 'desc')
+    .select([
+      'housingEvents.housingGeoCode as housingGeoCode',
+      'housingEvents.housingId as housingId',
+      'events.id as id',
+      'events.nextOld as nextOld',
+      'events.nextNew as nextNew',
+      'events.createdAt as createdAt',
+      'events.createdBy as createdBy'
+    ])
+    .execute();
+
+  const byHousing = new Map<string, LatestStatusUpdatedEventRow>();
+  for (const row of rows) {
+    const key = `${row.housingGeoCode}:${row.housingId}`;
+    // Rows are DESC by createdAt, so the first seen per housing is latest.
+    if (!byHousing.has(key)) {
+      byHousing.set(key, {
+        id: row.id,
+        nextOld: row.nextOld,
+        nextNew: row.nextNew,
+        createdAt: row.createdAt,
+        createdBy: row.createdBy
+      });
+    }
+  }
+  return byHousing;
+}
+
 export function toEventInsert<Type extends EventType>(
   event: EventApi<Type>
 ): Insertable<DB['events']> {
@@ -131,7 +193,7 @@ export function toEventInsert<Type extends EventType>(
   };
 }
 
-function toHousingEventInsert(
+export function toHousingEventInsert(
   event: HousingEventApi
 ): Insertable<DB['housingEvents']> {
   return {

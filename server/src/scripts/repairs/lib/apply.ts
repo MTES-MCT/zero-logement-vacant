@@ -2,22 +2,21 @@ import { stat } from 'node:fs/promises';
 import { Writable } from 'node:stream';
 
 import { compactUndefined } from '@zerologementvacant/utils';
+import type { Selectable, Transaction } from 'kysely';
 
-import db from '~/infra/database';
 import { runInBatches } from '~/infra/database/batch';
+import type { DB } from '~/infra/database/db';
+import { kysely } from '~/infra/database/kysely';
 import type { HousingEventApi } from '~/models/EventApi';
 import {
-  Events,
-  formatEventApi,
-  formatHousingEventApi,
-  HousingEvents
+  toEventInsert,
+  toHousingEventInsert
 } from '~/repositories/eventRepository';
-import { Housing, type HousingDBO } from '~/repositories/housingRepository';
 import {
-  disableHousingsTriggers,
-  enableHousingsTriggers,
-  ensureKnownHousingsTriggers,
-  recomputeHousingsCounts
+  disableHousingsTriggersKysely,
+  enableHousingsTriggersKysely,
+  ensureKnownHousingsTriggersKysely,
+  recomputeHousingsCountsKysely
 } from '~/scripts/import-lovac/infra/housings-counts-maintenance';
 
 import { readPlan } from './read-plan';
@@ -38,11 +37,14 @@ export interface ApplyOptions {
    * Extra apply-time staleness check for rows carrying an `expect` precondition,
    * for repairs whose real precondition cannot be expressed as a housing-column
    * `expect` (e.g. "no sibling campaign has since reached its sending date").
-   * Called once with every precondition row; return the
+   * Called once with every precondition row and the same transaction the
+   * housing lock above uses — take any row lock needed (e.g. `.forUpdate()`)
+   * via `trx` so it is held until this transaction commits, closing the same
+   * plan-to-apply drift window the housing `expect` re-check closes. Return the
    * `${housingGeoCode}:${housingId}` keys to additionally treat as stale
    * (skipped), on top of any generic `expect` mismatch.
    */
-  revalidate?(rows: PlanRow[]): Promise<Set<string>>;
+  revalidate?(rows: PlanRow[], trx: Transaction<DB>): Promise<Set<string>>;
 }
 
 export async function apply(
@@ -60,7 +62,7 @@ export async function apply(
   // Fail fast (before taking any lock) if a trigger we can't compensate for
   // appeared on the managed tables.
   if (bypassTriggers) {
-    await ensureKnownHousingsTriggers();
+    await ensureKnownHousingsTriggersKysely();
   }
 
   const summary: ApplySummary = {
@@ -75,20 +77,22 @@ export async function apply(
   // through apply exactly as before.
   const preconditions = await collectPreconditions(planFile);
 
-  // A repair is a reviewed, point-in-time operation. The writes below use the
-  // table accessors and pure formatters directly — never the repository
-  // *methods* — so a future change to a repository method (a new filter, a side
-  // effect, a different onConflict) cannot silently alter what an applied plan
-  // does. For the same reason the script owns its transaction with
-  // `db.transaction` rather than the app's AsyncLocalStorage helpers.
-  await db.transaction(async (transaction) => {
+  // A repair is a reviewed, point-in-time operation. The writes below query
+  // `fastHousing`/`events`/`housingEvents` directly with the Kysely query
+  // builder, using the pure `toEventInsert`/`toHousingEventInsert` formatters
+  // — never repository *methods* — so a future change to a repository method
+  // (a new filter, a side effect, a different onConflict) cannot silently
+  // alter what an applied plan does. For the same reason the script owns its
+  // transaction with `kysely.transaction()` rather than the app's
+  // AsyncLocalStorage-scoped `startKyselyTransaction`/`withinKyselyTransaction`.
+  await kysely.transaction().execute(async (trx) => {
     // Disabling the triggers *inside* the transaction is what makes an early
     // exit safe. `ALTER TABLE ... DISABLE TRIGGER` is transactional, so if the
     // process is interrupted (Ctrl-C / SIGINT, SIGTERM, even SIGKILL, a crash
     // or the DB connection dropping) the whole transaction — including the
     // disable — rolls back and the triggers are never left off.
     if (bypassTriggers) {
-      await disableHousingsTriggers(transaction);
+      await disableHousingsTriggersKysely(trx);
     }
 
     // Re-validate the state preconditions under a row lock before writing. The
@@ -101,22 +105,27 @@ export async function apply(
     await runInBatches(
       preconditions,
       async (chunk) => {
-        const current = await Housing(transaction)
-          .whereIn(
-            ['geo_code', 'id'],
-            chunk.map((row) => [row.housingGeoCode, row.housingId])
+        const current = await trx
+          .selectFrom('fastHousing')
+          .where((eb) =>
+            eb(
+              eb.refTuple('geoCode', 'id'),
+              'in',
+              chunk.map((row) => eb.tuple(row.housingGeoCode, row.housingId))
+            )
           )
           .forUpdate()
-          .select(
-            'geo_code',
+          .select([
+            'geoCode',
             'id',
             'status',
-            'sub_status',
+            'subStatus',
             'occupancy',
-            'occupancy_intended'
-          );
+            'occupancyIntended'
+          ])
+          .execute();
         const currentByKey = new Map<string, HousingStateRow>(
-          current.map((row) => [`${row.geo_code}:${row.id}`, row])
+          current.map((row) => [`${row.geoCode}:${row.id}`, row])
         );
         for (const row of chunk) {
           const key = `${row.housingGeoCode}:${row.housingId}`;
@@ -133,7 +142,7 @@ export async function apply(
     // (e.g. "no sibling campaign has since sent"), re-checked against live data
     // for the same reason: the plan is a point-in-time snapshot.
     if (options.revalidate && preconditions.length > 0) {
-      const extraStaleKeys = await options.revalidate(preconditions);
+      const extraStaleKeys = await options.revalidate(preconditions, trx);
       for (const key of extraStaleKeys) {
         staleKeys.add(key);
       }
@@ -162,44 +171,58 @@ export async function apply(
       while (updateBuffer.length > 0) {
         const chunk = updateBuffer.splice(0, CHUNK_SIZE);
         // Tuple WHERE on the (geo_code, id) primary key — PostgreSQL prunes it
-        // to the touched partitions. `.update()` returns the rows it actually
-        // matched, which may be fewer than planned (a housing deleted between
-        // plan and apply), so count that.
-        summary.updated += await Housing(transaction)
-          .whereIn(
-            ['geo_code', 'id'],
-            chunk.map((row) => [row.housingGeoCode, row.housingId])
+        // to the touched partitions. `.returning()` yields only the rows
+        // actually matched, which may be fewer than planned (a housing
+        // deleted between plan and apply), so count that.
+        const updated = await trx
+          .updateTable('fastHousing')
+          .where((eb) =>
+            eb(
+              eb.refTuple('geoCode', 'id'),
+              'in',
+              chunk.map((row) => eb.tuple(row.housingGeoCode, row.housingId))
+            )
           )
-          .update(fields);
+          .set(fields)
+          .returning(['geoCode', 'id'])
+          .execute();
+        summary.updated += updated.length;
       }
     };
 
     const flushDeletes = async () => {
       while (deleteBuffer.length > 0) {
         const chunk = deleteBuffer.splice(0, CHUNK_SIZE);
-        await HousingEvents(transaction).whereIn('event_id', chunk).delete();
+        await trx
+          .deleteFrom('housingEvents')
+          .where('eventId', 'in', chunk)
+          .execute();
         // Count rows the DB actually removed, not the ids requested.
-        summary.eventsDeleted += await Events(transaction)
-          .whereIn('id', chunk)
-          .delete();
+        const deleted = await trx
+          .deleteFrom('events')
+          .where('id', 'in', chunk)
+          .executeTakeFirstOrThrow();
+        summary.eventsDeleted += Number(deleted.numDeletedRows);
       }
     };
 
     const flushCreates = async () => {
       while (createBuffer.length > 0) {
         const chunk = createBuffer.splice(0, CHUNK_SIZE);
-        // onConflict(...).ignore() skips events that already exist, so RETURNING
-        // yields only the rows actually inserted — count those, so a re-applied
-        // plan reports 0 instead of overstating.
-        const inserted = await Events(transaction)
-          .insert(chunk.map(formatEventApi))
-          .onConflict('id')
-          .ignore()
-          .returning('id');
-        await HousingEvents(transaction)
-          .insert(chunk.map(formatHousingEventApi))
-          .onConflict('event_id')
-          .ignore();
+        // onConflict(...).doNothing() skips events that already exist, so
+        // RETURNING yields only the rows actually inserted — count those, so
+        // a re-applied plan reports 0 instead of overstating.
+        const inserted = await trx
+          .insertInto('events')
+          .values(chunk.map(toEventInsert))
+          .onConflict((oc) => oc.column('id').doNothing())
+          .returning('id')
+          .execute();
+        await trx
+          .insertInto('housingEvents')
+          .values(chunk.map(toHousingEventInsert))
+          .onConflict((oc) => oc.column('eventId').doNothing())
+          .execute();
         summary.eventsCreated += inserted.length;
       }
     };
@@ -260,8 +283,8 @@ export async function apply(
     // Recompute the derived counts once, then re-enable before commit so the
     // committed catalog state has the triggers back on.
     if (bypassTriggers) {
-      await recomputeHousingsCounts(transaction);
-      await enableHousingsTriggers(transaction);
+      await recomputeHousingsCountsKysely(trx);
+      await enableHousingsTriggersKysely(trx);
     }
   });
 
@@ -269,7 +292,7 @@ export async function apply(
 }
 
 /**
- * Map the plan's API-shaped update to explicit `fast_housing` columns, dropping
+ * Map the plan's API-shaped update to explicit `fastHousing` columns, dropping
  * undefined so only the fields the plan set are written. Owned here rather than
  * delegated to `housingRepository.updateMany` so a repository change cannot
  * silently alter what a reviewed repair writes.
@@ -277,9 +300,9 @@ export async function apply(
 function toHousingColumns(update: NonNullable<PlanRow['update']>) {
   return compactUndefined({
     status: update.status,
-    sub_status: update.subStatus,
+    subStatus: update.subStatus,
     occupancy: update.occupancy,
-    occupancy_intended: update.occupancyIntended
+    occupancyIntended: update.occupancyIntended
   });
 }
 
@@ -310,19 +333,14 @@ async function collectPreconditions(planFile: string): Promise<Precondition[]> {
 }
 
 type HousingStateRow = Pick<
-  HousingDBO,
-  | 'geo_code'
-  | 'id'
-  | 'status'
-  | 'sub_status'
-  | 'occupancy'
-  | 'occupancy_intended'
+  Selectable<DB['fastHousing']>,
+  'geoCode' | 'id' | 'status' | 'subStatus' | 'occupancy' | 'occupancyIntended'
 >;
 
 /**
  * Whether the current housing still matches every column named in `expect`.
  * Only listed columns are compared, and `null` is a meaningful expected value
- * (e.g. "sub_status must still be null"), distinct from an omitted column.
+ * (e.g. "subStatus must still be null"), distinct from an omitted column.
  */
 function matchesExpect(
   current: HousingStateRow,
@@ -333,7 +351,7 @@ function matchesExpect(
   }
   if (
     expect.subStatus !== undefined &&
-    current.sub_status !== expect.subStatus
+    current.subStatus !== expect.subStatus
   ) {
     return false;
   }
@@ -345,7 +363,7 @@ function matchesExpect(
   }
   if (
     expect.occupancyIntended !== undefined &&
-    current.occupancy_intended !== expect.occupancyIntended
+    current.occupancyIntended !== expect.occupancyIntended
   ) {
     return false;
   }

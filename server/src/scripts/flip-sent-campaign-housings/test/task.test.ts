@@ -19,6 +19,19 @@ vi.mock('~/services/campaign-housing-service', async (importOriginal) => {
 
 import { flipCampaignHousingsToWaiting } from '~/services/campaign-housing-service';
 
+vi.mock('~/infra/database/kysely-transaction', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('~/infra/database/kysely-transaction')
+    >();
+  return {
+    ...actual,
+    startKyselyTransaction: vi.fn(actual.startKyselyTransaction)
+  };
+});
+
+import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
+
 import { flipSentCampaignHousings } from '../task';
 
 describe('flipSentCampaignHousings', () => {
@@ -27,6 +40,9 @@ describe('flipSentCampaignHousings', () => {
   const today = '2026-07-15';
   const realFlipCampaignHousingsToWaiting = vi
     .mocked(flipCampaignHousingsToWaiting)
+    .getMockImplementation()!;
+  const realStartKyselyTransaction = vi
+    .mocked(startKyselyTransaction)
     .getMockImplementation()!;
 
   beforeAll(async () => {
@@ -37,6 +53,9 @@ describe('flipSentCampaignHousings', () => {
   afterEach(() => {
     vi.mocked(flipCampaignHousingsToWaiting).mockImplementation(
       realFlipCampaignHousingsToWaiting
+    );
+    vi.mocked(startKyselyTransaction).mockImplementation(
+      realStartKyselyTransaction
     );
   });
 
@@ -136,5 +155,49 @@ describe('flipSentCampaignHousings', () => {
       .where('id', '=', healthyHousing.id)
       .executeTakeFirst();
     expect(healthyRow?.status).toBe(HousingStatus.WAITING);
+  });
+
+  it('does not count a campaign toward the housings summary when its transaction call reports failure', async () => {
+    // Drain any campaign left un-settled by an earlier test in this file
+    // (e.g. the deliberately-failing one above) so it can't pollute the count.
+    await flipSentCampaignHousings({ today });
+    await seedCampaign('2020-01-01');
+    vi.mocked(startKyselyTransaction).mockImplementationOnce(async (cb) => {
+      await realStartKyselyTransaction(cb);
+      throw new Error('commit failed');
+    });
+
+    const summary = await flipSentCampaignHousings({ today });
+
+    expect(summary.failed).toBe(1);
+    expect(summary.housings).toBe(0);
+  });
+
+  it('processes multiple due campaigns concurrently instead of one at a time', async () => {
+    // Drain any campaign left un-settled by an earlier test in this file so
+    // it can't add its own call to the overlap count below.
+    await flipSentCampaignHousings({ today });
+    await seedCampaign('2020-01-01');
+    await seedCampaign('2020-01-01');
+    await seedCampaign('2020-01-01');
+    // Count concurrently in-flight calls instead of measuring wall-clock time:
+    // a real elapsed-time budget is flaky under parallel test-suite load,
+    // while "more than one call overlapped" is a direct, machine-independent
+    // observation of concurrency.
+    let inFlight = 0;
+    let maxInFlight = 0;
+    vi.mocked(flipCampaignHousingsToWaiting).mockImplementation(
+      async (campaign, system) => {
+        inFlight++;
+        maxInFlight = Math.max(maxInFlight, inFlight);
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        inFlight--;
+        return realFlipCampaignHousingsToWaiting(campaign, system);
+      }
+    );
+
+    await flipSentCampaignHousings({ today });
+
+    expect(maxInFlight).toBeGreaterThan(1);
   });
 });

@@ -1,3 +1,6 @@
+import type { Transaction } from 'kysely';
+
+import type { DB } from '~/infra/database/db';
 import type { HousingEventApi } from '~/models/EventApi';
 import type { HousingApi } from '~/models/HousingApi';
 
@@ -26,9 +29,11 @@ export interface Repair<H extends HousingApi = HousingApi> {
    * Extra apply-time staleness check for rows carrying an `expect` precondition,
    * for repairs whose real precondition cannot be expressed as a housing-column
    * `expect` (e.g. "no sibling campaign has since reached its sending date").
+   * Runs inside apply()'s own transaction — take any row lock needed (e.g.
+   * `.forUpdate()`) via `trx` so it is held until that transaction commits.
    * See {@link ApplyOptions.revalidate} in `lib/apply.ts`.
    */
-  revalidate?(rows: PlanRow[]): Promise<Set<string>>;
+  revalidate?(rows: PlanRow[], trx: Transaction<DB>): Promise<Set<string>>;
 }
 
 export interface RepairAction {

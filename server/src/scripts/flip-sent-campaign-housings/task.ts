@@ -1,4 +1,5 @@
 import { HousingStatus } from '@zerologementvacant/models';
+import pMap from 'p-map';
 
 import { fromDateDBO } from '~/infra/database';
 import { kysely } from '~/infra/database/kysely';
@@ -11,6 +12,12 @@ import {
 } from '~/services/campaign-housing-service';
 
 const logger = createLogger('flip-sent-campaign-housings');
+
+// Each campaign flips in its own transaction/connection; a modest concurrency
+// bound lets independent campaigns overlap instead of queuing behind each
+// other one at a time, without saturating the pg pool this cron shares with
+// nothing else.
+const FLIP_CONCURRENCY = 5;
 
 export interface FlipSentCampaignHousingsOptions {
   /** Current calendar date as `yyyy-MM-dd`. */
@@ -64,19 +71,28 @@ export async function flipSentCampaignHousings(
   let failed = 0;
   if (campaignIds.length > 0) {
     const system = await resolveSystemUser();
-    for (const id of campaignIds) {
-      try {
-        await startKyselyTransaction(async () => {
-          housings += await flipCampaignHousingsToWaiting({ id }, system);
-        });
-      } catch (error) {
-        failed += 1;
-        logger.error('Failed to flip campaign housings to WAITING', {
-          campaign: id,
-          error
-        });
-      }
-    }
+    const flipped = await pMap(
+      campaignIds,
+      async (id) => {
+        try {
+          // Only counted once this resolves, i.e. after the transaction has
+          // committed — a commit failure must not credit housings that were
+          // rolled back.
+          return await startKyselyTransaction(() =>
+            flipCampaignHousingsToWaiting({ id }, system)
+          );
+        } catch (error) {
+          failed += 1;
+          logger.error('Failed to flip campaign housings to WAITING', {
+            campaign: id,
+            error
+          });
+          return 0;
+        }
+      },
+      { concurrency: FLIP_CONCURRENCY }
+    );
+    housings = flipped.reduce((sum, count) => sum + count, 0);
   }
 
   logger.info('Settled sent-campaign housings', {

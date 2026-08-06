@@ -14,7 +14,10 @@ import { isSendDateReached } from '~/models/CampaignApi';
 import type { HousingEventApi } from '~/models/EventApi';
 import type { HousingApi, HousingId } from '~/models/HousingApi';
 import type { UserApi } from '~/models/UserApi';
-import eventRepository from '~/repositories/eventRepository';
+import eventRepository, {
+  findLatestStatusUpdatedEvents,
+  type LatestStatusUpdatedEventRow
+} from '~/repositories/eventRepository';
 import housingRepository from '~/repositories/housingRepository';
 import userRepository from '~/repositories/userRepository';
 
@@ -217,48 +220,11 @@ async function selectUntouchedAutoFlips(
     const pairs = waiting.map(
       (housing) => [housing.geoCode, housing.id] as [string, string]
     );
-    const latestEventByHousing = new Map<
-      string,
-      {
-        nextOld: { status?: string } | null;
-        nextNew: { status?: string } | null;
-        createdBy: string;
-      }
-    >();
+    const latestEventByHousing = new Map<string, LatestStatusUpdatedEventRow>();
     await runInBatches(pairs, async (chunk) => {
-      const rows = await trx
-        .selectFrom('housingEvents')
-        .innerJoin('events', 'events.id', 'housingEvents.eventId')
-        .select([
-          'housingEvents.housingGeoCode as housingGeoCode',
-          'housingEvents.housingId as housingId',
-          'events.nextOld as nextOld',
-          'events.nextNew as nextNew',
-          'events.createdBy as createdBy'
-        ])
-        .where('events.type', '=', 'housing:status-updated')
-        .where((eb) =>
-          eb(
-            eb.refTuple(
-              'housingEvents.housingGeoCode',
-              'housingEvents.housingId'
-            ),
-            'in',
-            chunk.map(([geoCode, id]) => eb.tuple(geoCode, id))
-          )
-        )
-        .orderBy('events.createdAt', 'desc')
-        .execute();
-      for (const row of rows) {
-        const key = `${row.housingGeoCode}:${row.housingId}`;
-        // Rows are DESC by createdAt, so the first seen per housing is latest.
-        if (!latestEventByHousing.has(key)) {
-          latestEventByHousing.set(key, {
-            nextOld: row.nextOld as { status?: string } | null,
-            nextNew: row.nextNew as { status?: string } | null,
-            createdBy: row.createdBy
-          });
-        }
+      const chunkEvents = await findLatestStatusUpdatedEvents(trx, chunk);
+      for (const [key, event] of chunkEvents) {
+        latestEventByHousing.set(key, event);
       }
     });
 
@@ -273,12 +239,13 @@ async function selectUntouchedAutoFlips(
       const event = latestEventByHousing.get(
         `${housing.geoCode}:${housing.id}`
       );
+      const nextOld = event?.nextOld as { status?: string } | null;
+      const nextNew = event?.nextNew as { status?: string } | null;
       return (
         !!event &&
-        event.nextOld?.status ===
+        nextOld?.status ===
           HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED] &&
-        event.nextNew?.status ===
-          HOUSING_STATUS_LABELS[HousingStatus.WAITING] &&
+        nextNew?.status === HOUSING_STATUS_LABELS[HousingStatus.WAITING] &&
         event.createdBy === system.id
       );
     });

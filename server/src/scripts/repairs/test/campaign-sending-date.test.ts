@@ -8,6 +8,7 @@ import {
 import { describe, expect, it } from 'vitest';
 
 import config from '~/infra/config';
+import { kysely } from '~/infra/database/kysely';
 import type {
   CampaignHousingEventApi,
   HousingEventApi
@@ -48,6 +49,7 @@ import {
   campaignSendingDateRepair,
   type HousingWithContext
 } from '../campaign-sending-date';
+import type { PlanRow } from '../lib/types';
 
 const TODAY = '2026-07-15';
 const STATUS_EVENT_TIME = '2026-01-01T10:00:00.000Z';
@@ -314,6 +316,16 @@ describe('campaignSendingDateRepair.query (integration)', () => {
 });
 
 describe('campaignSendingDateRepair.revalidate (integration)', () => {
+  // revalidate() reads `campaigns` under a row lock via the transaction
+  // apply() passes it — exercise it through a real Kysely transaction rather
+  // than stubbing `trx`, so a regression back to the unlocked module-level
+  // `kysely` connection would still show up as a type error.
+  function runRevalidate(rows: PlanRow[]): Promise<Set<string>> {
+    return kysely
+      .transaction()
+      .execute((trx) => campaignSendingDateRepair.revalidate!(rows, trx));
+  }
+
   it('flags a full-revert row as stale once a sibling campaign has since sent', async () => {
     const establishment = genEstablishmentApi();
     const user = genUserApi(establishment.id);
@@ -339,7 +351,7 @@ describe('campaignSendingDateRepair.revalidate (integration)', () => {
       housing_geo_code: housing.geoCode
     });
 
-    const stale = await campaignSendingDateRepair.revalidate!([
+    const stale = await runRevalidate([
       {
         housingId: housing.id,
         housingGeoCode: housing.geoCode,
@@ -370,7 +382,7 @@ describe('campaignSendingDateRepair.revalidate (integration)', () => {
       housing_geo_code: housing.geoCode
     });
 
-    const stale = await campaignSendingDateRepair.revalidate!([
+    const stale = await runRevalidate([
       {
         housingId: housing.id,
         housingGeoCode: housing.geoCode,
@@ -381,7 +393,70 @@ describe('campaignSendingDateRepair.revalidate (integration)', () => {
     expect(stale.size).toBe(0);
   });
 
-  it('ignores re-author rows (no `update`), whose precondition is the opposite', async () => {
+  it('flags a re-author row as stale once its previously-sent sibling is no longer sent', async () => {
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(toUserDBO(user));
+
+    const housing = {
+      ...genHousingApi(),
+      status: HousingStatus.WAITING,
+      subStatus: null
+    };
+    // Sent when the plan re-authored the flip to the system account, but
+    // postponed to the future by the time apply() runs.
+    const sibling = {
+      ...genCampaignApi(establishment.id, user),
+      sentAt: '2099-01-01'
+    };
+    await Housing().insert(formatHousingRecordApi(housing));
+    await Campaigns().insert(formatCampaignApi(sibling));
+    await CampaignsHousing().insert({
+      campaign_id: sibling.id,
+      housing_id: housing.id,
+      housing_geo_code: housing.geoCode
+    });
+
+    // No `update` key: the re-author branch's plan-row shape.
+    const stale = await runRevalidate([
+      { housingId: housing.id, housingGeoCode: housing.geoCode }
+    ]);
+
+    expect(stale).toEqual(new Set([`${housing.geoCode}:${housing.id}`]));
+  });
+
+  it('does not flag a re-author row while its sibling is still sent', async () => {
+    const establishment = genEstablishmentApi();
+    const user = genUserApi(establishment.id);
+    await Establishments().insert(formatEstablishmentApi(establishment));
+    await Users().insert(toUserDBO(user));
+
+    const housing = {
+      ...genHousingApi(),
+      status: HousingStatus.WAITING,
+      subStatus: null
+    };
+    const sibling = {
+      ...genCampaignApi(establishment.id, user),
+      sentAt: '2020-01-01'
+    };
+    await Housing().insert(formatHousingRecordApi(housing));
+    await Campaigns().insert(formatCampaignApi(sibling));
+    await CampaignsHousing().insert({
+      campaign_id: sibling.id,
+      housing_id: housing.id,
+      housing_geo_code: housing.geoCode
+    });
+
+    const stale = await runRevalidate([
+      { housingId: housing.id, housingGeoCode: housing.geoCode }
+    ]);
+
+    expect(stale.size).toBe(0);
+  });
+
+  it('flags a re-author row as stale when it has no sibling campaign at all', async () => {
     const housing = {
       ...genHousingApi(),
       status: HousingStatus.WAITING,
@@ -389,10 +464,10 @@ describe('campaignSendingDateRepair.revalidate (integration)', () => {
     };
     await Housing().insert(formatHousingRecordApi(housing));
 
-    const stale = await campaignSendingDateRepair.revalidate!([
+    const stale = await runRevalidate([
       { housingId: housing.id, housingGeoCode: housing.geoCode }
     ]);
 
-    expect(stale.size).toBe(0);
+    expect(stale).toEqual(new Set([`${housing.geoCode}:${housing.id}`]));
   });
 });

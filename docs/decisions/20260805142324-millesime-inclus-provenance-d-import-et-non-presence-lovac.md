@@ -24,11 +24,11 @@ L'investigation a reproduit les deux côtés sur l'entrepôt, d'abord sur la Ré
 Grand Est puis sur l'ensemble du territoire, et montre que le signalement agrège
 **trois causes indépendantes**, dont une seule est un bug au sens attendu.
 
-| Cause | Millésimes | Ampleur nationale |
-| --- | --- | --- |
-| 1. Seuil du critère public régressé | 2025 | **+109 689 (+8,8 %)** |
-| 2. Sémantique de `data_file_years` | 2019-2021 surtout | −597 160 absents, −95 689 non tagués |
-| 3. Comptage à la maille du local et non du logement | 2019-2025 | +0,04 % à +0,25 % |
+| Cause                                               | Millésimes        | Ampleur nationale                    |
+| --------------------------------------------------- | ----------------- | ------------------------------------ |
+| 1. Seuil du critère public régressé                 | 2025              | **+109 689 (+8,8 %)**                |
+| 2. Sémantique de `data_file_years`                  | 2019-2021 surtout | −597 160 absents, −95 689 non tagués |
+| 3. Comptage à la maille du local et non du logement | 2019-2025         | +0,04 % à +0,25 %                    |
 
 Une quatrième cause avait été soupçonnée — des logements vacants présents en base
 mais non tagués, indépendamment de la cause 2 — puis écartée par la
@@ -61,16 +61,16 @@ détecter.
 La vérification nationale sur le mart déployé confirme le diagnostic et en donne
 l'ampleur réelle :
 
-| Millésime | Vacance FIL | Vacance FIL+CCTHP | Chiffre public déployé | Parc ZLV importé |
-| --- | --- | --- | --- | --- |
-| 2019 | 1 362 661 | 1 122 921 | 1 122 921 | 823 329 |
-| 2020 | 1 420 296 | 1 114 492 | 1 114 492 | 886 147 |
-| 2021 | 1 341 820 | 1 167 654 | 1 167 654 | 997 836 |
-| 2022 | 1 303 733 | 1 139 834 | 1 139 834 | 1 137 053 |
-| 2023 | 1 286 731 | 1 130 129 | 1 130 129 | 1 112 691 |
-| 2024 | 1 324 987 | 1 154 533 | 1 154 533 | 1 150 543 |
-| 2025 | **1 349 505** | 1 239 816 | **1 239 816** | **1 348 382** |
-| 2026 | 1 179 845 | 1 148 767 | 1 179 845 | 1 179 845 |
+| Millésime | Vacance FIL   | Vacance FIL+CCTHP | Chiffre public déployé | Parc ZLV importé |
+| --------- | ------------- | ----------------- | ---------------------- | ---------------- |
+| 2019      | 1 362 661     | 1 122 921         | 1 122 921              | 823 329          |
+| 2020      | 1 420 296     | 1 114 492         | 1 114 492              | 886 147          |
+| 2021      | 1 341 820     | 1 167 654         | 1 167 654              | 997 836          |
+| 2022      | 1 303 733     | 1 139 834         | 1 139 834              | 1 137 053        |
+| 2023      | 1 286 731     | 1 130 129         | 1 130 129              | 1 112 691        |
+| 2024      | 1 324 987     | 1 154 533         | 1 154 533              | 1 150 543        |
+| 2025      | **1 349 505** | 1 239 816         | **1 239 816**          | **1 348 382**    |
+| 2026      | 1 179 845     | 1 148 767         | 1 179 845              | 1 179 845        |
 
 2026 est le seul millésime où le chiffre public diffère de la vacance FIL+CCTHP :
 le seuil est donc décalé d'exactement une année. Pour 2025, le parc importé
@@ -96,16 +96,16 @@ logement tagué `lovac-2019` ne sort du périmètre Grand Est côté application
 La même décomposition à l'échelle nationale, par millésime, sur le Stock LOVAC
 dédoublonné :
 
-| Millésime | Stock LOVAC | Absents | Non tagués | dont vacants | Tagués |
-| --- | --- | --- | --- | --- | --- |
-| 2019 | 1 121 374 | 263 232 | 34 723 | 27 282 | 823 329 |
-| 2020 | 1 112 854 | 198 710 | 27 941 | 21 865 | 886 147 |
-| 2021 | 1 166 256 | 135 218 | 33 025 | 21 880 | 997 836 |
-| 2022 | 1 138 464 | 943 | 382 | 136 | 1 137 053 |
-| 2023 | 1 128 680 | 4 305 | 11 520 | 6 812 | 1 112 691 |
-| 2024 | 1 152 192 | 526 | 847 | 413 | 1 150 543 |
-| 2025 | 1 348 679 | 93 | 179 | 59 | 1 348 382 |
-| 2026 | 1 179 845 | **0** | **0** | 0 | 1 179 845 |
+| Millésime | Stock LOVAC | Absents | Non tagués | dont vacants | Tagués    |
+| --------- | ----------- | ------- | ---------- | ------------ | --------- |
+| 2019      | 1 121 374   | 263 232 | 34 723     | 27 282       | 823 329   |
+| 2020      | 1 112 854   | 198 710 | 27 941     | 21 865       | 886 147   |
+| 2021      | 1 166 256   | 135 218 | 33 025     | 21 880       | 997 836   |
+| 2022      | 1 138 464   | 943     | 382        | 136          | 1 137 053 |
+| 2023      | 1 128 680   | 4 305   | 11 520     | 6 812        | 1 112 691 |
+| 2024      | 1 152 192   | 526     | 847        | 413          | 1 150 543 |
+| 2025      | 1 348 679   | 93      | 179        | 59           | 1 348 382 |
+| 2026      | 1 179 845   | **0**   | **0**      | 0            | 1 179 845 |
 
 Deux enseignements. D'une part le déficit est massif et concentré sur 2019-2021
 (597 160 absents à eux trois), puis résiduel ensuite : ZLV ne couvrait alors pas
@@ -139,16 +139,16 @@ Les métriques `count_vacant_housing*` sont des `SUM(CASE …)` sur les lignes d
 fichiers, alors que la production porte une ligne par identifiant local. Or les
 identifiants locaux sont dupliqués dans tous les millésimes sauf 2026 :
 
-| Millésime | Lignes | Identifiants distincts | Taux de doublon |
-| --- | --- | --- | --- |
-| 2019 | 7 835 698 | 7 816 210 | 0,25 % |
-| 2020 | 8 030 465 | 8 010 468 | 0,25 % |
-| 2021 | 8 216 462 | 8 202 258 | 0,17 % |
-| 2022 | 10 225 516 | 10 211 769 | 0,13 % |
-| 2023 | 10 794 422 | 10 780 341 | 0,13 % |
-| 2024 | 12 047 294 | 12 030 509 | 0,14 % |
-| 2025 | 7 124 015 | 7 121 120 | 0,04 % |
-| 2026 | 8 600 273 | 8 600 273 | 0,00 % |
+| Millésime | Lignes     | Identifiants distincts | Taux de doublon |
+| --------- | ---------- | ---------------------- | --------------- |
+| 2019      | 7 835 698  | 7 816 210              | 0,25 %          |
+| 2020      | 8 030 465  | 8 010 468              | 0,25 %          |
+| 2021      | 8 216 462  | 8 202 258              | 0,17 %          |
+| 2022      | 10 225 516 | 10 211 769             | 0,13 %          |
+| 2023      | 10 794 422 | 10 780 341             | 0,13 %          |
+| 2024      | 12 047 294 | 12 030 509             | 0,14 %          |
+| 2025      | 7 124 015  | 7 121 120              | 0,04 %          |
+| 2026      | 8 600 273  | 8 600 273              | 0,00 %          |
 
 Ces métriques comptent donc des locaux en se nommant logements. Le choix de la
 ligne conservée n'est pas cosmétique : sur les 8 917 groupes de doublons de 2024,
@@ -259,16 +259,16 @@ En conséquence :
 Effet mesuré sur le chiffre public national, en rejouant la nouvelle logique en
 lecture seule sur l'entrepôt :
 
-| Millésime | Avant | Après | Écart | Écart relatif |
-| --- | --- | --- | --- | --- |
-| 2019 | 1 122 921 | 1 121 374 | −1 547 | −0,14 % |
-| 2020 | 1 114 492 | 1 112 902 | −1 590 | −0,14 % |
-| 2021 | 1 167 654 | 1 166 256 | −1 398 | −0,12 % |
-| 2022 | 1 139 834 | 1 138 464 | −1 370 | −0,12 % |
-| 2023 | 1 130 129 | 1 128 680 | −1 449 | −0,13 % |
-| 2024 | 1 154 533 | 1 152 289 | −2 244 | −0,19 % |
-| 2025 | 1 239 816 | **1 348 679** | **+108 863** | **+8,78 %** |
-| 2026 | 1 179 845 | 1 179 845 | 0 | 0 % |
+| Millésime | Avant     | Après         | Écart        | Écart relatif |
+| --------- | --------- | ------------- | ------------ | ------------- |
+| 2019      | 1 122 921 | 1 121 374     | −1 547       | −0,14 %       |
+| 2020      | 1 114 492 | 1 112 902     | −1 590       | −0,14 %       |
+| 2021      | 1 167 654 | 1 166 256     | −1 398       | −0,12 %       |
+| 2022      | 1 139 834 | 1 138 464     | −1 370       | −0,12 %       |
+| 2023      | 1 130 129 | 1 128 680     | −1 449       | −0,13 %       |
+| 2024      | 1 154 533 | 1 152 289     | −2 244       | −0,19 %       |
+| 2025      | 1 239 816 | **1 348 679** | **+108 863** | **+8,78 %**   |
+| 2026      | 1 179 845 | 1 179 845     | 0            | 0 %           |
 
 Les millésimes 2019-2024 ne bougent que de la déduplication ; 2025 porte en plus
 la correction du critère ; 2026 ne bouge pas du tout, ce qui est le contrôle

@@ -40,7 +40,7 @@ describe('Validator middleware', () => {
       });
     });
 
-    it('should validate wrong input', async () => {
+    it('should return safe diagnostics for invalid input', async () => {
       const { body, status } = await request(app)
         .post(testRoute)
         .send({
@@ -50,7 +50,11 @@ describe('Validator middleware', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
       expect(body).toMatchObject({
-        name: 'ValidationError'
+        name: 'ValidationError',
+        diagnostic: {
+          path: 'body.geoCode',
+          type: 'length'
+        }
       });
     });
 

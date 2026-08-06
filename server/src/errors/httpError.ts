@@ -40,7 +40,8 @@ export abstract class HttpError extends Error implements HttpError {
       name: this.name,
       message: this.message,
       status: this.status,
-      data: this.data
+      data: this.data,
+      diagnostic: this.diagnostic
     };
   }
 }

@@ -13,17 +13,13 @@ import App from './App';
 import Notification from './components/Notification/Notification';
 import { store } from './store/store';
 import ThemeProvider from './theme';
-import config from './utils/config';
-import { initCrisp } from './utils/crisp';
 import { protectPasswordResetToken } from './utils/password-reset-token';
 import sentry from './utils/sentry';
+import { startTelemetryWhenSafe } from './utils/telemetry';
 
-const canStartTelemetry = protectPasswordResetToken();
+protectPasswordResetToken();
 registerPreloadErrorRecovery();
-if (canStartTelemetry) {
-  initCrisp();
-  sentry.init();
-}
+startTelemetryWhenSafe(window.location);
 
 startReactDsfr({
   defaultColorScheme: 'light',
@@ -34,13 +30,6 @@ declare module '@codegouvfr/react-dsfr/spa' {
   interface RegisterLink {
     Link: typeof Link;
   }
-}
-
-if (config.posthog.enabled && canStartTelemetry) {
-  posthog.init(config.posthog.apiKey, {
-    api_host: 'https://eu.i.posthog.com',
-    person_profiles: 'identified_only'
-  });
 }
 
 const container = document.getElementById('root');

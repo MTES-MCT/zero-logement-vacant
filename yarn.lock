@@ -2448,13 +2448,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@date-fns/tz@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "@date-fns/tz@npm:1.5.0"
-  checksum: 10c0/4ef25eedd55924938fa81b23b949a3425201597e2007f5323db54d50fc19283eca5e2a7963c3d82c99b3adf273e9ea9bc7adfd1c9076e15badd99c593a984ffa
-  languageName: node
-  linkType: hard
-
 "@dotenvx/dotenvx@npm:1.65.0":
   version: 1.65.0
   resolution: "@dotenvx/dotenvx@npm:1.65.0"
@@ -11988,7 +11981,6 @@ __metadata:
     "@aws-sdk/client-s3": "npm:3.1045.0"
     "@aws-sdk/s3-request-presigner": "npm:3.1045.0"
     "@commander-js/extra-typings": "npm:14.0.0"
-    "@date-fns/tz": "npm:^1.5.0"
     "@dotenvx/dotenvx": "npm:1.65.0"
     "@duckdb/node-api": "npm:^1.5.3-r.3"
     "@faker-js/faker": "npm:8.4.1"
@@ -12078,7 +12070,7 @@ __metadata:
     nock: "npm:14.0.15"
     nodemailer: "npm:9.0.1"
     otpauth: "npm:9.5.1"
-    p-map: "npm:^7.0.6"
+    p-map: "npm:7.0.6"
     p-memoize: "npm:8.0.0"
     p-retry: "npm:8.0.0"
     pg: "npm:8.20.0"
@@ -20453,17 +20445,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"p-map@npm:7.0.6":
+  version: 7.0.6
+  resolution: "p-map@npm:7.0.6"
+  checksum: 10c0/46e3b3c79b6179613161aa1a28c72cfe7155f27f1928afee1b2406858728f9dd4c29637bba25cef9b50517caacdcb71549f5ff228292524b0069b2310922b22e
+  languageName: node
+  linkType: hard
+
 "p-map@npm:^7.0.2":
   version: 7.0.4
   resolution: "p-map@npm:7.0.4"
   checksum: 10c0/a5030935d3cb2919d7e89454d1ce82141e6f9955413658b8c9403cfe379283770ed3048146b44cde168aa9e8c716505f196d5689db0ae3ce9a71521a2fef3abd
-  languageName: node
-  linkType: hard
-
-"p-map@npm:^7.0.6":
-  version: 7.0.6
-  resolution: "p-map@npm:7.0.6"
-  checksum: 10c0/46e3b3c79b6179613161aa1a28c72cfe7155f27f1928afee1b2406858728f9dd4c29637bba25cef9b50517caacdcb71549f5ff228292524b0069b2310922b22e
   languageName: node
   linkType: hard
 

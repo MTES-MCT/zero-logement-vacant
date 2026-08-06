@@ -1363,6 +1363,86 @@ describe('Campaign API', () => {
       expect(actual?.status).toBe(HousingStatus.NEVER_CONTACTED);
     });
 
+    it('does not revert auto-flipped housings when sentAt is moved to an earlier past date', async () => {
+      const system = (await userRepository.getByEmail(config.app.system))!;
+      const sentCampaign = await factories
+        .campaign(establishment)
+        .create(
+          { sentAt: '2020-06-01' },
+          { associations: { createdBy: user } }
+        );
+
+      const housing = await factories.housing.create({
+        geoCode: faker.helpers.arrayElement(establishment.geoCodes),
+        status: HousingStatus.WAITING,
+        subStatus: null
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: sentCampaign.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+      // Pristine system-authored auto-flip: the mark that this WAITING came from
+      // the send-date rule.
+      const flip: HousingEventApi = {
+        ...genEventApi({
+          type: 'housing:status-updated',
+          creator: system,
+          nextOld: {
+            status: HOUSING_STATUS_LABELS[HousingStatus.NEVER_CONTACTED]
+          },
+          nextNew: { status: HOUSING_STATUS_LABELS[HousingStatus.WAITING] }
+        }),
+        housingGeoCode: housing.geoCode,
+        housingId: housing.id
+      };
+      await kysely.insertInto('events').values(toEventInsert(flip)).execute();
+      await kysely
+        .insertInto('housingEvents')
+        .values({
+          eventId: flip.id,
+          housingGeoCode: housing.geoCode,
+          housingId: housing.id
+        })
+        .execute();
+
+      // Still in the past (and still reached), just earlier than the campaign's
+      // current sentAt — this is "the campaign was actually sent earlier than I
+      // first entered", not "it wasn't sent yet", so shouldRevert must not fire.
+      const payload: CampaignUpdatePayload = {
+        title: sentCampaign.title,
+        description: sentCampaign.description,
+        sentAt: '2015-01-01'
+      };
+      const { status } = await request(url)
+        .put(testRoute(sentCampaign.id))
+        .send(payload)
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      const actual = await kysely
+        .selectFrom('fastHousing')
+        .selectAll('fastHousing')
+        .where('geoCode', '=', housing.geoCode)
+        .where('id', '=', housing.id)
+        .executeTakeFirst();
+      expect(actual?.status).toBe(HousingStatus.WAITING);
+
+      const statusEvents = await kysely
+        .selectFrom('events')
+        .innerJoin('housingEvents', 'housingEvents.eventId', 'events.id')
+        .selectAll('events')
+        .where('events.type', '=', 'housing:status-updated')
+        .where('housingEvents.housingGeoCode', '=', housing.geoCode)
+        .where('housingEvents.housingId', '=', housing.id)
+        .execute();
+      expect(statusEvents).toHaveLength(1);
+      expect(statusEvents[0].id).toBe(flip.id);
+    });
+
     it('fails instead of silently skipping the flip when the system account cannot be resolved', async () => {
       // Point at a nonexistent account instead of soft-deleting the shared,
       // globally-seeded system user: that row is read by every parallel test

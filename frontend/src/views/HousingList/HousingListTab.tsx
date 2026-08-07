@@ -15,6 +15,7 @@ import HousingListEditionSideMenu, {
 import HousingList from '../../components/HousingList/HousingList';
 import SelectableListHeader from '../../components/SelectableListHeader/SelectableListHeader';
 import SelectableListHeaderActions from '../../components/SelectableListHeader/SelectableListHeaderActions';
+import { useActiveHousingCount } from '../../hooks/useActiveHousingCount';
 import { useSelection } from '../../hooks/useSelection';
 import type { SelectedHousing } from '../../models/Housing';
 import {
@@ -48,16 +49,23 @@ function HousingListTab(props: HousingListTabProps) {
   const [updating, setUpdating] = useState<SelectedHousing>();
   const [error, setError] = useState<string>();
 
-  const { data: housingCount } = useCountHousingQuery({
-    dataFileYearsIncluded: props.filters.dataFileYearsIncluded,
-    dataFileYearsExcluded: props.filters.dataFileYearsExcluded,
-    occupancies: props.filters.occupancies
-  });
-  const totalCount = housingCount?.housing;
+  const isAllTab = props.status === undefined;
 
-  const { data: filteredCount, isLoading: isCounting } = useCountHousingQuery(
+  // "Total parc" for the "… sur un total de N" comparison. It is only rendered
+  // on the "Tous" tab, so skip the request on the status-specific tabs.
+  const { data: parcCount } = useCountHousingQuery(
+    {
+      dataFileYearsIncluded: props.filters.dataFileYearsIncluded,
+      dataFileYearsExcluded: props.filters.dataFileYearsExcluded,
+      occupancies: props.filters.occupancies
+    },
+    { skip: !isAllTab }
+  );
+
+  const { data: filteredCount, isLoading: isCounting } = useActiveHousingCount(
     props.filters
   );
+  const totalCount = isAllTab ? parcCount?.housing : filteredCount?.housing;
 
   const { selectedCount, selected, setSelected, unselectAll } = useSelection(
     filteredCount?.housing,

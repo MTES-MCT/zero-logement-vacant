@@ -12,6 +12,7 @@ import { AuthenticatedRequest } from 'express-jwt';
 import { differenceBy, uniqBy } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
 
+import { resolveHousingGeoScope } from '~/controllers/housingGeoScope';
 import GroupMissingError from '~/errors/groupMissingError';
 import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
@@ -55,13 +56,15 @@ const create: RequestHandler<never, GroupDTO, GroupPayloadDTO, never> = async (
   request,
   response
 ): Promise<void> => {
-  const { body, establishment, user } = request as AuthenticatedRequest<
-    never,
-    GroupDTO,
-    GroupPayloadDTO,
-    never
-  >;
+  const { body, establishment, user, effectiveGeoCodes } =
+    request as AuthenticatedRequest<never, GroupDTO, GroupPayloadDTO, never>;
 
+  const localities = await resolveHousingGeoScope({
+    ownGeoCodes: effectiveGeoCodes ?? establishment.geoCodes,
+    isAdminOrVisitor: false,
+    intercommunalities: body.housing.filters?.intercommunalities,
+    localities: body.housing.filters?.localities
+  });
   // Keep the housing list that are in the same establishment as the group
   const housings =
     body.housing.all !== undefined
@@ -69,7 +72,8 @@ const create: RequestHandler<never, GroupDTO, GroupPayloadDTO, never> = async (
           .find({
             filters: {
               ...body.housing.filters,
-              establishmentIds: [establishment.id]
+              establishmentIds: [establishment.id],
+              localities
             },
             includes: ['owner'],
             pagination: { paginate: false }
@@ -184,7 +188,7 @@ const update: RequestHandler<
     title: body.title,
     description: body.description
   };
-  await groupRepository.save(updatedGroup, housingList);
+  await groupRepository.save(updatedGroup, [...housingList]);
 
   response.status(constants.HTTP_STATUS_OK).json(toGroupDTO(updatedGroup));
 };
@@ -195,7 +199,7 @@ const addHousing: RequestHandler<
   GroupAddHousingPayload,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, effectiveGeoCodes, params } =
+  const { auth, body, establishment, effectiveGeoCodes, params } =
     request as AuthenticatedRequest<
       { id: GroupDTO['id'] },
       GroupDTO,
@@ -212,13 +216,20 @@ const addHousing: RequestHandler<
     throw new GroupMissingError(params.id);
   }
 
+  const localities = await resolveHousingGeoScope({
+    ownGeoCodes: effectiveGeoCodes ?? establishment.geoCodes,
+    isAdminOrVisitor: false,
+    intercommunalities: body.filters?.intercommunalities,
+    localities: body.filters?.localities
+  });
   // Keep the housing list that are in the same establishment as the group
   const [addingHousingList, existingHousingList] = await Promise.all([
     housingRepository
       .find({
         filters: {
           ...body.filters,
-          establishmentIds: [auth.establishmentId]
+          establishmentIds: [auth.establishmentId],
+          localities
         },
         includes: ['owner'],
         pagination: { paginate: false }
@@ -281,7 +292,7 @@ const removeHousing: RequestHandler<
   GroupRemoveHousingPayload,
   never
 > = async (request, response): Promise<void> => {
-  const { auth, body, effectiveGeoCodes, params } =
+  const { auth, body, establishment, effectiveGeoCodes, params } =
     request as AuthenticatedRequest<
       { id: GroupDTO['id'] },
       GroupDTO,
@@ -298,13 +309,20 @@ const removeHousing: RequestHandler<
     throw new GroupMissingError(params.id);
   }
 
+  const localities = await resolveHousingGeoScope({
+    ownGeoCodes: effectiveGeoCodes ?? establishment.geoCodes,
+    isAdminOrVisitor: false,
+    intercommunalities: body.filters?.intercommunalities,
+    localities: body.filters?.localities
+  });
   // Keep the housing list that are in the same establishment as the group
   const [removingHousingList, existingHousingList] = await Promise.all([
     housingRepository
       .find({
         filters: {
           ...body.filters,
-          establishmentIds: [auth.establishmentId]
+          establishmentIds: [auth.establishmentId],
+          localities
         },
         includes: ['owner'],
         pagination: { paginate: false }

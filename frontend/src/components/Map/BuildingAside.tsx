@@ -3,6 +3,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { skipToken } from '@reduxjs/toolkit/query';
 import { getOwnerDisplayName } from '@zerologementvacant/models';
 import { useCounter } from 'react-use';
 
@@ -13,6 +14,7 @@ import HousingStatusBadge from '~/components/HousingStatusBadge/HousingStatusBad
 import Label from '~/components/Label/LabelNext';
 import type { Building } from '~/models/Building';
 import { useFindCampaignsQuery } from '~/services/campaign.service';
+import { useGetHousingQuery } from '~/services/housing.service';
 
 const ASIDE_WIDTH = 500;
 
@@ -30,9 +32,19 @@ function BuildingAside(props: BuildingAsideProps) {
   const [counter, { dec, inc, reset }] = useCounter(1, max, min);
   const housing = housings.at(counter - 1);
 
+  // The map projection omits owner/campaigns to stay fast; lazily fetch the
+  // fully-hydrated housing for the one currently shown in the panel.
+  // `currentData` (unlike `data`) is undefined while a new housing id is
+  // loading, so the previous housing's owner can't leak into the panel.
+  const {
+    currentData: housingDetails,
+    isFetching: isHousingFetching,
+    isError: isHousingError
+  } = useGetHousingQuery(housing?.id ?? skipToken);
+
   const establishmentCampaignsQuery = useFindCampaignsQuery();
   const campaigns = establishmentCampaignsQuery.data?.filter((campaign) => {
-    return housing?.campaignIds?.includes(campaign.id);
+    return housingDetails?.campaignIds?.includes(campaign.id);
   });
 
   function close() {
@@ -111,7 +123,11 @@ function BuildingAside(props: BuildingAsideProps) {
                   : null
               }
             >
-              <Stack sx={{ alignItems: 'flex-start' }}>
+              <Stack
+                role="status"
+                aria-busy={isHousingFetching}
+                sx={{ alignItems: 'flex-start' }}
+              >
                 <Label>
                   <span
                     className={fr.cx('fr-icon--sm', 'fr-icon-user-fill')}
@@ -120,10 +136,19 @@ function BuildingAside(props: BuildingAsideProps) {
                   />
                   <span>Propriétaire principal</span>
                 </Label>
-                {housing.owner ? (
-                  <AppLink isSimple to={`/proprietaires/${housing.owner.id}`}>
-                    {getOwnerDisplayName(housing.owner)}
+                {housingDetails?.owner ? (
+                  <AppLink
+                    isSimple
+                    to={`/proprietaires/${housingDetails.owner.id}`}
+                  >
+                    {getOwnerDisplayName(housingDetails.owner)}
                   </AppLink>
+                ) : isHousingFetching ? (
+                  <Typography variant="body2">Chargement…</Typography>
+                ) : isHousingError ? (
+                  <Typography variant="body2" role="alert">
+                    Erreur lors du chargement du propriétaire
+                  </Typography>
                 ) : (
                   <Typography variant="body2">Pas d’information</Typography>
                 )}

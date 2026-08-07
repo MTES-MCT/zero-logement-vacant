@@ -1,10 +1,10 @@
-import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 
 import {
   AddressKinds,
   DataFileYear,
   EnergyConsumption,
+  HOUSING_STATUS_VALUES,
   HousingKind,
   HousingSource,
   HousingStatus,
@@ -19,16 +19,26 @@ import {
   Precision,
   READ_ONLY_OCCUPANCY_VALUES,
   READ_WRITE_OCCUPANCY_VALUES,
-  type CadastralClassification
+  type CadastralClassification,
+  type HousingPointField,
+  type Pagination,
+  type RelativeLocation
 } from '@zerologementvacant/models';
 import { compactUndefined, isNotNull } from '@zerologementvacant/utils';
-import { Array, identity, Predicate, Struct } from 'effect';
+import { map } from '@zerologementvacant/utils/node';
+import { Array, identity, pipe, Predicate, Record, Struct } from 'effect';
 import { snakeToCamel } from 'effect/String';
 import type { Point } from 'geojson';
-import { Set } from 'immutable';
-import type { Insertable, Selectable } from 'kysely';
+import type {
+  Expression,
+  ExpressionBuilder,
+  Insertable,
+  Selectable,
+  SelectQueryBuilder,
+  SqlBool
+} from 'kysely';
 import { sql } from 'kysely';
-import { uniq } from 'lodash-es';
+import { jsonArrayFrom, jsonObjectFrom } from 'kysely/helpers/postgres';
 import { match, Pattern } from 'ts-pattern';
 
 import db from '~/infra/database';
@@ -45,19 +55,13 @@ import {
 } from '~/models/HousingApi';
 import { HousingCountApi } from '~/models/HousingCountApi';
 import { HousingFiltersApi } from '~/models/HousingFiltersApi';
-import {
-  DEFAULT_PAGINATION,
-  isPaginationEnabled,
-  PaginationApi,
-  toLimitOffset
-} from '~/models/PaginationApi';
+import { OwnerApi } from '~/models/OwnerApi';
+import { DEFAULT_PAGINATION, toLimitOffset } from '~/models/PaginationApi';
 import { normalizeAddressQuery } from '~/utils/addressNormalization';
 
 import { AddressDBO } from './banAddressesRepository';
-import establishmentRepository from './establishmentRepository';
 import {
   fromRelativeLocationDBO,
-  housingOwnersTable,
   relativeLocationFilterToDBO
 } from './housingOwnerRepository';
 import { OwnerDBO, parseOwnerApi } from './ownerRepository';
@@ -73,71 +77,201 @@ export const Housing = (transaction = db) =>
 export const ReferenceDataYear = 2023;
 
 interface FindOptions extends PaginationOptions {
-  filters: HousingFiltersApi;
+  // Optional: geo resolution defaults to no filter, like `count`/`stream`.
+  filters?: HousingFiltersApi;
   sort?: HousingSortApi;
   includes?: HousingInclude[];
+  fields?: ReadonlyArray<HousingPointField>;
 }
 
-async function find(opts: FindOptions): Promise<HousingApi[]> {
-  logger.debug('housingRepository.find', opts);
+/**
+ * Columns added to the base `fast_housing` row by {@link includeQuery}. Each is
+ * optional on the row because `$if` only ever *adds* the selection — it can't
+ * prove, from a runtime `includes` array, that a column is present.
+ */
+interface HousingIncludeColumns {
+  owner: OwnerDBO | null;
+  campaigns: Array<{ id: string }>;
+  precisions: Precision[];
+  buildingClassDpe: EnergyConsumption | null;
+  buildingDpeDateAt: Date | string | null;
+  geoPerimeters: string[] | null;
+}
 
-  // If localities is explicitly set to an empty array, return no results
-  // This happens when a user's perimeter has no intersection with their establishment
+type HousingRowNext = Selectable<DB['fastHousing']> &
+  Partial<HousingIncludeColumns>;
+
+// HousingPointField -> fast_housing column ref (used by projectQuery).
+const POINT_COLUMN: Record<HousingPointField, `fastHousing.${string}`> = {
+  id: 'fastHousing.id',
+  geoCode: 'fastHousing.geoCode',
+  latitude: 'fastHousing.latitudeDgfip',
+  longitude: 'fastHousing.longitudeDgfip',
+  status: 'fastHousing.status',
+  occupancy: 'fastHousing.occupancy',
+  subStatus: 'fastHousing.subStatus',
+  rawAddress: 'fastHousing.addressDgfip'
+};
+
+/**
+ * Widens `HousingApi` so the properties backed by an include are *required* for
+ * exactly the includes requested. `'owner' extends I` (literal on the left, the
+ * union `I` on the right) tests membership without distributing over `I`.
+ */
+type HousingIncludes<I extends HousingInclude> = ('owner' extends I
+  ? { owner: OwnerApi | null; ownerRelativeLocation: RelativeLocation | null }
+  : unknown) &
+  ('campaigns' extends I ? { campaignIds: string[] } : unknown) &
+  ('precisions' extends I ? { precisions: Precision[] } : unknown) &
+  ('buildings' extends I
+    ? {
+        energyConsumption: EnergyConsumption | null;
+        energyConsumptionAt: Date | null;
+      }
+    : unknown) &
+  ('perimeters' extends I ? { geoPerimeters: string[] } : unknown);
+
+// Sparse projection: narrows the result to the requested point `fields`.
+function find<const F extends HousingPointField>(
+  options: FindOptions & { fields: readonly F[]; includes?: never }
+): Promise<ReadonlyArray<Pick<HousingApi, F | 'id'>>>;
+// Full hydration: narrows the result to the requested `includes`.
+function find<const I extends HousingInclude = never>(
+  options?: FindOptions & { includes?: readonly I[]; fields?: never }
+): Promise<ReadonlyArray<HousingApi & HousingIncludes<I>>>;
+async function find(
+  options: FindOptions = { filters: {} }
+): Promise<ReadonlyArray<Partial<HousingApi>>> {
+  logger.debug('housingRepository.find', options);
+
+  const filters = options.filters ?? {};
+
+  if (options.fields?.length) {
+    // Columns are aliased to their DTO field names and `id` is always selected,
+    // so the raw row is already a Pick<HousingApi, …> — no full-row parse, which
+    // would leak computed fields (campaignIds, contactCount) into the response.
+    const rows = await pipe(
+      kysely.selectFrom('fastHousing'),
+      filterQuery(filters),
+      projectQuery(options.fields),
+      sortQuery(),
+      paginateQuery(options.pagination)
+    ).execute();
+    return rows;
+  }
+
+  const rows = await pipe(
+    kysely.selectFrom('fastHousing').selectAll('fastHousing'),
+    filterQuery(filters),
+    includeQuery(
+      withImplicitIncludes(options.includes, filters),
+      filters.establishmentIds
+    ),
+    sortQuery(options.sort),
+    paginateQuery(options.pagination)
+  ).execute();
+  return rows.map(parseHousingRowNext);
+}
+
+/**
+ * Owner-based and campaign filters historically pulled in the matching include,
+ * so a filtered result still carried the data it matched on. Preserve that: add
+ * `owner`/`campaigns` implicitly when a filter needs them.
+ */
+function withImplicitIncludes(
+  includes: ReadonlyArray<HousingInclude> = [],
+  filters: HousingFiltersApi
+): HousingInclude[] {
+  const result = [...includes];
+  const filterByOwner = [
+    filters.ownerIds,
+    filters.ownerKinds,
+    filters.ownerAges,
+    filters.multiOwners,
+    filters.query
+  ].some((filter) => filter?.length);
+  if (filterByOwner && !result.includes('owner')) {
+    result.push('owner');
+  }
   if (
-    opts.filters.localities !== undefined &&
-    opts.filters.localities.length === 0
+    (filters.campaignIds?.length || filters.campaignCount !== undefined) &&
+    !result.includes('campaigns')
   ) {
-    logger.debug('housingRepository.find: empty localities, returning []');
-    return [];
+    result.push('campaigns');
   }
+  return result;
+}
 
-  const [allowedGeoCodes, intercommunalities] = await Promise.all([
-    fetchGeoCodes(opts.filters.establishmentIds ?? []),
-    fetchGeoCodes(opts.filters.intercommunalities ?? [])
-  ]);
-  const localities = opts.filters.localities ?? [];
-  const defaults = [localities, intercommunalities, allowedGeoCodes].find(
-    (array) => array && array.length > 0
-  );
-  const geoCodes = Set(defaults)
-    .withMutations((set) => {
-      if (intercommunalities.length > 0) {
-        set.intersect(intercommunalities);
-      }
-      if (allowedGeoCodes.length > 0) {
-        set.intersect(allowedGeoCodes);
-      }
-    })
-    .toArray();
+// Sparse map projection: selects only the requested point columns. The dynamic
+// column array can't be tracked by Kysely, so the output type is asserted from
+// the `fields` tuple — sound because the columns come from the point allowlist.
+function projectQuery<const F extends HousingPointField>(fields: readonly F[]) {
+  // Always include id; alias each column to its DTO field name so the row is a
+  // ready-to-serialize Pick<HousingApi, F | 'id'>.
+  const selected: HousingPointField[] = [
+    'id',
+    ...fields.filter((field) => field !== 'id')
+  ];
+  const columns = selected.map((field) => `${POINT_COLUMN[field]} as ${field}`);
+  return <O>(query: SelectQueryBuilder<DB, 'fastHousing', O>) =>
+    query.select(columns as never) as unknown as SelectQueryBuilder<
+      DB,
+      'fastHousing',
+      Pick<HousingApi, F | 'id'>
+    >;
+}
 
-  // If we had geo restrictions but the intersection is empty,
-  // return empty array instead of querying without geo filter
-  const hadGeoRestrictions =
-    allowedGeoCodes.length > 0 ||
-    intercommunalities.length > 0 ||
-    localities.length > 0;
-  if (hadGeoRestrictions && geoCodes.length === 0) {
-    return [];
-  }
+function sortQuery(sort?: HousingSortApi) {
+  return <O>(query: SelectQueryBuilder<DB, 'fastHousing', O>) => {
+    if (!sort) {
+      return query.orderBy('fastHousing.geoCode').orderBy('fastHousing.id');
+    }
+    let q = query;
+    if (sort.status) {
+      q = q.orderBy('fastHousing.status', sort.status);
+    }
+    if (sort.occupancy) {
+      q = q.orderBy(sql`lower(fast_housing.occupancy)`, sort.occupancy);
+    }
+    if (sort.owner) {
+      q = q.orderBy(
+        (eb) =>
+          eb
+            .selectFrom('ownersHousing')
+            .innerJoin('owners', 'owners.id', 'ownersHousing.ownerId')
+            .whereRef(
+              'ownersHousing.housingGeoCode',
+              '=',
+              'fastHousing.geoCode'
+            )
+            .whereRef('ownersHousing.housingId', '=', 'fastHousing.id')
+            .where('ownersHousing.rank', '=', 1)
+            .select('owners.fullName')
+            .limit(1),
+        sort.owner
+      );
+    }
+    return q;
+  };
+}
 
-  let query = kyselyHousingListQuery({
-    filters: {
-      ...opts.filters,
-      localities: geoCodes
-    },
-    includes: opts.includes
-  });
-  query = applyHousingSort(query, opts.sort);
-  const pagination: PaginationApi =
-    (opts.pagination as PaginationApi) ?? DEFAULT_PAGINATION;
-  if (isPaginationEnabled(pagination)) {
-    const { limit, offset } = toLimitOffset(pagination);
-    query = query.limit(limit).offset(offset);
-  }
-  const rows: HousingRow[] = await query.execute();
-
-  logger.debug('housingRepository.find', { housing: rows.length });
-  return rows.map(parseHousingRow);
+function parseHousingRowNext(row: HousingRowNext): HousingApi {
+  return {
+    ...parseHousingRecordRow(row),
+    owner: row.owner ? parseOwnerApi(row.owner) : null,
+    ownerRelativeLocation: fromRelativeLocationDBO(
+      (row.owner as { locprop_relative_ban?: number | null } | null | undefined)
+        ?.locprop_relative_ban ?? null
+    ),
+    campaignIds: (row.campaigns ?? []).map((campaign) => campaign.id),
+    precisions: row.precisions,
+    energyConsumption: (row.buildingClassDpe ??
+      null) as EnergyConsumption | null,
+    energyConsumptionAt: row.buildingDpeDateAt
+      ? new Date(row.buildingDpeDateAt)
+      : null,
+    geoPerimeters: row.geoPerimeters
+  };
 }
 
 interface StreamOptions {
@@ -146,86 +280,92 @@ interface StreamOptions {
 }
 
 function stream(opts?: StreamOptions): ReadableStream<HousingApi> {
-  let query = kyselyHousingListQuery({
-    filters: opts?.filters ?? {},
-    includes: opts?.includes
-  });
-  query = applyHousingSort(query);
-  const rows = query.stream();
-  const mapped = (async function* () {
-    for await (const row of rows) {
-      yield parseHousingRow(row as HousingRow);
-    }
-  })();
-  return Readable.toWeb(Readable.from(mapped)) as ReadableStream<HousingApi>;
+  const filters = opts?.filters ?? {};
+  const query = pipe(
+    kysely.selectFrom('fastHousing').selectAll('fastHousing'),
+    filterQuery(filters),
+    includeQuery(
+      withImplicitIncludes(opts?.includes, filters),
+      filters.establishmentIds
+    ),
+    sortQuery()
+  );
+  return ReadableStream.from(query.stream()).pipeThrough(
+    map(parseHousingRowNext)
+  );
 }
 
-async function count(filters: HousingFiltersApi): Promise<HousingCountApi> {
-  logger.debug('Count housing', filters);
+export interface CountOptions {
+  filters?: HousingFiltersApi;
+  groupBy?: 'status';
+}
 
-  // If localities is explicitly set to an empty array, return 0
-  // This happens when a user's perimeter has no intersection with their establishment
-  if (filters.localities !== undefined && filters.localities.length === 0) {
-    logger.debug('housingRepository.count: empty localities, returning 0');
-    return { housing: 0, owners: 0 };
+function count(
+  options?: CountOptions & { groupBy?: undefined }
+): Promise<HousingCountApi>;
+function count(
+  options: CountOptions & { groupBy: 'status' }
+): Promise<Record<HousingStatus, HousingCountApi>>;
+async function count(
+  options?: CountOptions
+): Promise<HousingCountApi | Record<HousingStatus, HousingCountApi>> {
+  logger.debug('Count housing', options?.filters);
+
+  const filters = options?.filters ?? {};
+
+  const query = pipe(
+    kysely.selectFrom('fastHousing'),
+    filterQuery(filters),
+    (query) =>
+      query.leftJoin('ownersHousing', (join) =>
+        join
+          .onRef('ownersHousing.housingGeoCode', '=', 'fastHousing.geoCode')
+          .onRef('ownersHousing.housingId', '=', 'fastHousing.id')
+          .on('ownersHousing.rank', '=', 1)
+      )
+  );
+
+  if (options?.groupBy === 'status') {
+    const rows = await query
+      .select([
+        'fastHousing.status',
+        sql<string>`count(fast_housing.id)`.as('housing'),
+        sql<string>`count(distinct owners_housing.owner_id)`.as('owners')
+      ])
+      .groupBy('fastHousing.status')
+      .execute();
+
+    // Merge actual counts over a zero-filled base so the result is
+    // exhaustive over the status enum
+    const zeros = Record.fromIterableWith(
+      HOUSING_STATUS_VALUES,
+      (status): [string, HousingCountApi] => [
+        String(status),
+        { housing: 0, owners: 0 }
+      ]
+    );
+    const counted = Record.fromIterableWith(
+      rows,
+      (row): [string, HousingCountApi] => [
+        String(row.status),
+        { housing: Number(row.housing), owners: Number(row.owners) }
+      ]
+    );
+    return Record.union(zeros, counted, (_zeros, actual) => actual) as Record<
+      HousingStatus,
+      HousingCountApi
+    >;
   }
 
-  const [allowedGeoCodes, intercommunalities] = await Promise.all([
-    fetchGeoCodes(filters.establishmentIds ?? []),
-    fetchGeoCodes(
-      Array.isArray(filters.intercommunalities)
-        ? filters.intercommunalities
-        : []
-    )
-  ]);
-  const localities = filters.localities ?? [];
-  const geoCodes = Set(allowedGeoCodes)
-    .withMutations((set) => {
-      return intercommunalities.length
-        ? set.intersect(intercommunalities)
-        : set;
-    })
-    .withMutations((set) => {
-      return localities.length ? set.intersect(localities) : set;
-    });
-
-  // If we had geo restrictions but the intersection is empty,
-  // return 0 results instead of querying without geo filter
-  const hadGeoRestrictions =
-    allowedGeoCodes.length > 0 ||
-    intercommunalities.length > 0 ||
-    localities.length > 0;
-  if (hadGeoRestrictions && geoCodes.size === 0) {
-    return { housing: 0, owners: 0 };
-  }
-
-  const filterByOwner = [
-    filters.ownerKinds,
-    filters.ownerAges,
-    filters.multiOwners,
-    filters.query
-  ].some((filter) => filter?.length);
-
-  let query: any = kysely
-    .selectFrom('fastHousing')
-    .leftJoin('ownersHousing', kyselyOwnerHousingJoin);
-  if (filterByOwner) {
-    query = query.leftJoin('owners', 'ownersHousing.ownerId', 'owners.id');
-  }
-  query = applyHousingFilters(query, {
-    ...Struct.omit(filters, 'establishmentIds'),
-    localities: geoCodes.toArray()
-  });
-  const result = await query
+  const counts = await query
     .select([
-      sql`count(distinct fast_housing.id)`.as('housing'),
-      sql`count(distinct owners_housing.owner_id)`.as('owners')
+      sql<string>`count(fast_housing.id)`.as('housing'),
+      sql<string>`count(distinct owners_housing.owner_id)`.as('owners')
     ])
-    .executeTakeFirst();
-
+    .executeTakeFirstOrThrow();
   return {
-    housing: Number(result?.housing),
-    owners: Number(result?.owners)
+    housing: Number(counts.housing),
+    owners: Number(counts.owners)
   };
 }
 
@@ -243,23 +383,21 @@ interface FindOneOptions {
 }
 
 async function findOne(opts: FindOneOptions): Promise<HousingApi | null> {
-  let query = kyselyHousingListQuery({
-    filters: {
-      localities: opts.geoCode,
-      establishmentIds: opts.establishment ? [opts.establishment] : undefined
-    },
-    includes: opts.includes
-  });
-  if (opts.id) {
-    query = query.where('fast_housing.id', '=', opts.id);
-  }
-  if (opts.localId) {
-    query = query.where('fast_housing.local_id', '=', opts.localId);
-  }
+  const establishmentIds = opts.establishment
+    ? [opts.establishment]
+    : undefined;
+  const row = await pipe(
+    kysely.selectFrom('fastHousing').selectAll('fastHousing'),
+    filterQuery({ localities: opts.geoCode, establishmentIds }),
+    includeQuery(opts.includes, establishmentIds),
+    (query) => (opts.id ? query.where('fastHousing.id', '=', opts.id) : query),
+    (query) =>
+      opts.localId
+        ? query.where('fastHousing.localId', '=', opts.localId)
+        : query
+  ).executeTakeFirst();
 
-  const row: HousingRow | undefined = await query.executeTakeFirst();
-
-  return row ? parseHousingRow(row) : null;
+  return row ? parseHousingRowNext(row as HousingRowNext) : null;
 }
 
 interface SaveOptions {
@@ -410,11 +548,6 @@ function housingMergeColumns(merge?: Array<keyof HousingRecordDBO>): string[] {
   );
 }
 
-interface ListQueryOptions {
-  filters: HousingFiltersApi;
-  includes?: HousingInclude[];
-}
-
 async function update(housing: HousingApi): Promise<void> {
   logger.debug('Update housing', housing.id);
 
@@ -503,27 +636,6 @@ async function remove(housing: HousingApi): Promise<void> {
     .where('id', '=', housing.id)
     .execute();
   logger.info('Removed housing.', info);
-}
-
-export function ownerHousingJoinClause(query: any) {
-  query
-    .on(`${housingTable}.id`, `${housingOwnersTable}.housing_id`)
-    .andOn(`${housingTable}.geo_code`, `${housingOwnersTable}.housing_geo_code`)
-    .andOnVal('rank', 1);
-}
-
-/**
- * Retrieve geo codes as literals to help the query planner,
- * otherwise it would go throughout a lot of irrelevant partitions
- * @param establishmentIds
- */
-async function fetchGeoCodes(establishmentIds: string[]): Promise<string[]> {
-  const establishments = await establishmentRepository.find({
-    filters: {
-      id: establishmentIds
-    }
-  });
-  return establishments.flatMap((establishment) => establishment.geoCodes);
 }
 
 export interface HousingRecordDBO {
@@ -721,1159 +833,1016 @@ export const parseHousingRecordRow = (
 // tests, not the compiler.
 // ---------------------------------------------------------------------------
 
-function kyselyHousingListQuery(opts: ListQueryOptions): any {
-  let query: any = kysely.selectFrom('fastHousing').selectAll('fastHousing');
-  query = applyHousingIncludes(query, opts.includes ?? [], opts.filters);
-  query = applyHousingFilters(
-    query,
-    Struct.omit(opts.filters, 'establishmentIds'),
-    opts.includes ?? []
-  );
-  return query;
-}
-
-function kyselyOwnerHousingJoin(join: any): any {
-  return join
-    .onRef('fastHousing.id', '=', 'ownersHousing.housingId')
-    .onRef('fastHousing.geoCode', '=', 'ownersHousing.housingGeoCode')
-    .on('ownersHousing.rank', '=', 1);
-}
-
-function applyHousingIncludes(
-  query: any,
-  includes: HousingInclude[],
-  filters?: HousingFiltersApi
-): any {
-  const effectiveIncludes = [...includes];
-  const filterByOwner = [
-    filters?.ownerIds,
-    filters?.ownerKinds,
-    filters?.ownerAges,
-    filters?.multiOwners,
-    filters?.query
-  ].some((filter) => filter?.length);
-  if (filterByOwner) {
-    effectiveIncludes.push('owner');
-  }
-  if (filters?.campaignIds?.length || filters?.campaignCount !== undefined) {
-    effectiveIncludes.push('campaigns');
-  }
-
-  let q = query;
-  for (const inc of uniq(effectiveIncludes)) {
-    switch (inc) {
-      case 'owner': {
-        q = q
-          .leftJoin('ownersHousing', kyselyOwnerHousingJoin)
-          .leftJoin('owners', 'ownersHousing.ownerId', 'owners.id')
-          .leftJoin('banAddresses as ban', (join: any) =>
-            join
-              .onRef('owners.id', '=', 'ban.refId')
-              .on('ban.addressKind', '=', AddressKinds.Owner)
-          )
-          .select('owners.id as owner_id')
-          .select(sql`to_json(owners.*)`.as('owner'))
-          .select('ownersHousing.locpropRelativeBan')
-          .select(sql`to_json(ban.*)`.as('owner_ban_address'));
-        break;
-      }
-      case 'campaigns': {
-        const establishmentFilter = filters?.establishmentIds?.length
-          ? sql` AND campaigns.establishment_id = ANY(${sql.val(filters.establishmentIds)})`
-          : sql``;
-        q = q.select(
-          sql`(
-            SELECT coalesce(array_agg(distinct(campaign_id)), ARRAY[]::UUID[])
-            FROM campaigns_housing, campaigns
-            WHERE fast_housing.id = campaigns_housing.housing_id
-              AND fast_housing.geo_code = campaigns_housing.housing_geo_code
-              AND campaigns.id = campaigns_housing.campaign_id
-              ${establishmentFilter}
-          )`.as('campaign_ids')
-        );
-        break;
-      }
-      case 'perimeters': {
-        q = q.select(
-          sql`(
-            SELECT json_agg(distinct(kind))
-            FROM geo_perimeters perimeter
-            WHERE st_contains(perimeter.geom, ST_SetSRID(ST_Point(fast_housing.longitude_dgfip, fast_housing.latitude_dgfip), 4326))
-          )`.as('geo_perimeters')
-        );
-        break;
-      }
-      case 'precisions': {
-        q = q.select(
-          sql`(
-            SELECT json_agg(precisions.*)
-            FROM housing_precisions
-            LEFT JOIN precisions ON precisions.id = housing_precisions.precision_id
-            WHERE fast_housing.geo_code = housing_precisions.housing_geo_code
-              AND fast_housing.id = housing_precisions.housing_id
-          )`.as('precisions')
-        );
-        break;
-      }
-      case 'buildings': {
-        q = q
-          .leftJoin('buildings', 'fastHousing.buildingId', 'buildings.id')
-          .select('buildings.classDpe as building_class_dpe')
-          .select('buildings.dpeDateAt as building_dpe_date_at');
-        break;
-      }
-    }
-  }
-  return q;
-}
-
-function applyHousingSort(query: any, sort?: HousingSortApi): any {
-  if (!sort) {
-    return query.orderBy('fast_housing.geo_code').orderBy('fast_housing.id');
-  }
-  let q = query;
-  const s = sort as any;
-  for (const key of Object.keys(sort)) {
-    if (key === 'owner') {
-      q = q.orderBy('owners.full_name', s.owner);
-    } else if (key === 'occupancy') {
-      q = q.orderBy(
-        sql`LOWER(fast_housing.occupancy)`,
-        sql.raw(s.occupancy ?? 'asc')
+function filterQuery(filters: HousingFiltersApi) {
+  return <O>(query: SelectQueryBuilder<DB, 'fastHousing', O>) => {
+    // Correlated EXISTS on the rank-1 owner (owners_housing ⋈ owners). Owner
+    // filters go through a subquery instead of a top-level join, so the query
+    // type (`O`/`'fastHousing'`) stays stable across the whole pipe.
+    const primaryOwnerExists = (
+      eb: ExpressionBuilder<DB, 'fastHousing'>,
+      predicate: (
+        owner: ExpressionBuilder<DB, 'ownersHousing' | 'owners'>
+      ) => Expression<SqlBool>
+    ): Expression<SqlBool> =>
+      eb.exists(
+        eb
+          .selectFrom('ownersHousing')
+          .innerJoin('owners', 'owners.id', 'ownersHousing.ownerId')
+          .whereRef('ownersHousing.housingGeoCode', '=', 'fastHousing.geoCode')
+          .whereRef('ownersHousing.housingId', '=', 'fastHousing.id')
+          .where('ownersHousing.rank', '=', 1)
+          .where(predicate)
+          .select('owners.id')
       );
-    } else if (key === 'status') {
-      q = q.orderBy('fast_housing.status', s.status);
+
+    if (filters.housingIds?.length) {
+      query = query.where(
+        'fastHousing.id',
+        filters.all ? 'not in' : 'in',
+        filters.housingIds
+      );
     }
-  }
-  return q;
-}
 
-type HousingRow = Selectable<DB['fastHousing']> & {
-  owner?: OwnerDBO | null;
-  ownerBanAddress?: AddressDBO;
-  campaignIds?: string[];
-  geoPerimeters?: string[];
-  precisions?: Precision[];
-  ownerId?: string;
-  locpropRelativeBan?: number | null;
-  housingCount?: number;
-  vacantHousingCount?: number;
-  contactCount?: number;
-  localityKind?: string;
-  buildingClassDpe?: EnergyConsumption | null;
-  buildingDpeDateAt?: Date | string | null;
-};
-
-function applyHousingFilters(
-  query: any,
-  filters: Omit<HousingFiltersApi, 'establishmentIds'>,
-  includes: HousingInclude[] = []
-): any {
-  let q = query;
-
-  // housingIds
-  if (filters.housingIds?.length) {
-    if (filters.all) {
-      q = q.where('fast_housing.id', 'not in', filters.housingIds);
-    } else {
-      q = q.where('fast_housing.id', 'in', filters.housingIds);
+    if (filters.occupancies?.length) {
+      query = pipe(
+        filters.occupancies ?? [],
+        Array.intersection(READ_WRITE_OCCUPANCY_VALUES),
+        (occupancies) =>
+          filters.occupancies?.includes(Occupancy.OTHERS)
+            ? occupancies.concat(READ_ONLY_OCCUPANCY_VALUES)
+            : occupancies,
+        (occupancies) =>
+          occupancies.length > 0
+            ? query.where('fastHousing.occupancy', 'in', occupancies)
+            : query
+      );
     }
-  }
 
-  // occupancies
-  if (filters.occupancies?.length) {
-    const occupancies = [
-      ...(filters.occupancies ?? []).filter((occupancy) =>
-        READ_WRITE_OCCUPANCY_VALUES.includes(occupancy)
-      ),
-      ...(filters.occupancies?.includes(Occupancy.OTHERS)
-        ? READ_ONLY_OCCUPANCY_VALUES
-        : [])
-    ];
-    if (occupancies.length > 0) {
-      q = q.where('occupancy', 'in', occupancies);
-    }
-  }
+    if (filters.energyConsumption?.length) {
+      query = query.where(({ exists, selectFrom, or }) => {
+        const exprs: Expression<SqlBool>[] = [];
 
-  // energyConsumption
-  if (filters.energyConsumption?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.energyConsumption?.includes(null)) {
-        arms.push(
-          eb.exists((sub: any) =>
-            sub
-              .selectFrom('buildings')
-              .select('buildings.id')
-              .whereRef('buildings.id', '=', 'fast_housing.building_id')
-              .where('buildings.class_dpe', 'is', null)
-          )
-        );
-      }
-      const energyConsumptions = filters.energyConsumption?.filter(isNotNull);
-      if (energyConsumptions?.length) {
-        arms.push(
-          eb.exists((sub: any) =>
-            sub
-              .selectFrom('buildings')
-              .select('buildings.id')
-              .whereRef('buildings.id', '=', 'fast_housing.building_id')
-              .where('buildings.class_dpe', 'in', energyConsumptions)
-          )
-        );
-      }
-      return eb.or(arms);
-    });
-  }
-
-  // groupIds — requires join
-  if (filters.groupIds?.length) {
-    q = q.innerJoin('groups_housing', (join: any) =>
-      join
-        .onRef('groups_housing.housing_geo_code', '=', 'fast_housing.geo_code')
-        .onRef('groups_housing.housing_id', '=', 'fast_housing.id')
-        .on('groups_housing.group_id', 'in', filters.groupIds ?? [])
-    );
-  }
-
-  // campaignIds
-  if (filters.campaignIds?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.campaignIds?.includes(null)) {
-        arms.push(
-          eb.not(
-            eb.exists((sub: any) =>
-              sub
-                .selectFrom('campaigns_housing')
-                .select(sql`1`.as('one'))
-                .whereRef(
-                  'campaigns_housing.housing_geo_code',
-                  '=',
-                  'fast_housing.geo_code'
-                )
-                .whereRef(
-                  'campaigns_housing.housing_id',
-                  '=',
-                  'fast_housing.id'
-                )
+        if (filters.energyConsumption?.includes(null)) {
+          exprs.push(
+            exists(
+              selectFrom('buildings')
+                .select('buildings.id')
+                .whereRef('buildings.id', '=', 'fastHousing.buildingId')
+                .where('buildings.classDpe', 'is', null)
             )
-          )
+          );
+        }
+
+        const energyConsumptions = filters.energyConsumption?.filter(
+          Predicate.isNotNull
         );
-      }
-      const ids = filters.campaignIds?.filter((id) => id !== null);
-      if (ids?.length) {
-        arms.push(
-          eb.exists((sub: any) =>
-            sub
-              .selectFrom('campaigns_housing')
-              .select('campaigns_housing.housing_id')
-              .where('campaigns_housing.campaign_id', 'in', ids)
-              .whereRef(
-                'campaigns_housing.housing_geo_code',
-                '=',
-                'fast_housing.geo_code'
-              )
-              .whereRef('campaigns_housing.housing_id', '=', 'fast_housing.id')
-          )
-        );
-      }
-      return eb.or(arms);
-    });
-  }
+        if (energyConsumptions?.length) {
+          exprs.push(
+            exists(
+              selectFrom('buildings')
+                .select('buildings.id')
+                .whereRef('buildings.id', '=', 'fastHousing.buildingId')
+                .where('buildings.classDpe', 'in', energyConsumptions)
+            )
+          );
+        }
 
-  // campaignCount
-  if (filters.campaignCount !== undefined) {
-    q = q.where(
-      sql`cardinality(${sql.ref('campaigns.campaign_ids')}) = ${filters.campaignCount}`
-    );
-  }
+        return or(exprs);
+      });
+    }
 
-  // ownerIds
-  if (filters.ownerIds?.length) {
-    q = q.where('owners_housing.owner_id', 'in', filters.ownerIds);
-  }
-
-  // ownerKinds
-  if (filters.ownerKinds?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.ownerKinds?.includes(null)) {
-        arms.push(eb('owners.kind_class', 'is', null));
-      }
-      const ownerKinds = filters.ownerKinds
-        ?.filter(isNotNull)
-        ?.map((kind) => OWNER_KIND_LABELS[kind]);
-      if (ownerKinds?.length) {
-        arms.push(eb('owners.kind_class', 'in', ownerKinds));
-      }
-      return eb.or(arms);
-    });
-  }
-
-  // ownerAges
-  if (filters.ownerAges?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.ownerAges?.includes(null)) {
-        arms.push(eb('owners.birth_date', 'is', null));
-      }
-      if (filters.ownerAges?.includes('lt40')) {
-        arms.push(sql`EXTRACT(YEAR FROM AGE(birth_date)) < 40`);
-      }
-      if (filters.ownerAges?.includes('40to59')) {
-        arms.push(sql`EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 40 AND 59`);
-      }
-      if (filters.ownerAges?.includes('60to74')) {
-        arms.push(sql`EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 60 AND 74`);
-      }
-      if (filters.ownerAges?.includes('75to99')) {
-        arms.push(sql`EXTRACT(YEAR FROM AGE(birth_date)) BETWEEN 75 AND 99`);
-      }
-      if (filters.ownerAges?.includes('gte100')) {
-        arms.push(sql`EXTRACT(YEAR FROM AGE(birth_date)) >= 100`);
-      }
-      return eb.or(arms);
-    });
-  }
-
-  // relativeLocations
-  if (filters.relativeLocations?.length) {
-    const numericValues = filters.relativeLocations.flatMap(
-      relativeLocationFilterToDBO
-    );
-    q = q.where((eb: any) =>
-      eb.exists((sub: any) =>
-        sub
-          .selectFrom('owners_housing')
-          .whereRef('owners_housing.housing_id', '=', 'fast_housing.id')
-          .whereRef(
-            'owners_housing.housing_geo_code',
-            '=',
-            'fast_housing.geo_code'
-          )
-          .where('owners_housing.rank', '=', 1)
-          .where('owners_housing.locprop_relative_ban', 'in', numericValues)
-      )
-    );
-  }
-
-  // multiOwners
-  if (filters.multiOwners?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.multiOwners?.includes(true)) {
-        arms.push(eb('owners.is_multi_owner', '=', true));
-      }
-      if (filters.multiOwners?.includes(false)) {
-        arms.push(eb('owners.is_multi_owner', '=', false));
-      }
-      return eb.or(arms);
-    });
-  }
-
-  // precisions
-  if (filters.precisions?.length) {
-    q = q.where('fast_housing.id', 'in', (sub: any) =>
-      sub
-        .selectFrom('housing_precisions')
-        .select('housing_precisions.housing_id')
-        .where(
-          'housing_precisions.precision_id',
-          'in',
-          filters.precisions ?? []
-        )
-    );
-  }
-
-  // beneficiaryCounts
-  if (filters.beneficiaryCounts?.length) {
-    q = q.where((eb: any) => {
-      const counts = filters.beneficiaryCounts
-        ?.map(Number)
-        ?.filter((count) => !Number.isNaN(count) && count > 0);
-      const hasGte5 = filters.beneficiaryCounts?.includes('gte5') ?? false;
-      const hasZero = filters.beneficiaryCounts?.includes('0') ?? false;
-
-      const arms: any[] = [];
-
-      if (counts?.length || hasGte5) {
-        // composite (geo_code, id) IN (subquery with HAVING)
-        arms.push(
-          eb(
-            sql`(fast_housing.geo_code, fast_housing.id)`,
-            'in',
-            (sub: any) => {
-              let s = sub
-                .selectFrom('owners_housing')
-                .select([
-                  'owners_housing.housing_geo_code',
-                  'owners_housing.housing_id'
-                ])
-                .where('owners_housing.rank', '>=', 1)
-                .groupBy([
-                  'owners_housing.housing_geo_code',
-                  'owners_housing.housing_id'
-                ]);
-              if (filters.localities?.length) {
-                s = s.where(
-                  'owners_housing.housing_geo_code',
+    if (filters.groupIds?.length) {
+      query = query.where(({ exists, selectFrom }) => {
+        return exists(
+          selectFrom('groupsHousing')
+            .whereRef(
+              'fastHousing.geoCode',
+              '=',
+              'groupsHousing.housingGeoCode'
+            )
+            .whereRef('fastHousing.id', '=', 'groupsHousing.housingId')
+            .where('groupsHousing.groupId', 'in', filters.groupIds!)
+            .innerJoin('groups', 'groupsHousing.groupId', 'groups.id')
+            .$if(
+              !!filters.establishmentIds && filters.establishmentIds.length > 0,
+              (qb) =>
+                qb.where(
+                  'groups.establishmentId',
                   'in',
-                  filters.localities
-                );
-              }
-              if (counts?.length && hasGte5) {
-                s = s.having(
-                  sql`COUNT(*) IN (${sql.join(counts)}) OR COUNT(*) >= 5`
-                );
-              } else if (counts?.length) {
-                s = s.having(sql`COUNT(*) IN (${sql.join(counts)})`);
-              } else if (hasGte5) {
-                s = s.having(sql`COUNT(*) >= 5`);
-              }
-              return s;
-            }
-          )
-        );
-      }
-
-      if (hasZero) {
-        arms.push(
-          eb.not(
-            eb.exists((sub: any) =>
-              sub
-                .selectFrom('owners_housing')
-                .select(sql`1`.as('one'))
-                .whereRef(
-                  'owners_housing.housing_geo_code',
-                  '=',
-                  'fast_housing.geo_code'
+                  filters.establishmentIds ?? []
                 )
-                .whereRef('owners_housing.housing_id', '=', 'fast_housing.id')
-                .where('owners_housing.rank', '>=', 1)
             )
-          )
+            .select('groups.id')
         );
-      }
+      });
+    }
 
-      return eb.or(arms);
-    });
-  }
+    if (filters.campaignIds?.length) {
+      const campaignIds = filters.campaignIds.filter(Predicate.isNotNull);
+      query = query.where((eb) => {
+        const arms: Expression<SqlBool>[] = [];
+        if (filters.campaignIds?.includes(null)) {
+          arms.push(
+            eb.not(
+              eb.exists(
+                eb
+                  .selectFrom('campaignsHousing')
+                  .whereRef(
+                    'campaignsHousing.housingGeoCode',
+                    '=',
+                    'fastHousing.geoCode'
+                  )
+                  .whereRef('campaignsHousing.housingId', '=', 'fastHousing.id')
+                  .select('campaignsHousing.campaignId')
+              )
+            )
+          );
+        }
+        if (campaignIds.length) {
+          arms.push(
+            eb.exists(
+              eb
+                .selectFrom('campaignsHousing')
+                .whereRef(
+                  'campaignsHousing.housingGeoCode',
+                  '=',
+                  'fastHousing.geoCode'
+                )
+                .whereRef('campaignsHousing.housingId', '=', 'fastHousing.id')
+                .where('campaignsHousing.campaignId', 'in', campaignIds)
+                .select('campaignsHousing.campaignId')
+            )
+          );
+        }
+        return eb.or(arms);
+      });
+    }
 
-  // housingKinds
-  if (filters.housingKinds?.length) {
-    q = q.where('housing_kind', 'in', filters.housingKinds);
-  }
+    if (filters.campaignCount !== undefined) {
+      const establishmentIds = filters.establishmentIds;
+      const scope = establishmentIds?.length
+        ? sql`inner join campaigns on campaigns.id = campaigns_housing.campaign_id`
+        : sql``;
+      const establishmentFilter = establishmentIds?.length
+        ? sql`and campaigns.establishment_id = any(${sql.val(establishmentIds)})`
+        : sql``;
+      query = query.where(
+        sql<SqlBool>`(
+          select count(distinct campaigns_housing.campaign_id)
+          from campaigns_housing ${scope}
+          where campaigns_housing.housing_geo_code = fast_housing.geo_code
+            and campaigns_housing.housing_id = fast_housing.id
+            ${establishmentFilter}
+        ) = ${filters.campaignCount}`
+      );
+    }
 
-  // housingAreas
-  if (filters.housingAreas?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.housingAreas?.includes('lt35')) {
-        arms.push(eb.between('living_area', 0, 34));
-      }
-      if (filters.housingAreas?.includes('35to74')) {
-        arms.push(eb.between('living_area', 35, 74));
-      }
-      if (filters.housingAreas?.includes('75to99')) {
-        arms.push(eb.between('living_area', 75, 99));
-      }
-      if (filters.housingAreas?.includes('gte100')) {
-        arms.push(sql`living_area >= 100`);
-      }
-      return eb.or(arms);
-    });
-  }
+    if (filters.ownerIds?.length) {
+      query = query.where((eb) =>
+        primaryOwnerExists(eb, (owner) =>
+          owner('owners.id', 'in', filters.ownerIds!)
+        )
+      );
+    }
 
-  // roomsCounts
-  if (filters.roomsCounts?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.roomsCounts?.includes('gte5')) {
-        arms.push(eb('fast_housing.rooms_count', '>=', 5));
-      }
+    if (filters.ownerKinds?.length) {
+      query = query.where((eb) =>
+        primaryOwnerExists(eb, (owner) => {
+          const arms: Expression<SqlBool>[] = [];
+          if (filters.ownerKinds?.includes(null)) {
+            arms.push(owner('owners.kindClass', 'is', null));
+          }
+          const kinds = filters.ownerKinds
+            ?.filter(isNotNull)
+            .map((kind) => OWNER_KIND_LABELS[kind]);
+          if (kinds?.length) {
+            arms.push(owner('owners.kindClass', 'in', kinds));
+          }
+          return owner.or(arms);
+        })
+      );
+    }
+
+    if (filters.ownerAges?.length) {
+      query = query.where((eb) =>
+        primaryOwnerExists(eb, (owner) => {
+          const arms: Expression<SqlBool>[] = [];
+          if (filters.ownerAges?.includes(null)) {
+            arms.push(owner('owners.birthDate', 'is', null));
+          }
+          if (filters.ownerAges?.includes('lt40')) {
+            arms.push(
+              sql<SqlBool>`extract(year from age(owners.birth_date)) < 40`
+            );
+          }
+          if (filters.ownerAges?.includes('40to59')) {
+            arms.push(
+              sql<SqlBool>`extract(year from age(owners.birth_date)) between 40 and 59`
+            );
+          }
+          if (filters.ownerAges?.includes('60to74')) {
+            arms.push(
+              sql<SqlBool>`extract(year from age(owners.birth_date)) between 60 and 74`
+            );
+          }
+          if (filters.ownerAges?.includes('75to99')) {
+            arms.push(
+              sql<SqlBool>`extract(year from age(owners.birth_date)) between 75 and 99`
+            );
+          }
+          if (filters.ownerAges?.includes('gte100')) {
+            arms.push(
+              sql<SqlBool>`extract(year from age(owners.birth_date)) >= 100`
+            );
+          }
+          return owner.or(arms);
+        })
+      );
+    }
+
+    if (filters.relativeLocations?.length) {
+      const numericValues = filters.relativeLocations.flatMap(
+        relativeLocationFilterToDBO
+      );
+      query = query.where((eb) =>
+        eb.exists(
+          eb
+            .selectFrom('ownersHousing')
+            .whereRef('ownersHousing.housingId', '=', 'fastHousing.id')
+            .whereRef(
+              'ownersHousing.housingGeoCode',
+              '=',
+              'fastHousing.geoCode'
+            )
+            .where('ownersHousing.rank', '=', 1)
+            .where('ownersHousing.locpropRelativeBan', 'in', numericValues)
+            .select('ownersHousing.housingId')
+        )
+      );
+    }
+
+    if (filters.multiOwners?.length) {
+      query = query.where((eb) =>
+        primaryOwnerExists(eb, (owner) => {
+          const arms: Expression<SqlBool>[] = [];
+          if (filters.multiOwners?.includes(true)) {
+            arms.push(owner('owners.isMultiOwner', '=', true));
+          }
+          if (filters.multiOwners?.includes(false)) {
+            arms.push(owner('owners.isMultiOwner', '=', false));
+          }
+          return owner.or(arms);
+        })
+      );
+    }
+
+    if (filters.precisions?.length) {
+      query = query.where('fastHousing.id', 'in', (eb) =>
+        eb
+          .selectFrom('housingPrecisions')
+          .where('housingPrecisions.precisionId', 'in', filters.precisions!)
+          .select('housingPrecisions.housingId')
+      );
+    }
+
+    if (filters.beneficiaryCounts?.length) {
+      const counts = filters.beneficiaryCounts
+        .map(Number)
+        .filter((count) => !Number.isNaN(count) && count > 0);
+      const hasGte5 = filters.beneficiaryCounts.includes('gte5');
+      const hasZero = filters.beneficiaryCounts.includes('0');
+      query = query.where((eb) => {
+        const arms: Expression<SqlBool>[] = [];
+        if (counts.length || hasGte5) {
+          arms.push(
+            eb.exists(
+              eb
+                .selectFrom('ownersHousing')
+                .whereRef(
+                  'ownersHousing.housingGeoCode',
+                  '=',
+                  'fastHousing.geoCode'
+                )
+                .whereRef('ownersHousing.housingId', '=', 'fastHousing.id')
+                .where('ownersHousing.rank', '>=', 1)
+                .groupBy([
+                  'ownersHousing.housingGeoCode',
+                  'ownersHousing.housingId'
+                ])
+                .$call((qb) =>
+                  counts.length && hasGte5
+                    ? qb.having(
+                        sql<SqlBool>`count(*) in (${sql.join(counts)}) or count(*) >= 5`
+                      )
+                    : counts.length
+                      ? qb.having(
+                          sql<SqlBool>`count(*) in (${sql.join(counts)})`
+                        )
+                      : qb.having(sql<SqlBool>`count(*) >= 5`)
+                )
+                .select('ownersHousing.housingId')
+            )
+          );
+        }
+        if (hasZero) {
+          arms.push(
+            eb.not(
+              eb.exists(
+                eb
+                  .selectFrom('ownersHousing')
+                  .whereRef(
+                    'ownersHousing.housingGeoCode',
+                    '=',
+                    'fastHousing.geoCode'
+                  )
+                  .whereRef('ownersHousing.housingId', '=', 'fastHousing.id')
+                  .where('ownersHousing.rank', '>=', 1)
+                  .select('ownersHousing.housingId')
+              )
+            )
+          );
+        }
+        return eb.or(arms);
+      });
+    }
+
+    if (filters.housingKinds?.length) {
+      query = query.where(
+        'fastHousing.housingKind',
+        'in',
+        filters.housingKinds
+      );
+    }
+
+    if (filters.housingAreas?.length) {
+      query = query.where((eb) =>
+        eb.or([
+          ...(filters.housingAreas?.includes('lt35')
+            ? [eb.between('fastHousing.livingArea', 0, 34)]
+            : []),
+          ...(filters.housingAreas?.includes('35to74')
+            ? [eb.between('fastHousing.livingArea', 35, 74)]
+            : []),
+          ...(filters.housingAreas?.includes('75to99')
+            ? [eb.between('fastHousing.livingArea', 75, 99)]
+            : []),
+          ...(filters.housingAreas?.includes('gte100')
+            ? [eb('fastHousing.livingArea', '>=', 100)]
+            : [])
+        ])
+      );
+    }
+
+    if (filters.roomsCounts?.length) {
       const roomCounts = filters.roomsCounts
-        ?.map(Number)
-        ?.filter((count) => !Number.isNaN(count));
-      if (roomCounts && roomCounts.length) {
-        arms.push(eb('fast_housing.rooms_count', 'in', roomCounts));
-      }
-      return eb.or(arms);
-    });
-  }
-
-  // cadastralClassifications
-  if (filters.cadastralClassifications?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.cadastralClassifications?.includes(null)) {
-        arms.push(eb('fast_housing.cadastral_classification', 'is', null));
-      }
-      const cadastralClassifications =
-        filters.cadastralClassifications?.filter(isNotNull);
-      if (cadastralClassifications?.length) {
-        arms.push(
-          eb(
-            'fast_housing.cadastral_classification',
-            'in',
-            cadastralClassifications
-          )
-        );
-      }
-      return eb.or(arms);
-    });
-  }
-
-  // buildingPeriods
-  if (filters.buildingPeriods?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.buildingPeriods?.includes('lt1919')) {
-        arms.push(eb.between('fast_housing.building_year', 0, 1918));
-      }
-      if (filters.buildingPeriods?.includes('1919to1945')) {
-        arms.push(eb.between('fast_housing.building_year', 1919, 1945));
-      }
-      if (filters.buildingPeriods?.includes('1946to1990')) {
-        arms.push(eb.between('fast_housing.building_year', 1946, 1990));
-      }
-      if (filters.buildingPeriods?.includes('gte1991')) {
-        arms.push(eb('fast_housing.building_year', '>=', 1991));
-      }
-      return eb.or(arms);
-    });
-  }
-
-  // vacancyYears
-  if (filters.vacancyYears?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.vacancyYears?.includes('2022')) {
-        arms.push(eb('vacancy_start_year', '=', 2022));
-      }
-      if (filters.vacancyYears?.includes('2021')) {
-        arms.push(eb('vacancy_start_year', '=', 2021));
-      }
-      if (filters.vacancyYears?.includes('2020')) {
-        arms.push(eb('vacancy_start_year', '=', 2020));
-      }
-      if (filters.vacancyYears?.includes('2019')) {
-        arms.push(eb('vacancy_start_year', '=', 2019));
-      }
-      if (filters.vacancyYears?.includes('2018to2015')) {
-        arms.push(eb.between('vacancy_start_year', 2015, 2018));
-      }
-      if (filters.vacancyYears?.includes('2014to2010')) {
-        arms.push(eb.between('vacancy_start_year', 2010, 2014));
-      }
-      if (filters.vacancyYears?.includes('before2010')) {
-        arms.push(eb('vacancy_start_year', '<', 2010));
-      }
-      if (filters.vacancyYears?.includes('missingData')) {
-        arms.push(eb('vacancy_start_year', 'is', null));
-      }
-      if (filters.vacancyYears?.includes('2023')) {
-        arms.push(eb('vacancy_start_year', '=', 2023));
-      }
-      return eb.or(arms);
-    });
-  }
-
-  // isTaxedValues
-  if (filters.isTaxedValues?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.isTaxedValues?.includes(true)) {
-        arms.push(sql`taxed`);
-      }
-      if (filters.isTaxedValues?.includes(false)) {
-        arms.push(eb('taxed', 'is', null));
-        arms.push(sql`not(taxed)`);
-      }
-      return eb.or(arms);
-    });
-  }
-
-  // ownershipKinds
-  if (filters.ownershipKinds?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.ownershipKinds?.includes('single')) {
-        arms.push(
-          eb.or([
-            eb('fast_housing.condominium', 'is', null),
-            eb(
-              'fast_housing.condominium',
-              'in',
-              INTERNAL_MONO_CONDOMINIUM_VALUES
-            )
-          ])
-        );
-      }
-      if (filters.ownershipKinds?.includes('co')) {
-        arms.push(
-          eb('fast_housing.condominium', 'in', INTERNAL_CO_CONDOMINIUM_VALUES)
-        );
-      }
-      if (filters.ownershipKinds?.includes('other')) {
-        arms.push(
-          eb.and([
-            eb('fast_housing.condominium', 'is not', null),
-            eb('fast_housing.condominium', 'not in', [
-              ...INTERNAL_MONO_CONDOMINIUM_VALUES,
-              ...INTERNAL_CO_CONDOMINIUM_VALUES
-            ])
-          ])
-        );
-      }
-      return eb.or(arms);
-    });
-  }
-
-  // housingCounts / vacancyRates — require join on buildings. Skip if the
-  // 'buildings' include already left-joined it (an inner join here would
-  // collide with it — Postgres rejects joining the same table twice under
-  // the same alias). A left join filters identically here: every arm below
-  // either coalesces NULL to 0 or leaves it to fail the comparison, which
-  // NULL naturally does — the same rows an inner join would exclude.
-  if (
-    (filters.housingCounts?.length || filters.vacancyRates?.length) &&
-    !includes.includes('buildings')
-  ) {
-    q = q.innerJoin('buildings', 'fast_housing.building_id', 'buildings.id');
-  }
-
-  if (filters.housingCounts?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.housingCounts?.includes('lt5')) {
-        arms.push(sql`coalesce(housing_count, 0) between 0 and 4`);
-      }
-      if (filters.housingCounts?.includes('5to19')) {
-        arms.push(eb.between('housing_count', 5, 19));
-      }
-      if (filters.housingCounts?.includes('20to49')) {
-        arms.push(eb.between('housing_count', 20, 49));
-      }
-      if (filters.housingCounts?.includes('gte50')) {
-        arms.push(sql`housing_count >= 50`);
-      }
-      return eb.or(arms);
-    });
-  }
-
-  // vacancyRates
-  if (filters.vacancyRates?.length) {
-    q = q.where((eb: any) => {
-      const safeExpr = sql`housing_count > 0 AND vacant_housing_count * 100.0 / housing_count`;
-      const arms: any[] = [];
-      if (filters.vacancyRates?.includes('lt20')) {
-        arms.push(sql`${safeExpr} < 20`);
-      }
-      if (filters.vacancyRates?.includes('20to39')) {
-        arms.push(sql`${safeExpr} BETWEEN 20 AND 39`);
-      }
-      if (filters.vacancyRates?.includes('40to59')) {
-        arms.push(sql`${safeExpr} BETWEEN 40 AND 59`);
-      }
-      if (filters.vacancyRates?.includes('60to79')) {
-        arms.push(sql`${safeExpr} BETWEEN 60 AND 79`);
-      }
-      if (filters.vacancyRates?.includes('gte80')) {
-        arms.push(sql`${safeExpr} >= 80`);
-      }
-      return eb.or(arms);
-    });
-  }
-
-  // departments
-  if (filters.departments?.length) {
-    q = q.where((eb: any) => {
-      const arms = filters.departments!.map(
-        (dept) => sql`LEFT(fast_housing.geo_code, ${dept.length}) = ${dept}`
+        .map(Number)
+        .filter((count) => !Number.isNaN(count));
+      query = query.where((eb) =>
+        eb.or([
+          ...(filters.roomsCounts?.includes('gte5')
+            ? [eb('fastHousing.roomsCount', '>=', 5)]
+            : []),
+          ...(roomCounts.length
+            ? [eb('fastHousing.roomsCount', 'in', roomCounts)]
+            : [])
+        ])
       );
-      return eb.or(arms);
-    });
-  }
+    }
 
-  // localities
-  if (filters.localities?.length) {
-    q = q.where('fast_housing.geo_code', 'in', filters.localities);
-  }
+    if (filters.cadastralClassifications?.length) {
+      query = query.where((eb) => {
+        const arms: Expression<SqlBool>[] = [];
+        if (filters.cadastralClassifications?.includes(null)) {
+          arms.push(eb('fastHousing.cadastralClassification', 'is', null));
+        }
+        const values = filters.cadastralClassifications?.filter(isNotNull);
+        if (values?.length) {
+          arms.push(eb('fastHousing.cadastralClassification', 'in', values));
+        }
+        return eb.or(arms);
+      });
+    }
 
-  // localityKinds — requires join
-  if (filters.localityKinds?.length) {
-    q = q.innerJoin(
-      'localities',
-      'fast_housing.geo_code',
-      'localities.geo_code'
-    );
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.localityKinds?.includes(null)) {
-        arms.push(eb('localities.locality_kind', 'is', null));
-      }
-      const localityKinds = filters.localityKinds?.filter(isNotNull);
-      if (localityKinds?.length) {
-        arms.push(eb('localities.locality_kind', 'in', localityKinds));
-      }
-      return eb.or(arms);
-    });
-  }
+    if (filters.buildingPeriods?.length) {
+      query = query.where((eb) =>
+        eb.or([
+          ...(filters.buildingPeriods?.includes('lt1919')
+            ? [eb.between('fastHousing.buildingYear', 0, 1918)]
+            : []),
+          ...(filters.buildingPeriods?.includes('1919to1945')
+            ? [eb.between('fastHousing.buildingYear', 1919, 1945)]
+            : []),
+          ...(filters.buildingPeriods?.includes('1946to1990')
+            ? [eb.between('fastHousing.buildingYear', 1946, 1990)]
+            : []),
+          ...(filters.buildingPeriods?.includes('gte1991')
+            ? [eb('fastHousing.buildingYear', '>=', 1991)]
+            : [])
+        ])
+      );
+    }
 
-  // geoPerimetersIncluded
-  if (filters.geoPerimetersIncluded && filters.geoPerimetersIncluded.length) {
-    q = q.where((eb: any) =>
-      eb.exists((sub: any) =>
-        sub
-          .selectFrom('geo_perimeters')
-          .select(sql`1`.as('one'))
-          .where('geo_perimeters.kind', 'in', filters.geoPerimetersIncluded)
-          .where(
-            sql`st_contains(geo_perimeters.geom, ST_SetSRID(ST_Point(fast_housing.longitude_dgfip, fast_housing.latitude_dgfip), 4326))`
+    if (filters.vacancyYears?.length) {
+      query = query.where((eb) => {
+        const arms: Expression<SqlBool>[] = [];
+        const equals = (year: number) =>
+          eb('fastHousing.vacancyStartYear', '=', year);
+        if (filters.vacancyYears?.includes('2023')) arms.push(equals(2023));
+        if (filters.vacancyYears?.includes('2022')) arms.push(equals(2022));
+        if (filters.vacancyYears?.includes('2021')) arms.push(equals(2021));
+        if (filters.vacancyYears?.includes('2020')) arms.push(equals(2020));
+        if (filters.vacancyYears?.includes('2019')) arms.push(equals(2019));
+        if (filters.vacancyYears?.includes('2018to2015')) {
+          arms.push(eb.between('fastHousing.vacancyStartYear', 2015, 2018));
+        }
+        if (filters.vacancyYears?.includes('2014to2010')) {
+          arms.push(eb.between('fastHousing.vacancyStartYear', 2010, 2014));
+        }
+        if (filters.vacancyYears?.includes('before2010')) {
+          arms.push(eb('fastHousing.vacancyStartYear', '<', 2010));
+        }
+        if (filters.vacancyYears?.includes('missingData')) {
+          arms.push(eb('fastHousing.vacancyStartYear', 'is', null));
+        }
+        return eb.or(arms);
+      });
+    }
+
+    if (filters.isTaxedValues?.length) {
+      query = query.where((eb) => {
+        const arms: Expression<SqlBool>[] = [];
+        if (filters.isTaxedValues?.includes(true)) {
+          arms.push(sql<SqlBool>`fast_housing.taxed`);
+        }
+        if (filters.isTaxedValues?.includes(false)) {
+          arms.push(eb('fastHousing.taxed', 'is', null));
+          arms.push(sql<SqlBool>`not(fast_housing.taxed)`);
+        }
+        return eb.or(arms);
+      });
+    }
+
+    if (filters.ownershipKinds?.length) {
+      query = query.where((eb) => {
+        const arms: Expression<SqlBool>[] = [];
+        if (filters.ownershipKinds?.includes('single')) {
+          arms.push(
+            eb.or([
+              eb('fastHousing.condominium', 'is', null),
+              eb(
+                'fastHousing.condominium',
+                'in',
+                INTERNAL_MONO_CONDOMINIUM_VALUES
+              )
+            ])
+          );
+        }
+        if (filters.ownershipKinds?.includes('co')) {
+          arms.push(
+            eb('fastHousing.condominium', 'in', INTERNAL_CO_CONDOMINIUM_VALUES)
+          );
+        }
+        if (filters.ownershipKinds?.includes('other')) {
+          arms.push(
+            eb.and([
+              eb('fastHousing.condominium', 'is not', null),
+              eb('fastHousing.condominium', 'not in', [
+                ...INTERNAL_MONO_CONDOMINIUM_VALUES,
+                ...INTERNAL_CO_CONDOMINIUM_VALUES
+              ])
+            ])
+          );
+        }
+        return eb.or(arms);
+      });
+    }
+
+    if (filters.housingCounts?.length) {
+      query = query.where((eb) =>
+        eb.exists(
+          eb
+            .selectFrom('buildings')
+            .whereRef('buildings.id', '=', 'fastHousing.buildingId')
+            .where((building) =>
+              building.or([
+                ...(filters.housingCounts?.includes('lt5')
+                  ? [
+                      sql<SqlBool>`coalesce(buildings.housing_count, 0) between 0 and 4`
+                    ]
+                  : []),
+                ...(filters.housingCounts?.includes('5to19')
+                  ? [building.between('buildings.housingCount', 5, 19)]
+                  : []),
+                ...(filters.housingCounts?.includes('20to49')
+                  ? [building.between('buildings.housingCount', 20, 49)]
+                  : []),
+                ...(filters.housingCounts?.includes('gte50')
+                  ? [sql<SqlBool>`buildings.housing_count >= 50`]
+                  : [])
+              ])
+            )
+            .select('buildings.id')
+        )
+      );
+    }
+
+    if (filters.vacancyRates?.length) {
+      const rate = sql`buildings.housing_count > 0 and buildings.vacant_housing_count * 100.0 / buildings.housing_count`;
+      query = query.where((eb) =>
+        eb.exists(
+          eb
+            .selectFrom('buildings')
+            .whereRef('buildings.id', '=', 'fastHousing.buildingId')
+            .where((building) =>
+              building.or([
+                ...(filters.vacancyRates?.includes('lt20')
+                  ? [sql<SqlBool>`${rate} < 20`]
+                  : []),
+                ...(filters.vacancyRates?.includes('20to39')
+                  ? [sql<SqlBool>`${rate} between 20 and 39`]
+                  : []),
+                ...(filters.vacancyRates?.includes('40to59')
+                  ? [sql<SqlBool>`${rate} between 40 and 59`]
+                  : []),
+                ...(filters.vacancyRates?.includes('60to79')
+                  ? [sql<SqlBool>`${rate} between 60 and 79`]
+                  : []),
+                ...(filters.vacancyRates?.includes('gte80')
+                  ? [sql<SqlBool>`${rate} >= 80`]
+                  : [])
+              ])
+            )
+            .select('buildings.id')
+        )
+      );
+    }
+
+    if (filters.departments?.length) {
+      query = query.where((eb) =>
+        eb.or(
+          filters.departments!.map(
+            (department) =>
+              sql<SqlBool>`left(fast_housing.geo_code, ${department.length}) = ${department}`
           )
-      )
-    );
-  }
+        )
+      );
+    }
 
-  // geoPerimetersExcluded
-  if (filters.geoPerimetersExcluded && filters.geoPerimetersExcluded.length) {
-    q = q.where((eb: any) =>
-      eb.not(
-        eb.exists((sub: any) =>
-          sub
-            .selectFrom('geo_perimeters')
-            .selectAll('geo_perimeters')
-            .where('geo_perimeters.kind', 'in', filters.geoPerimetersExcluded)
+    // `undefined` => no geo filter; `[]` => match nothing (`in ()` becomes a
+    // false predicate via the HandleEmptyInListsPlugin).
+    if (filters.localities !== undefined) {
+      query = query.where('fastHousing.geoCode', 'in', filters.localities);
+    }
+
+    if (filters.localityKinds?.length) {
+      query = query.where((eb) =>
+        eb.exists(
+          eb
+            .selectFrom('localities')
+            .whereRef('localities.geoCode', '=', 'fastHousing.geoCode')
+            .where((locality) =>
+              locality.or([
+                ...(filters.localityKinds?.includes(null)
+                  ? [locality('localities.localityKind', 'is', null)]
+                  : []),
+                ...(() => {
+                  const kinds = filters.localityKinds?.filter(isNotNull);
+                  return kinds?.length
+                    ? [locality('localities.localityKind', 'in', kinds)]
+                    : [];
+                })()
+              ])
+            )
+            .select('localities.geoCode')
+        )
+      );
+    }
+
+    if (filters.geoPerimetersIncluded?.length) {
+      query = query.where((eb) =>
+        eb.exists(
+          eb
+            .selectFrom('geoPerimeters')
+            .where('geoPerimeters.kind', 'in', filters.geoPerimetersIncluded!)
             .where(
-              sql`st_contains(geo_perimeters.geom, ST_SetSRID(ST_Point(fast_housing.longitude_dgfip, fast_housing.latitude_dgfip), 4326))`
+              sql<SqlBool>`st_contains(geo_perimeters.geom, st_setsrid(st_point(fast_housing.longitude_dgfip, fast_housing.latitude_dgfip), 4326))`
             )
+            .select('geoPerimeters.id')
         )
-      )
-    );
-  }
-
-  // dataFileYearsIncluded
-  if (filters.dataFileYearsIncluded?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      if (filters.dataFileYearsIncluded?.includes(null)) {
-        arms.push(eb('data_file_years', 'is', null));
-        arms.push(sql`cardinality(data_file_years) = 0`);
-      }
-      if (filters.dataFileYearsIncluded?.includes('datafoncier-manual')) {
-        arms.push(eb('fast_housing.data_source', '=', 'datafoncier-manual'));
-      }
-      const dataFileYears = filters.dataFileYearsIncluded?.filter(
-        (v): v is DataFileYear => isNotNull(v) && v !== 'datafoncier-manual'
       );
-      if (dataFileYears?.length) {
-        arms.push(sql`data_file_years && ${sql.val(dataFileYears)}::text[]`);
-      }
-      return eb.or(arms);
-    });
-  }
+    }
 
-  // dataFileYearsExcluded
-  if (filters.dataFileYearsExcluded?.length) {
-    q = q.where((eb: any) => {
-      // The two special exclusions (null, datafoncier-manual) combine with AND,
-      // while the concrete-year exclusion is OR-ed with that group — matching the
-      // pre-Kysely Knex chaining (`.whereNotNull(...).where(...)` then
-      // `.orWhereRaw(...)`).
-      const specialArms: any[] = [];
-      if (filters.dataFileYearsExcluded?.includes(null)) {
-        // AND of not-null + cardinality>0 (translated as a single AND expression arm)
-        specialArms.push(
-          eb.and([
-            eb('data_file_years', 'is not', null),
-            sql`cardinality(data_file_years) > 0`
-          ])
-        );
-      }
-      if (filters.dataFileYearsExcluded?.includes('datafoncier-manual')) {
-        specialArms.push(
-          eb.or([
-            eb('fast_housing.data_source', 'is', null),
-            eb('fast_housing.data_source', '!=', 'datafoncier-manual')
-          ])
-        );
-      }
-      const orArms: any[] = [];
-      if (specialArms.length) {
-        orArms.push(eb.and(specialArms));
-      }
-      const dataFileYears = filters.dataFileYearsExcluded?.filter(
-        (v): v is DataFileYear => isNotNull(v) && v !== 'datafoncier-manual'
+    if (filters.geoPerimetersExcluded?.length) {
+      query = query.where((eb) =>
+        eb.not(
+          eb.exists(
+            eb
+              .selectFrom('geoPerimeters')
+              .where('geoPerimeters.kind', 'in', filters.geoPerimetersExcluded!)
+              .where(
+                sql<SqlBool>`st_contains(geo_perimeters.geom, st_setsrid(st_point(fast_housing.longitude_dgfip, fast_housing.latitude_dgfip), 4326))`
+              )
+              .select('geoPerimeters.id')
+          )
+        )
       );
-      if (dataFileYears?.length) {
-        orArms.push(
-          sql`not(data_file_years && ${sql.val(dataFileYears)}::text[])`
-        );
-      }
-      return eb.or(orArms);
-    });
-  }
+    }
 
-  // statusList
-  if (filters.statusList?.length) {
-    q = q.where('status', 'in', filters.statusList);
-  }
+    if (filters.dataFileYearsIncluded?.length) {
+      query = query.where((eb) => {
+        const expressions: Expression<SqlBool>[] = [];
 
-  // status (exact)
-  if (filters.status !== undefined) {
-    q = q.where('status', '=', filters.status);
-  }
-
-  // subStatus
-  if (filters.subStatus?.length) {
-    q = q.where('sub_status', 'in', filters.subStatus);
-  }
-
-  // query (full-text / address search)
-  if (filters.query?.length) {
-    const { query } = filters;
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-
-      // With more than 20 tokens, the query is likely nor a name neither an address
-      if (query.replaceAll(' ', ',').split(',').length < 20) {
-        arms.push(sql`invariant = ${query}`);
-        arms.push(sql`local_id = ${query}`);
-        arms.push(
-          sql`upper(unaccent(full_name)) like '%' || upper(unaccent(${query})) || '%'`
-        );
-        arms.push(
-          sql`upper(unaccent(full_name)) like '%' || upper(unaccent(${query
-            ?.split(' ')
-            .reverse()
-            .join(' ')})) || '%'`
-        );
-        arms.push(
-          sql`upper(unaccent(administrator)) like '%' || upper(unaccent(${query})) || '%'`
-        );
-        arms.push(
-          sql`upper(unaccent(administrator)) like '%' || upper(unaccent(${query
-            ?.split(' ')
-            .reverse()
-            .join(' ')})) || '%'`
-        );
-
-        // Enhanced address search with FANTOIR normalization
-        for (const variation of normalizeAddressQuery(query)) {
-          arms.push(
-            sql`replace(upper(unaccent(array_to_string(${sql.ref('fast_housing.address_dgfip')}, '%'))), ' ', '') like '%' || replace(upper(unaccent(${variation})), ' ', '') || '%'`
+        if (filters.dataFileYearsIncluded?.includes(null)) {
+          expressions.push(eb('fastHousing.dataFileYears', 'is', null));
+          expressions.push(
+            sql<SqlBool>`cardinality(fast_housing.data_file_years) = 0`
           );
         }
-        for (const variation of normalizeAddressQuery(query)) {
-          arms.push(
-            sql`replace(upper(unaccent(array_to_string(${sql.ref('owners.address_dgfip')}, '%'))), ' ', '') like '%' || replace(upper(unaccent(${variation})), ' ', '') || '%'`
+
+        if (filters.dataFileYearsIncluded?.includes('datafoncier-manual')) {
+          expressions.push(
+            eb('fastHousing.dataSource', '=', 'datafoncier-manual')
           );
         }
-      }
 
-      arms.push(
-        eb(
-          'invariant',
-          'in',
-          query
-            ?.replaceAll(' ', ',')
-            .split(',')
-            .map((_) => _.trim())
-        )
-      );
-      arms.push(
-        eb(
-          'local_id',
-          'in',
-          query
-            ?.replaceAll(' ', ',')
-            .split(',')
-            .map((_) => _.trim())
-        )
-      );
-      arms.push(
-        eb(
-          'cadastral_reference',
-          'in',
-          query
-            ?.replaceAll(' ', ',')
-            .split(',')
-            .map((_) => _.trim())
-        )
-      );
+        const dataFileYears = filters.dataFileYearsIncluded?.filter(
+          (value): value is DataFileYear =>
+            Predicate.isNotNull(value) && value !== 'datafoncier-manual'
+        );
+        if (dataFileYears?.length) {
+          expressions.push(
+            eb('fastHousing.dataFileYears', '&&', eb.val(dataFileYears))
+          );
+        }
 
-      return eb.or(arms);
-    });
-  }
+        return eb.or(expressions);
+      });
+    }
 
-  // lastMutationYears — null branch (no active years required)
-  if (filters.lastMutationYears?.includes(null)) {
-    q = q.where((eb: any) =>
-      eb.and([
-        eb('fast_housing.last_mutation_date', 'is', null),
-        eb('fast_housing.last_transaction_date', 'is', null)
-      ])
-    );
-  }
-
-  // lastMutationYears — main branch (typed year ranges)
-  if (filters.lastMutationYears?.length) {
-    q = q.where((eb: any) => {
-      const years = (filters.lastMutationYears ?? [])
-        .filter(Predicate.isNotNull)
-        .flatMap((year) =>
-          match(year)
-            .returnType<string | ReadonlyArray<string>>()
-            .with(Pattern.union('2021', '2022', '2023', '2024'), identity)
-            .with('2015to2020', () => [
-              '2015',
-              '2016',
-              '2017',
-              '2018',
-              '2019',
-              '2020'
+    if (filters.dataFileYearsExcluded?.length) {
+      query = query.where((eb) => {
+        const specialArms: Expression<SqlBool>[] = [];
+        if (filters.dataFileYearsExcluded?.includes(null)) {
+          specialArms.push(
+            eb.and([
+              eb('fastHousing.dataFileYears', 'is not', null),
+              sql<SqlBool>`cardinality(fast_housing.data_file_years) > 0`
             ])
-            .with('2010to2014', () => ['2010', '2011', '2012', '2013', '2014'])
-            .otherwise(() => [])
+          );
+        }
+        if (filters.dataFileYearsExcluded?.includes('datafoncier-manual')) {
+          specialArms.push(
+            eb.or([
+              eb('fastHousing.dataSource', 'is', null),
+              eb('fastHousing.dataSource', '!=', 'datafoncier-manual')
+            ])
+          );
+        }
+        const orArms: Expression<SqlBool>[] = [];
+        if (specialArms.length) {
+          orArms.push(eb.and(specialArms));
+        }
+        const dataFileYears = filters.dataFileYearsExcluded?.filter(
+          (value): value is DataFileYear =>
+            Predicate.isNotNull(value) && value !== 'datafoncier-manual'
         );
-      const types: ReadonlyArray<MutationType> = !filters.lastMutationTypes
-        ?.length
-        ? MUTATION_TYPE_VALUES
-        : filters.lastMutationTypes;
-
-      const arms: any[] = [];
-
-      if (types.includes('donation')) {
-        const donationInner: any[] = [];
-        if (years.length) {
-          donationInner.push(
-            sql`EXTRACT(YEAR FROM ${sql.ref('fast_housing.last_mutation_date')}) = ANY(${sql.val(years)})`
+        if (dataFileYears?.length) {
+          orArms.push(
+            sql<SqlBool>`not(fast_housing.data_file_years && ${sql.val(dataFileYears)}::text[])`
           );
         }
-        if (filters.lastMutationYears?.includes('lte2009')) {
-          donationInner.push(
-            sql`EXTRACT(YEAR FROM ${sql.ref('fast_housing.last_mutation_date')}) <= 2009`
+        return eb.or(orArms);
+      });
+    }
+
+    if (filters.statusList?.length) {
+      query = query.where('fastHousing.status', 'in', filters.statusList);
+    }
+
+    if (filters.status !== undefined) {
+      query = query.where('fastHousing.status', '=', filters.status);
+    }
+
+    if (filters.subStatus?.length) {
+      query = query.where('fastHousing.subStatus', 'in', filters.subStatus);
+    }
+
+    if (filters.query?.length) {
+      const search = filters.query;
+      const reversed = search.split(' ').reverse().join(' ');
+      const tokens = search
+        .replaceAll(' ', ',')
+        .split(',')
+        .map((token) => token.trim());
+      query = query.where((eb) => {
+        const arms: Expression<SqlBool>[] = [];
+
+        // With more than 20 tokens the query is likely neither a name nor an
+        // address, so skip the (expensive) fuzzy arms.
+        if (search.replaceAll(' ', ',').split(',').length < 20) {
+          arms.push(sql<SqlBool>`fast_housing.invariant = ${search}`);
+          arms.push(sql<SqlBool>`fast_housing.local_id = ${search}`);
+          arms.push(
+            primaryOwnerExists(eb, (owner) =>
+              owner.or([
+                sql<SqlBool>`upper(unaccent(owners.full_name)) like '%' || upper(unaccent(${search})) || '%'`,
+                sql<SqlBool>`upper(unaccent(owners.full_name)) like '%' || upper(unaccent(${reversed})) || '%'`,
+                sql<SqlBool>`upper(unaccent(owners.administrator)) like '%' || upper(unaccent(${search})) || '%'`,
+                sql<SqlBool>`upper(unaccent(owners.administrator)) like '%' || upper(unaccent(${reversed})) || '%'`,
+                ...normalizeAddressQuery(search).map(
+                  (variation) =>
+                    sql<SqlBool>`replace(upper(unaccent(array_to_string(owners.address_dgfip, '%'))), ' ', '') like '%' || replace(upper(unaccent(${variation})), ' ', '') || '%'`
+                )
+              ])
+            )
+          );
+          for (const variation of normalizeAddressQuery(search)) {
+            arms.push(
+              sql<SqlBool>`replace(upper(unaccent(array_to_string(fast_housing.address_dgfip, '%'))), ' ', '') like '%' || replace(upper(unaccent(${variation})), ' ', '') || '%'`
+            );
+          }
+        }
+
+        arms.push(eb('fastHousing.invariant', 'in', tokens));
+        arms.push(eb('fastHousing.localId', 'in', tokens));
+        arms.push(eb('fastHousing.cadastralReference', 'in', tokens));
+        return eb.or(arms);
+      });
+    }
+
+    // lastMutationYears — null branch (no active years required)
+    if (filters.lastMutationYears?.includes(null)) {
+      query = query.where((eb) =>
+        eb.and([
+          eb('fastHousing.lastMutationDate', 'is', null),
+          eb('fastHousing.lastTransactionDate', 'is', null)
+        ])
+      );
+    }
+
+    // lastMutationYears — main branch (typed year ranges)
+    if (filters.lastMutationYears?.length) {
+      query = query.where((eb) => {
+        const years = (filters.lastMutationYears ?? [])
+          .filter(Predicate.isNotNull)
+          .flatMap((year) =>
+            match(year)
+              .returnType<string | ReadonlyArray<string>>()
+              .with(Pattern.union('2021', '2022', '2023', '2024'), identity)
+              .with('2015to2020', () => [
+                '2015',
+                '2016',
+                '2017',
+                '2018',
+                '2019',
+                '2020'
+              ])
+              .with('2010to2014', () => [
+                '2010',
+                '2011',
+                '2012',
+                '2013',
+                '2014'
+              ])
+              .otherwise(() => [])
+          );
+        const types: ReadonlyArray<MutationType> = !filters.lastMutationTypes
+          ?.length
+          ? MUTATION_TYPE_VALUES
+          : filters.lastMutationTypes;
+
+        const arms: Expression<SqlBool>[] = [];
+
+        if (types.includes('donation')) {
+          const inner: Expression<SqlBool>[] = [];
+          if (years.length) {
+            inner.push(
+              sql<SqlBool>`extract(year from fast_housing.last_mutation_date) = any(${sql.val(years)})`
+            );
+          }
+          if (filters.lastMutationYears?.includes('lte2009')) {
+            inner.push(
+              sql<SqlBool>`extract(year from fast_housing.last_mutation_date) <= 2009`
+            );
+          }
+          arms.push(
+            eb.and([
+              eb('fastHousing.lastMutationType', '=', 'donation'),
+              ...(inner.length ? [eb.and(inner)] : [])
+            ])
           );
         }
-        // donation: orWhereRaw(years) then whereRaw(lte2009) → AND semantics (first OR is no-op on first term)
-        arms.push(
-          eb.and([
-            eb('fast_housing.last_mutation_type', '=', 'donation'),
-            ...(donationInner.length ? [eb.and(donationInner)] : [])
-          ])
-        );
-      }
 
-      if (types.includes('sale')) {
-        const saleInner: any[] = [];
-        if (years.length) {
-          // NOTE: original uses .whereRaw (not .orWhereRaw) for both arms in the 'sale' branch → AND semantics
-          saleInner.push(
-            sql`EXTRACT(YEAR FROM ${sql.ref('fast_housing.last_transaction_date')}) = ANY(${sql.val(years)})`
+        if (types.includes('sale')) {
+          const inner: Expression<SqlBool>[] = [];
+          if (years.length) {
+            inner.push(
+              sql<SqlBool>`extract(year from fast_housing.last_transaction_date) = any(${sql.val(years)})`
+            );
+          }
+          if (filters.lastMutationYears?.includes('lte2009')) {
+            inner.push(
+              sql<SqlBool>`extract(year from fast_housing.last_transaction_date) <= 2009`
+            );
+          }
+          arms.push(
+            eb.and([
+              eb('fastHousing.lastMutationType', '=', 'sale'),
+              ...(inner.length ? [eb.and(inner)] : [])
+            ])
           );
         }
-        if (filters.lastMutationYears?.includes('lte2009')) {
-          saleInner.push(
-            sql`EXTRACT(YEAR FROM ${sql.ref('fast_housing.last_transaction_date')}) <= 2009`
+
+        if (types.includes(null)) {
+          const inner: Expression<SqlBool>[] = [];
+          if (years.length) {
+            inner.push(
+              sql<SqlBool>`extract(year from fast_housing.last_mutation_date) = any(${sql.val(years)})`
+            );
+          }
+          if (filters.lastMutationYears?.includes('lte2009')) {
+            inner.push(
+              sql<SqlBool>`extract(year from fast_housing.last_mutation_date) <= 2009`
+            );
+          }
+          if (filters.lastMutationYears?.includes(null)) {
+            inner.push(eb('fastHousing.lastMutationDate', 'is', null));
+          }
+          arms.push(
+            eb.and([
+              eb('fastHousing.lastMutationType', 'is', null),
+              ...(inner.length ? [eb.or(inner)] : [])
+            ])
           );
         }
-        arms.push(
-          eb.and([
-            eb('fast_housing.last_mutation_type', '=', 'sale'),
-            ...(saleInner.length ? [eb.and(saleInner)] : [])
-          ])
-        );
-      }
 
-      if (types.includes(null)) {
-        const nullTypeInner: any[] = [];
-        if (years.length) {
-          nullTypeInner.push(
-            sql`EXTRACT(YEAR FROM ${sql.ref('fast_housing.last_mutation_date')}) = ANY(${sql.val(years)})`
-          );
+        return eb.or(arms);
+      });
+    }
+
+    if (filters.lastMutationTypes?.length) {
+      query = query.where((eb) => {
+        const arms: Expression<SqlBool>[] = [];
+        const nonNull =
+          filters.lastMutationTypes?.filter(Predicate.isNotNull) ?? [];
+        if (nonNull.length) {
+          arms.push(eb('fastHousing.lastMutationType', 'in', nonNull));
         }
-        if (filters.lastMutationYears?.includes('lte2009')) {
-          nullTypeInner.push(
-            sql`EXTRACT(YEAR FROM ${sql.ref('fast_housing.last_mutation_date')}) <= 2009`
-          );
+        if (filters.lastMutationTypes?.includes(null)) {
+          arms.push(eb('fastHousing.lastMutationType', 'is', null));
         }
-        if (filters.lastMutationYears?.includes(null)) {
-          nullTypeInner.push(eb('fast_housing.last_mutation_date', 'is', null));
-        }
-        arms.push(
-          eb.and([
-            eb('fast_housing.last_mutation_type', 'is', null),
-            ...(nullTypeInner.length ? [eb.or(nullTypeInner)] : [])
-          ])
-        );
-      }
+        return eb.or(arms);
+      });
+    }
 
-      return eb.or(arms);
-    });
-  }
-
-  // lastMutationTypes
-  if (filters.lastMutationTypes?.length) {
-    q = q.where((eb: any) => {
-      const arms: any[] = [];
-      const nonNullValues =
-        filters.lastMutationTypes?.filter(Predicate.isNotNull) ?? [];
-      if (nonNullValues.length) {
-        arms.push(eb('fast_housing.last_mutation_type', 'in', nonNullValues));
-      }
-      if (filters.lastMutationTypes?.includes(null)) {
-        arms.push(eb('fast_housing.last_mutation_type', 'is', null));
-      }
-      return eb.or(arms);
-    });
-  }
-
-  return q;
+    return query;
+  };
 }
 
-export const parseHousingRow = (row: HousingRow): HousingApi => ({
-  id: row.id,
-  invariant: row.invariant,
-  localId: row.localId,
-  plotId: row.plotId,
-  plotArea: row.plotArea,
-  buildingGroupId: row.buildingGroupId,
-  buildingHousingCount: row.housingCount,
-  buildingId: row.buildingId,
-  buildingLocation: row.buildingLocation,
-  buildingVacancyRate: row.vacantHousingCount
-    ? Math.round(
-        (row.vacantHousingCount * 100) /
-          (row.housingCount ?? row.vacantHousingCount)
+function includeQuery(
+  includes: ReadonlyArray<HousingInclude> = [],
+  establishmentIds?: Array<EstablishmentApi['id']>
+) {
+  return <O>(query: SelectQueryBuilder<DB, 'fastHousing', O>) =>
+    query
+      .$if(includes.includes('owner'), (qb) =>
+        qb.select((eb) =>
+          primaryOwner({
+            housingGeoCode: eb.ref('fastHousing.geoCode'),
+            housingId: eb.ref('fastHousing.id')
+          }).as('owner')
+        )
       )
-    : undefined,
-  buildingYear: row.buildingYear,
-  rawAddress: row.addressDgfip,
-  beneficiaryCount: row.beneficiaryCount,
-  rentalValue: row.rentalValue,
-  geoCode: row.geoCode,
-  longitude: row.longitudeDgfip,
-  latitude: row.latitudeDgfip,
-  geolocation: row.geolocation as unknown as Point | null,
-  cadastralClassification:
-    row.cadastralClassification as CadastralClassification | null,
-  uncomfortable: row.uncomfortable,
-  vacancyStartYear: row.vacancyStartYear,
-  housingKind: row.housingKind as HousingKind,
-  roomsCount: row.roomsCount,
-  livingArea: row.livingArea,
-  cadastralReference: row.cadastralReference,
-  taxed: row.taxed,
-  dataYears: row.dataYears,
-  dataFileYears: (row.dataFileYears ?? []) as DataFileYear[],
-  ownershipKind: row.condominium,
-  status: row.status as HousingStatus,
-  subStatus: row.subStatus,
-  precisions: row.precisions,
-  actualEnergyConsumption: row.actualDpe as EnergyConsumption | null,
-  energyConsumption: row.buildingClassDpe ?? null,
-  energyConsumptionAt: row.buildingDpeDateAt
-    ? new Date(row.buildingDpeDateAt)
-    : null,
-  occupancy: row.occupancy as Occupancy,
-  occupancyRegistered: row.occupancySource as Occupancy,
-  occupancyIntended: row.occupancyIntended as Occupancy | null,
-  localityKind: row.localityKind,
-  geoPerimeters: row.geoPerimeters,
-  owner: row.owner
-    ? parseOwnerApi({
-        ...row.owner,
-        ...row.ownerBanAddress,
-        ban: row.ownerBanAddress
-      })
-    : null,
-  ownerRelativeLocation: fromRelativeLocationDBO(
-    row.locpropRelativeBan ?? null
-  ),
-  campaignIds: (row.campaignIds ?? []).filter((_: any) => _),
-  contactCount: Number(row.contactCount),
-  source: row.dataSource as HousingSource | null,
-  lastMutationType: row.lastMutationType as Mutation['type'] | null,
-  lastMutationDate: row.lastMutationDate
-    ? new Date(row.lastMutationDate).toJSON()
-    : null,
-  lastTransactionDate: row.lastTransactionDate
-    ? new Date(row.lastTransactionDate).toJSON()
-    : null,
-  lastTransactionValue: row.lastTransactionValue
-});
+      .$if(includes.includes('campaigns'), (qb) =>
+        qb.select((eb) =>
+          campaigns({
+            housingGeoCode: eb.ref('fastHousing.geoCode'),
+            housingId: eb.ref('fastHousing.id'),
+            establishmentIds: establishmentIds?.map((id) => eb.val(id))
+          }).as('campaigns')
+        )
+      )
+      .$if(includes.includes('precisions'), (qb) =>
+        qb.select((eb) =>
+          jsonArrayFrom(
+            eb
+              .selectFrom('housingPrecisions')
+              .whereRef(
+                'housingPrecisions.housingGeoCode',
+                '=',
+                'fastHousing.geoCode'
+              )
+              .whereRef('housingPrecisions.housingId', '=', 'fastHousing.id')
+              .innerJoin(
+                'precisions',
+                'precisions.id',
+                'housingPrecisions.precisionId'
+              )
+              .selectAll('precisions')
+          ).as('precisions')
+        )
+      )
+      .$if(includes.includes('buildings'), (qb) =>
+        qb
+          .leftJoin('buildings', 'buildings.id', 'fastHousing.buildingId')
+          .select([
+            'buildings.classDpe as buildingClassDpe',
+            'buildings.dpeDateAt as buildingDpeDateAt'
+          ])
+      )
+      .$if(includes.includes('perimeters'), (qb) =>
+        qb.select(
+          sql<string[]>`(
+            select json_agg(distinct kind)
+            from geo_perimeters
+            where st_contains(
+              geo_perimeters.geom,
+              st_setsrid(
+                st_point(
+                  fast_housing.longitude_dgfip,
+                  fast_housing.latitude_dgfip
+                ),
+                4326
+              )
+            )
+          )`.as('geoPerimeters')
+        )
+      ) as unknown as SelectQueryBuilder<
+      DB,
+      'fastHousing',
+      O & Partial<HousingIncludeColumns>
+    >;
+}
 
-export const parseHousingApi = (housing: HousingDBO): HousingApi => ({
-  id: housing.id,
-  invariant: housing.invariant,
-  localId: housing.local_id,
-  plotId: housing.plot_id,
-  plotArea: housing.plot_area,
-  buildingGroupId: housing.building_group_id,
-  buildingHousingCount: housing.housing_count,
-  buildingId: housing.building_id,
-  buildingLocation: housing.building_location,
-  buildingVacancyRate: housing.vacant_housing_count
-    ? Math.round(
-        (housing.vacant_housing_count * 100) /
-          (housing.housing_count ?? housing.vacant_housing_count)
+function primaryOwner(refs: {
+  housingGeoCode: Expression<HousingId['geoCode']>;
+  housingId: Expression<HousingId['id']>;
+}) {
+  return jsonObjectFrom(
+    kysely
+      .selectFrom('ownersHousing')
+      .where('ownersHousing.housingGeoCode', '=', refs.housingGeoCode)
+      .where('ownersHousing.housingId', '=', refs.housingId)
+      .where('ownersHousing.rank', '=', 1)
+      .innerJoin('owners', 'ownersHousing.ownerId', 'owners.id')
+      // Nested BAN address (parseOwnerApi reads `owner.ban`). Snake keys survive
+      // via CamelCasePlugin's maintainNestedObjectKeys.
+      .select((eb) =>
+        jsonObjectFrom(
+          eb
+            .selectFrom('banAddresses')
+            .whereRef('banAddresses.refId', '=', 'owners.id')
+            .where('banAddresses.addressKind', '=', AddressKinds.Owner)
+            .selectAll('banAddresses')
+        ).as('ban')
       )
-    : undefined,
-  buildingYear: housing.building_year,
-  rawAddress: housing.address_dgfip,
-  beneficiaryCount: housing.beneficiary_count,
-  rentalValue: housing.rental_value,
-  geoCode: housing.geo_code,
-  longitude: housing.longitude_dgfip,
-  latitude: housing.latitude_dgfip,
-  geolocation: housing.geolocation,
-  cadastralClassification: housing.cadastral_classification,
-  uncomfortable: housing.uncomfortable,
-  vacancyStartYear: housing.vacancy_start_year,
-  housingKind: housing.housing_kind,
-  roomsCount: housing.rooms_count,
-  livingArea: housing.living_area,
-  cadastralReference: housing.cadastral_reference,
-  taxed: housing.taxed,
-  dataYears: housing.data_years,
-  dataFileYears: housing.data_file_years ?? [],
-  ownershipKind: housing.condominium,
-  status: housing.status,
-  subStatus: housing.sub_status,
-  precisions: housing.precisions,
-  actualEnergyConsumption: housing.actual_dpe,
-  energyConsumption: housing.building_class_dpe ?? null,
-  energyConsumptionAt: housing.building_dpe_date_at
-    ? new Date(housing.building_dpe_date_at)
-    : null,
-  occupancy: housing.occupancy,
-  occupancyRegistered: housing.occupancy_source,
-  occupancyIntended: housing.occupancy_intended,
-  localityKind: housing.locality_kind,
-  geoPerimeters: housing.geo_perimeters,
-  owner: housing.owner
-    ? parseOwnerApi({
-        ...housing.owner,
-        ...housing.owner_ban_address,
-        ban: housing.owner_ban_address
-      })
-    : null,
-  ownerRelativeLocation: fromRelativeLocationDBO(
-    housing.locprop_relative_ban ?? null
-  ),
-  campaignIds: (housing.campaign_ids ?? []).filter((_: any) => _),
-  contactCount: Number(housing.contact_count),
-  source: housing.data_source,
-  lastMutationType: housing.last_mutation_type,
-  lastMutationDate: housing.last_mutation_date
-    ? new Date(housing.last_mutation_date).toJSON()
-    : null,
-  lastTransactionDate: housing.last_transaction_date
-    ? new Date(housing.last_transaction_date).toJSON()
-    : null,
-  lastTransactionValue: housing.last_transaction_value
-});
+      .selectAll(['owners', 'ownersHousing'])
+  );
+}
+
+function campaigns(refs: {
+  housingGeoCode: Expression<HousingId['geoCode']>;
+  housingId: Expression<HousingId['id']>;
+  establishmentIds?: ReadonlyArray<Expression<EstablishmentApi['id']>>;
+}) {
+  return jsonArrayFrom(
+    kysely
+      .selectFrom('campaignsHousing')
+      .where('campaignsHousing.housingGeoCode', '=', refs.housingGeoCode)
+      .where('campaignsHousing.housingId', '=', refs.housingId)
+      .innerJoin('campaigns', 'campaignsHousing.campaignId', 'campaigns.id')
+      .$if(!!refs.establishmentIds && refs.establishmentIds.length > 0, (qb) =>
+        qb.where('campaigns.establishmentId', 'in', refs.establishmentIds!)
+      )
+      .select([
+        'campaigns.id',
+        'campaigns.title',
+        'campaigns.description',
+        'campaigns.createdAt',
+        'campaigns.sentAt',
+        'campaigns.housingCount',
+        'campaigns.ownerCount',
+        'campaigns.returnCount',
+        'campaigns.returnRate'
+      ])
+  );
+}
+
+function paginateQuery(pagination: Partial<Pagination> = DEFAULT_PAGINATION) {
+  return <TB extends keyof DB, O>(query: SelectQueryBuilder<DB, TB, O>) => {
+    if (pagination?.paginate === false) {
+      // Explicitely disable pagination
+      return query;
+    }
+
+    const { limit, offset } = toLimitOffset({
+      paginate: true,
+      page: pagination.page ?? DEFAULT_PAGINATION.page,
+      perPage: pagination.perPage ?? DEFAULT_PAGINATION.perPage
+    });
+    return query.limit(limit).offset(offset);
+  };
+}
 
 type READ_ONLY_FIELDS =
   | 'last_mutation_type'

@@ -43,7 +43,9 @@ function CampaignView() {
   const { setFilters } = useHousingFilters();
 
   const { data: campaign, isLoading } = useGetCampaignQuery(id as string);
-  const { data: count } = useCountHousingQuery({ campaignIds: [id as string] });
+  const { data: count } = useCountHousingQuery({
+    campaignIds: [id as string]
+  });
   const housingCount = count?.housing ?? 0;
   const getCampaignDraftQuery = useGetCampaignDraftQuery(id as string);
 

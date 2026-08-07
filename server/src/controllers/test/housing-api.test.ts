@@ -6,6 +6,7 @@ import {
   ACTIVE_OWNER_RANKS,
   fromHousing,
   getSubStatuses,
+  HOUSING_POINT_FIELDS,
   HOUSING_STATUS_LABELS,
   HousingDTO,
   HousingStatus,
@@ -31,6 +32,7 @@ import {
   genIdprodroit
 } from '@zerologementvacant/models/fixtures';
 import { sql, type Selectable } from 'kysely';
+import nock from 'nock';
 import randomstring from 'randomstring';
 import request from 'supertest';
 
@@ -44,6 +46,7 @@ import { toDocumentInsert } from '~/repositories/documentRepository';
 import { toEstablishmentInsert } from '~/repositories/establishmentRepository';
 import { toEventInsert } from '~/repositories/eventRepository';
 import housingDocumentRepository from '~/repositories/housingDocumentRepository';
+import userPerimeterRepository from '~/repositories/userPerimeterRepository';
 import { toUserInsert } from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
 import {
@@ -207,8 +210,8 @@ describe('Housing API', () => {
     });
   });
 
-  describe('GET /housing', () => {
-    const testRoute = '/housing';
+  describe('GET /housings', () => {
+    const testRoute = '/housings';
 
     beforeAll(async () => {
       const housings = await Promise.all([
@@ -245,7 +248,7 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body.entities).toSatisfyAll<HousingApi>((housing) => {
+      expect(body).toSatisfyAll<HousingApi>((housing) => {
         return establishment.geoCodes.includes(housing.geoCode);
       });
     });
@@ -256,6 +259,86 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
+
+    it('should let a visitor scope results to a queried establishment', async () => {
+      const { body, status } = await request(url)
+        .get(testRoute)
+        .query({ establishmentIds: [anotherEstablishment.id] })
+        .use(tokenProvider(visitor));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.length).toBeGreaterThan(0);
+      expect(body).toSatisfyAll<HousingApi>((housing) => {
+        return anotherEstablishment.geoCodes.includes(housing.geoCode);
+      });
+      expect(body).not.toSatisfyAny((housing: HousingApi) => {
+        return establishment.geoCodes.includes(housing.geoCode);
+      });
+    });
+
+    it('should ignore a queried establishment for a non-admin, non-visitor user', async () => {
+      const { body, status } = await request(url)
+        .get(testRoute)
+        .query({ establishmentIds: [anotherEstablishment.id] })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.length).toBeGreaterThan(0);
+      expect(body).toSatisfyAll<HousingApi>((housing) => {
+        return establishment.geoCodes.includes(housing.geoCode);
+      });
+    });
+
+    describe('Projection via ?fields=', () => {
+      const pointFields = [...HOUSING_POINT_FIELDS] as string[];
+
+      it('should return only the requested point fields', async () => {
+        const { status, body } = await request(url)
+          .get(testRoute)
+          .query({ fields: HOUSING_POINT_FIELDS.join(',') })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body.length).toBeGreaterThan(0);
+        expect(body).toSatisfyAll<Record<string, unknown>>((entity) =>
+          Object.keys(entity).every((key) => pointFields.includes(key))
+        );
+        expect(body).toSatisfyAll<Record<string, unknown>>(
+          (entity) => 'id' in entity && !('owner' in entity)
+        );
+      });
+
+      it('should reject unknown fields with 400', async () => {
+        const { status } = await request(url)
+          .get(testRoute)
+          .query({ fields: 'id,secretField' })
+          .use(tokenProvider(user));
+
+        expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      });
+
+      it('should paginate deterministically across repeated and consecutive pages', async () => {
+        const query = { fields: 'id', perPage: 3, page: 1 };
+
+        const [first, second] = await Promise.all([
+          request(url).get(testRoute).query(query).use(tokenProvider(user)),
+          request(url).get(testRoute).query(query).use(tokenProvider(user))
+        ]);
+        expect(first.status).toBe(constants.HTTP_STATUS_OK);
+        expect(first.body.map((h: { id: string }) => h.id)).toStrictEqual(
+          second.body.map((h: { id: string }) => h.id)
+        );
+
+        const nextPage = await request(url)
+          .get(testRoute)
+          .query({ ...query, page: 2 })
+          .use(tokenProvider(user));
+        expect(nextPage.status).toBe(constants.HTTP_STATUS_OK);
+        const firstIds = first.body.map((h: { id: string }) => h.id);
+        const nextIds = nextPage.body.map((h: { id: string }) => h.id);
+        expect(firstIds).not.toIncludeAnyMembers(nextIds);
+      });
     });
 
     describe('Filters', () => {
@@ -327,8 +410,8 @@ describe('Housing API', () => {
             .use(tokenProvider(user));
 
           expect(status).toBe(constants.HTTP_STATUS_OK);
-          expect(body.entities.length).toBeGreaterThan(0);
-          expect(body.entities).toSatisfyAll<HousingApi>((housing) => {
+          expect(body.length).toBeGreaterThan(0);
+          expect(body).toSatisfyAll<HousingApi>((housing) => {
             return establishment.geoCodes.includes(housing.geoCode);
           });
         }
@@ -343,11 +426,11 @@ describe('Housing API', () => {
           .use(tokenProvider(departmentUser));
 
         expect(status).toBe(constants.HTTP_STATUS_OK);
-        expect(body.entities.length).toBeGreaterThan(0);
-        expect(body.entities).toSatisfyAll<HousingApi>((housing) => {
+        expect(body.length).toBeGreaterThan(0);
+        expect(body).toSatisfyAll<HousingApi>((housing) => {
           return intercommunality.geoCodes.includes(housing.geoCode);
         });
-        expect(body.entities).not.toSatisfyAny((housing: HousingApi) => {
+        expect(body).not.toSatisfyAny((housing: HousingApi) => {
           return department.geoCodes
             .filter((geoCode) => !intercommunality.geoCodes.includes(geoCode))
             .includes(housing.geoCode);
@@ -363,8 +446,8 @@ describe('Housing API', () => {
           .use(tokenProvider(intercommunalityUser));
 
         expect(status).toBe(constants.HTTP_STATUS_OK);
-        expect(body.entities.length).toBeGreaterThan(0);
-        expect(body.entities).toSatisfyAll<HousingApi>((housing) => {
+        expect(body.length).toBeGreaterThan(0);
+        expect(body).toSatisfyAll<HousingApi>((housing) => {
           return commune.geoCodes.includes(housing.geoCode);
         });
       });
@@ -378,8 +461,8 @@ describe('Housing API', () => {
           .use(tokenProvider(communeUser));
 
         expect(status).toBe(constants.HTTP_STATUS_OK);
-        expect(body.entities.length).toBeGreaterThan(0);
-        expect(body.entities).toSatisfyAll<HousingApi>((housing) => {
+        expect(body.length).toBeGreaterThan(0);
+        expect(body).toSatisfyAll<HousingApi>((housing) => {
           return commune.geoCodes.includes(housing.geoCode);
         });
       });
@@ -441,8 +524,8 @@ describe('Housing API', () => {
             .use(tokenProvider(user));
 
           expect(status).toBe(constants.HTTP_STATUS_OK);
-          expect(body.entities.length).toBeGreaterThan(0);
-          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+          expect(body.length).toBeGreaterThan(0);
+          expect(body).toSatisfyAll<HousingDTO>((housing) => {
             const mutation = fromHousing(housing);
             return mutation?.date?.getUTCFullYear() === 2022;
           });
@@ -470,8 +553,8 @@ describe('Housing API', () => {
             .use(tokenProvider(user));
 
           expect(status).toBe(constants.HTTP_STATUS_OK);
-          expect(body.entities.length).toBeGreaterThan(0);
-          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+          expect(body.length).toBeGreaterThan(0);
+          expect(body).toSatisfyAll<HousingDTO>((housing) => {
             const mutation = fromHousing(housing);
             const year = mutation?.date?.getUTCFullYear();
             return year !== undefined && 2010 <= year && year <= 2014;
@@ -500,8 +583,8 @@ describe('Housing API', () => {
             .use(tokenProvider(user));
 
           expect(status).toBe(constants.HTTP_STATUS_OK);
-          expect(body.entities.length).toBeGreaterThan(0);
-          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+          expect(body.length).toBeGreaterThan(0);
+          expect(body).toSatisfyAll<HousingDTO>((housing) => {
             const mutation = fromHousing(housing);
             return mutation?.type === 'donation';
           });
@@ -533,8 +616,8 @@ describe('Housing API', () => {
             .use(tokenProvider(user));
 
           expect(status).toBe(constants.HTTP_STATUS_OK);
-          expect(body.entities.length).toBeGreaterThan(0);
-          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+          expect(body.length).toBeGreaterThan(0);
+          expect(body).toSatisfyAll<HousingDTO>((housing) => {
             const mutation = fromHousing(housing);
             return types.some((type) => type === mutation?.type);
           });
@@ -558,7 +641,7 @@ describe('Housing API', () => {
             .use(tokenProvider(user));
 
           expect(status).toBe(constants.HTTP_STATUS_OK);
-          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+          expect(body).toSatisfyAll<HousingDTO>((housing) => {
             const mutation = fromHousing(housing);
             return (
               mutation?.type === 'donation' &&
@@ -585,7 +668,7 @@ describe('Housing API', () => {
             .use(tokenProvider(user));
 
           expect(status).toBe(constants.HTTP_STATUS_OK);
-          expect(body.entities).toSatisfyAll<HousingDTO>((housing) => {
+          expect(body).toSatisfyAll<HousingDTO>((housing) => {
             const mutation = fromHousing(housing);
             return (
               mutation === null ||
@@ -623,7 +706,44 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body.entities).toHaveLength(1);
+      expect(body).toHaveLength(1);
+    });
+
+    // The list returns only housings (a bare array) and no total: computing a
+    // full-set count on every request would tie each page's latency to it and
+    // recompute it on every page turn. Clients read the total from
+    // `GET /housings/count` instead.
+    it('should return only housings, without a total', async () => {
+      const housings = await Promise.all(
+        Array.from({ length: 2 }, () =>
+          factories.housing.create({
+            geoCode: faker.helpers.arrayElement(establishment.geoCodes)
+          })
+        )
+      );
+      await Promise.all(
+        housings.map(async (housing) => {
+          const owner = await factories.owner.create();
+          await factories
+            .housingOwner({ housing, owner })
+            .create({ rank: 1 as OwnerRank });
+        })
+      );
+
+      const { body, status, headers } = await request(url)
+        .get(testRoute)
+        .query({ paginate: true, page: 1, perPage: 50 })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(Array.isArray(body)).toBe(true);
+      expect(body).toEqual(
+        expect.arrayContaining(
+          housings.map((housing) => expect.objectContaining({ id: housing.id }))
+        )
+      );
+      expect(headers['content-range']).toBeUndefined();
+      expect(headers['accept-ranges']).toBeUndefined();
     });
 
     it('should sort housings by occupancy', async () => {
@@ -651,11 +771,99 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
-      expect(body.entities.length).toBeGreaterThan(0);
-      expect(body.entities).toBeSortedBy('occupancy', {
+      expect(body.length).toBeGreaterThan(0);
+      expect(body).toBeSortedBy('occupancy', {
         descending: true,
         compare: (a: string, b: string) =>
           a.toUpperCase().localeCompare(b.toUpperCase())
+      });
+    });
+
+    // A user only ever sees housing within their allowed geo codes ∩ the
+    // establishment's geo codes ∩ the `localities` filter. The intersection
+    // means `localities` can only narrow the scope, never widen it beyond the
+    // user's perimeter.
+    describe('Perimeter (allowed geo codes ∩ establishment ∩ localities)', () => {
+      // In-perimeter codes short-circuit `filterGeoCodesByPerimeter`;
+      // OUTSIDE_GEO_CODE is inside the establishment but outside the user's
+      // perimeter, so it is resolved against GeoAPI (mocked below).
+      const IN_PERIMETER = ['75056', '13055'];
+      const OUTSIDE_GEO_CODE = '69123';
+      let restrictedEstablishment: EstablishmentApi;
+      let restrictedUser: UserApi;
+
+      beforeAll(async () => {
+        restrictedEstablishment = await factories.establishment.create({
+          geoCodes: [...IN_PERIMETER, OUTSIDE_GEO_CODE]
+        });
+        restrictedUser = await factories.user.create({
+          establishmentId: restrictedEstablishment.id,
+          role: UserRole.USUAL
+        });
+        await userPerimeterRepository.upsert({
+          userId: restrictedUser.id,
+          establishmentId: restrictedEstablishment.id,
+          geoCodes: IN_PERIMETER,
+          departments: [],
+          regions: [],
+          epci: [],
+          frEntiere: false,
+          updatedAt: new Date().toJSON()
+        });
+        // filterGeoCodesByPerimeter resolves OUTSIDE_GEO_CODE's region via
+        // GeoAPI to confirm it falls outside the perimeter.
+        nock('https://geo.api.gouv.fr')
+          .persist()
+          .get('/departements/69')
+          .query({ fields: 'codeRegion' })
+          .reply(200, { code: '69', nom: 'Rhône', codeRegion: '84' });
+
+        await Promise.all(
+          [...IN_PERIMETER, OUTSIDE_GEO_CODE].map((geoCode) =>
+            factories.housing.create({ geoCode })
+          )
+        );
+      });
+
+      afterAll(() => {
+        nock.cleanAll();
+      });
+
+      it('should restrict results to the user’s allowed geo codes', async () => {
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .use(tokenProvider(restrictedUser));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body.length).toBeGreaterThan(0);
+        // The in-establishment-but-outside-perimeter commune is excluded even
+        // without a `localities` filter.
+        expect(body).toSatisfyAll<HousingApi>((housing) =>
+          IN_PERIMETER.includes(housing.geoCode)
+        );
+      });
+
+      it('should narrow the allowed geo codes by the localities filter', async () => {
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .query({ localities: [IN_PERIMETER[0]] })
+          .use(tokenProvider(restrictedUser));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body.length).toBeGreaterThan(0);
+        expect(body).toSatisfyAll<HousingApi>(
+          (housing) => housing.geoCode === IN_PERIMETER[0]
+        );
+      });
+
+      it('should not let the localities filter widen beyond the perimeter', async () => {
+        const { body, status } = await request(url)
+          .get(testRoute)
+          .query({ localities: [OUTSIDE_GEO_CODE] })
+          .use(tokenProvider(restrictedUser));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toHaveLength(0);
       });
     });
   });
@@ -1816,6 +2024,102 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
+
+    describe('Geo scope', () => {
+      const scopedEstablishment: EstablishmentApi = genEstablishmentApi(
+        genGeoCode(),
+        genGeoCode()
+      );
+      const scopedUser = genUserApi(scopedEstablishment.id);
+      const intercommunality: EstablishmentApi = {
+        ...genEstablishmentApi(scopedEstablishment.geoCodes[0]),
+        kind: 'METRO'
+      };
+
+      beforeAll(async () => {
+        await kysely
+          .insertInto('establishments')
+          .values(
+            [scopedEstablishment, intercommunality].map(toEstablishmentInsert)
+          )
+          .execute();
+        await kysely
+          .insertInto('users')
+          .values(toUserInsert(scopedUser))
+          .execute();
+      });
+
+      it('should only update housing within the intercommunalities filter', async () => {
+        const [insideHousing, outsideHousing] = await Promise.all([
+          factories.housing.create({
+            geoCode: intercommunality.geoCodes[0],
+            status: HousingStatus.NEVER_CONTACTED
+          }),
+          factories.housing.create({
+            geoCode: scopedEstablishment.geoCodes[1],
+            status: HousingStatus.NEVER_CONTACTED
+          })
+        ]);
+        await Promise.all(
+          [insideHousing, outsideHousing].map(async (housing) => {
+            const owner = await factories.owner.create();
+            await factories
+              .housingOwner({ housing, owner })
+              .create({ rank: 1 as OwnerRank });
+          })
+        );
+
+        const { status, body } = await request(url)
+          .put(testRoute)
+          .send({
+            filters: { intercommunalities: [intercommunality.id] },
+            status: HousingStatus.WAITING
+          } satisfies HousingBatchUpdatePayload)
+          .use(tokenProvider(scopedUser));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toSatisfyAny(
+          (housing: HousingApi) =>
+            housing.id === insideHousing.id &&
+            housing.status === HousingStatus.WAITING
+        );
+        expect(body).not.toSatisfyAny(
+          (housing: HousingApi) => housing.id === outsideHousing.id
+        );
+
+        const { body: untouched } = await request(url)
+          .get(`/housing/${outsideHousing.id}`)
+          .use(tokenProvider(scopedUser));
+        expect(untouched.status).toBe(HousingStatus.NEVER_CONTACTED);
+      });
+
+      it('should not widen an explicit empty localities selection to the whole perimeter', async () => {
+        const housing = await factories.housing.create({
+          geoCode: scopedEstablishment.geoCodes[1],
+          status: HousingStatus.NEVER_CONTACTED
+        });
+        const owner = await factories.owner.create();
+        await factories
+          .housingOwner({ housing, owner })
+          .create({ rank: 1 as OwnerRank });
+
+        const { status, body } = await request(url)
+          .put(testRoute)
+          .send({
+            filters: { localities: [] },
+            status: HousingStatus.WAITING
+          } satisfies HousingBatchUpdatePayload)
+          .use(tokenProvider(scopedUser));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toHaveLength(0);
+
+        const { body: untouched } = await request(url)
+          .get(`/housing/${housing.id}`)
+          .use(tokenProvider(scopedUser));
+        expect(untouched.status).toBe(HousingStatus.NEVER_CONTACTED);
+      });
     });
   });
 

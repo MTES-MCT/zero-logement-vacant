@@ -7,10 +7,11 @@ import type {
   HousingDTO,
   HousingFiltersDTO,
   HousingPayloadDTO,
+  HousingStatus,
   HousingUpdatePayloadDTO,
-  NoteDTO,
-  Paginated
+  NoteDTO
 } from '@zerologementvacant/models';
+import { HOUSING_STATUS_VALUES } from '@zerologementvacant/models';
 import {
   genHousingDTO,
   genOwnerDTO,
@@ -55,11 +56,48 @@ function parseQueryParams(url: URL): FilterParams {
   };
 }
 
-const find = http.get<
+const countHandler = (path: string) =>
+  http.get<
+    Record<string, never>,
+    HousingPayload,
+    HousingCountDTO | Record<HousingStatus, HousingCountDTO>
+  >(`${config.apiEndpoint}${path}`, async ({ request }) => {
+    const url = new URL(request.url);
+    const query = parseQueryParams(url);
+
+    const subset: HousingDTO[] = pipe(data.housings, filter(query));
+
+    const countOf = (housings: HousingDTO[]): HousingCountDTO => ({
+      housing: housings.length,
+      owners: pipe(
+        housings,
+        Array.flatMap((housing) => data.housingOwners.get(housing.id) ?? []),
+        Array.dedupeWith((a, b) => a.id === b.id),
+        Array.length
+      )
+    });
+
+    if (url.searchParams.get('groupBy') === 'status') {
+      const grouped = Object.fromEntries(
+        HOUSING_STATUS_VALUES.map((status) => [
+          status,
+          countOf(subset.filter((housing) => housing.status === status))
+        ])
+      ) as Record<HousingStatus, HousingCountDTO>;
+      return HttpResponse.json(grouped);
+    }
+
+    return HttpResponse.json(countOf(subset));
+  });
+
+const count = countHandler('/housings/count');
+
+// List: bare array of housings (paginated via LIMIT/OFFSET), no total.
+const list = http.get<
   Record<string, never>,
   HousingPayload,
-  Paginated<HousingDTO>
->(`${config.apiEndpoint}/housing`, async ({ request }) => {
+  Partial<HousingDTO>[]
+>(`${config.apiEndpoint}/housings`, async ({ request }) => {
   const url = new URL(request.url);
   const { campaignIds, housingKinds, relativeLocations, statuses } =
     parseQueryParams(url);
@@ -73,44 +111,37 @@ const find = http.get<
           ?.find((housingOwner) => housingOwner.rank === 1) ?? null;
       const mainOwner =
         data.owners.find((owner) => owner.id === mainHousingOwner?.id) ?? null;
-      return {
-        ...housing,
-        owner: mainOwner
-      };
+      return { ...housing, owner: mainOwner };
     }),
     filter({ campaignIds, housingKinds, statuses, relativeLocations })
   );
 
-  return HttpResponse.json({
-    page: 1,
-    perPage: 50,
-    filteredCount: subset.length,
-    totalCount: data.housings.length,
-    entities: subset
+  const paginate = url.searchParams.get('paginate') !== 'false';
+  const page = Number(url.searchParams.get('page') ?? 1);
+  const perPage = Number(url.searchParams.get('perPage') ?? 50);
+  const rangeStart = paginate ? (page - 1) * perPage : 0;
+  const entities = paginate
+    ? subset.slice(rangeStart, rangeStart + perPage)
+    : subset;
+
+  // Sparse `fields` projection (JSON:API style); `id` is always included.
+  const fields = url.searchParams.get('fields')?.split(',') as
+    | (keyof HousingDTO)[]
+    | undefined;
+  const projected: Partial<HousingDTO>[] = fields?.length
+    ? entities.map((housing) => {
+        const point: Partial<HousingDTO> = {};
+        for (const field of ['id', ...fields] as (keyof HousingDTO)[]) {
+          Object.assign(point, { [field]: housing[field] });
+        }
+        return point;
+      })
+    : entities;
+
+  return HttpResponse.json(projected, {
+    status: constants.HTTP_STATUS_OK
   });
 });
-
-const count = http.get<Record<string, never>, HousingPayload, HousingCountDTO>(
-  `${config.apiEndpoint}/housing/count`,
-  async ({ request }) => {
-    const url = new URL(request.url);
-    const query = parseQueryParams(url);
-
-    const subset: HousingDTO[] = pipe(data.housings, filter(query));
-
-    const owners: number = pipe(
-      subset,
-      Array.flatMap((housing) => data.housingOwners.get(housing.id) ?? []),
-      Array.dedupeWith((a, b) => a.id === b.id),
-      Array.length
-    );
-
-    return HttpResponse.json({
-      housing: subset.length,
-      owners: owners
-    });
-  }
-);
 
 type HousingParams = {
   id: string;
@@ -121,7 +152,7 @@ type HousingPayload = {
 };
 
 export const housingHandlers: RequestHandler[] = [
-  find,
+  list,
   count,
 
   // Add a housing

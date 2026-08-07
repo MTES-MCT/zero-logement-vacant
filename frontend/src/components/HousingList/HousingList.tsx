@@ -12,6 +12,7 @@ import type { ReactElement, ReactNode } from 'react';
 
 import { HousingProvider } from '~/hooks/useHousing';
 
+import { useActiveHousingCount } from '../../hooks/useActiveHousingCount';
 import { useCampaignList } from '../../hooks/useCampaignList';
 import { useSelection } from '../../hooks/useSelection';
 import { useSort } from '../../hooks/useSort';
@@ -22,10 +23,7 @@ import type {
   SelectedHousing
 } from '../../models/Housing';
 import type { HousingFilters } from '../../models/HousingFilters';
-import {
-  useCountHousingQuery,
-  useFindHousingQuery
-} from '../../services/housing.service';
+import { useFindHousingQuery } from '../../services/housing.service';
 import { findChild } from '../../utils/elementUtils';
 import { capitalize } from '../../utils/stringUtils';
 import AppLink from '../_app/AppLink/AppLink';
@@ -70,9 +68,9 @@ function HousingList(props: HousingListProps) {
     sort
   });
 
-  const housingList = housings?.entities;
+  const housingList = housings;
 
-  const { data: count } = useCountHousingQuery(filters);
+  const { data: count } = useActiveHousingCount(filters);
   const filteredCount = count?.housing ?? 0;
 
   const { selected, selectedCount, setSelected, unselectAll } = useSelection(
@@ -262,7 +260,7 @@ function HousingList(props: HousingListProps) {
 
       <AdvancedTable
         columns={columns}
-        data={housingList ?? []}
+        data={(housingList ?? []) as Housing[]}
         getRowId={(housing) => housing.id}
         getRowSelectionLabel={(housing) =>
           `Sélectionner le logement "${housing.rawAddress.join(', ')}"`

@@ -3,6 +3,9 @@ import type {
   HousingBatchUpdatePayload,
   HousingDTO,
   HousingFiltersDTO,
+  HousingPointDTO,
+  HousingPointField,
+  HousingStatus,
   HousingUpdatePayloadDTO,
   PaginationOptions
 } from '@zerologementvacant/models';
@@ -11,7 +14,6 @@ import { parseISO } from 'date-fns';
 import type { Housing, HousingSort } from '../models/Housing';
 import type { HousingCount } from '../models/HousingCount';
 import type { HousingFilters } from '../models/HousingFilters';
-import type { HousingPaginatedResult } from '../models/PaginatedResult';
 import { toQuery, type SortOptions } from '../models/Sort';
 import type { AbortOptions } from '../utils/fetchUtils';
 import { zlvApi, type TagType } from './api.service';
@@ -51,37 +53,70 @@ export const housingApi = zlvApi.injectEndpoints({
           : []
     }),
 
-    findHousing: builder.query<HousingPaginatedResult, FindOptions>({
+    // Housing list: `GET /housings` returns a bare array of housings (paginated
+    // via LIMIT/OFFSET). It does NOT compute a total; consumers read the count
+    // from `GET /housings/count` (see `countHousing`), which RTK Query caches
+    // per filter-set instead of recomputing it on every page turn.
+    findHousing: builder.query<ReadonlyArray<Housing>, FindOptions>({
       query: (opts) => ({
-        url: '/housing',
+        url: '/housings',
+        method: 'GET',
         params: {
-          ...opts?.filters,
-          ...opts?.pagination,
-          sort: toQuery(opts?.sort)
-        },
-        method: 'GET'
+          ...opts.filters,
+          ...opts.pagination,
+          sort: toQuery(opts.sort)
+        }
       }),
-      providesTags: (_result, _errors, args) => [
-        {
-          type: 'HousingByStatus' as const,
-          id: args.filters.status
-        },
-        ...(_result?.entities.map(({ id }) => ({
-          type: 'Housing' as const,
-          id
-        })) ?? [])
-      ],
-      transformResponse: (response: any) => {
-        return {
-          ...response,
-          entities: response.entities.map(parseHousing)
-        };
-      }
+      transformResponse: (housings: ReadonlyArray<HousingDTO>) =>
+        housings.map(parseHousing),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({
+                type: 'Housing' as const,
+                id
+              })),
+              { type: 'Housing', id: 'LIST' }
+            ]
+          : [{ type: 'Housing', id: 'LIST' }]
     }),
 
+    // Lightweight projection for the map: fetches all housings as points via
+    // `GET /housing?fields=…`. Callers pick which allowlisted fields they want;
+    // the precise result type is derived by the `useHousingPoints` wrapper.
+    getHousingPoints: builder.query<
+      Partial<HousingPointDTO>[],
+      {
+        filters: HousingFiltersDTO;
+        fields: readonly HousingPointField[];
+      } & AbortOptions
+    >({
+      query: (opts) => ({
+        url: '/housings',
+        method: 'GET',
+        params: {
+          ...opts.filters,
+          fields: [...opts.fields],
+          paginate: false
+        }
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              // `id` is always selected by the server regardless of `fields`.
+              ...result.map((housing) => ({
+                type: 'Housing' as const,
+                id: housing.id as string
+              })),
+              { type: 'Housing', id: 'LIST' }
+            ]
+          : [{ type: 'Housing', id: 'LIST' }]
+    }),
+
+    // Map view counts hit `GET /housings/count`.
     countHousing: builder.query<HousingCount, HousingFilters>({
       query: (filters) => ({
-        url: 'housing/count',
+        url: 'housings/count',
         method: 'GET',
         params: {
           ...filters
@@ -93,6 +128,21 @@ export const housingApi = zlvApi.injectEndpoints({
           id: args.status
         }
       ]
+    }),
+
+    countHousingByStatus: builder.query<
+      Record<HousingStatus, HousingCount>,
+      HousingFilters
+    >({
+      query: (filters) => ({
+        url: 'housings/count',
+        method: 'GET',
+        params: {
+          ...filters,
+          groupBy: 'status'
+        }
+      }),
+      providesTags: ['HousingCountByStatus']
     }),
     // TODO: fix this any type
     createHousing: builder.mutation<Housing, any>({
@@ -121,6 +171,7 @@ export const housingApi = zlvApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, payload) => [
         { type: 'Housing', id: payload.id },
+        { type: 'Housing', id: 'LIST' },
         'HousingByStatus',
         'HousingCountByStatus',
         'Event',
@@ -155,12 +206,37 @@ export const housingApi = zlvApi.injectEndpoints({
   })
 });
 
+/**
+ * Strongly-typed wrapper around `getHousingPoints`: the result type is derived
+ * from the exact `fields` requested, bounded to the allowlisted point fields.
+ *
+ * @example
+ * // data is Pick<HousingDTO, 'id' | 'latitude' | 'longitude'>[] | undefined
+ * const { data } = useHousingPoints({
+ *   filters,
+ *   fields: ['id', 'latitude', 'longitude']
+ * });
+ *
+ * RTK Query endpoints are not per-call generic, so the projection type lives
+ * here. The narrowing is a boundary assertion — sound because the server honors
+ * `fields` via its allowlist projection ({@link HOUSING_POINT_FIELDS}).
+ */
+export function useHousingPoints<
+  const Fields extends readonly HousingPointField[]
+>(args: { filters: HousingFiltersDTO; fields: Fields } & AbortOptions) {
+  const result = useGetHousingPointsQuery(args);
+  return result as Omit<typeof result, 'data'> & {
+    data: Pick<HousingDTO, Fields[number]>[] | undefined;
+  };
+}
+
 export const {
   useGetHousingQuery,
   useFindHousingQuery,
-  useLazyFindHousingQuery,
+  useGetHousingPointsQuery,
+  useLazyGetHousingPointsQuery,
   useCountHousingQuery,
-  useLazyCountHousingQuery,
+  useCountHousingByStatusQuery,
   useCreateHousingMutation,
   useUpdateHousingMutation,
   useUpdateManyHousingMutation

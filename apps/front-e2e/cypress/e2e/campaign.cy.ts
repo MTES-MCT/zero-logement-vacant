@@ -11,7 +11,7 @@ describe('Campaign', () => {
         );
       }
 
-      const housings = response.body.entities;
+      const housings = response.body;
 
       return cy
         .createGroup({

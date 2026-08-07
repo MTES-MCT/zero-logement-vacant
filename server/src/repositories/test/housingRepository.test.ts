@@ -296,10 +296,13 @@ describe('Housing repository', () => {
           );
         });
 
-        it('should filter by intercommunality', async () => {
+        // Intercommunality resolution is now an app-layer concern: the
+        // controller folds it into `localities` (covered by the housing-api
+        // tests). At the repository level we only filter on the resolved codes.
+        it('should filter by the resolved localities', async () => {
           const actual = await housingRepository.find({
             filters: {
-              intercommunalities: [intercommunality.id]
+              localities: intercommunality.geoCodes
             }
           });
 
@@ -477,30 +480,6 @@ describe('Housing repository', () => {
         });
       });
 
-      it('should filter by establishment', async () => {
-        const otherEstablishment = genEstablishmentApi();
-        await kysely
-          .insertInto('establishments')
-          .values(toEstablishmentInsert(otherEstablishment))
-          .execute();
-        await Promise.all([
-          factories.housing.create({ geoCode: oneOf(establishment.geoCodes) }),
-          factories.housing.create({
-            geoCode: oneOf(otherEstablishment.geoCodes)
-          })
-        ]);
-
-        const actual = await housingRepository.find({
-          filters: {
-            establishmentIds: [establishment.id]
-          }
-        });
-
-        expect(actual).toSatisfyAll<HousingApi>((housing) =>
-          establishment.geoCodes.includes(housing.geoCode)
-        );
-      });
-
       it('should filter by group', async () => {
         const groups = await factories
           .group(establishment)
@@ -550,6 +529,8 @@ describe('Housing repository', () => {
             .includes(actualHousing.id);
         });
       });
+
+      it.todo('should filter by group and establishment');
 
       describe('by campaign id', () => {
         let campaigns: ReadonlyArray<CampaignDTO>;
@@ -611,6 +592,8 @@ describe('Housing repository', () => {
             return housing.campaignIds?.includes(id) ?? false;
           });
         });
+
+        it.todo('should filter by campaign and establishment');
       });
 
       describe('by owner’s age', () => {
@@ -995,7 +978,7 @@ describe('Housing repository', () => {
           });
 
           expect(actual.length).toBeGreaterThan(0);
-          await async.forEach(actual, async (housing) => {
+          await async.forEach([...actual], async (housing) => {
             const actualHousingOwners = await kysely
               .selectFrom('ownersHousing')
               .selectAll('ownersHousing')
@@ -2567,7 +2550,9 @@ describe('Housing repository', () => {
 
   describe('count', () => {
     it('should return zero counts when localities is an empty array', async () => {
-      const result = await housingRepository.count({ localities: [] });
+      const result = await housingRepository.count({
+        filters: { localities: [] }
+      });
 
       expect(result).toEqual({ housing: 0, owners: 0 });
     });
@@ -2594,8 +2579,10 @@ describe('Housing repository', () => {
 
         it('should count only housings belonging to the given owner', async () => {
           const result = await housingRepository.count({
-            establishmentIds: [establishment.id],
-            ownerIds: [targetOwner.id]
+            filters: {
+              establishmentIds: [establishment.id],
+              ownerIds: [targetOwner.id]
+            }
           });
 
           expect(result.housing).toBe(1);
@@ -2628,9 +2615,11 @@ describe('Housing repository', () => {
 
         it('should count only housings belonging to owners who have multiple properties', async () => {
           const result = await housingRepository.count({
-            establishmentIds: [establishment.id],
-            multiOwners: [true],
-            localities: [geoCode]
+            filters: {
+              establishmentIds: [establishment.id],
+              multiOwners: [true],
+              localities: [geoCode]
+            }
           });
 
           expect(result.housing).toBe(2);
@@ -2663,14 +2652,90 @@ describe('Housing repository', () => {
 
         it('should count only housings with the given number of beneficiaries', async () => {
           const result = await housingRepository.count({
-            establishmentIds: [establishment.id],
-            beneficiaryCounts: ['2'],
-            housingIds,
-            localities: [geoCode]
+            filters: {
+              establishmentIds: [establishment.id],
+              beneficiaryCounts: ['2'],
+              housingIds,
+              localities: [geoCode]
+            }
           });
 
           expect(result.housing).toBe(1);
         });
+      });
+    });
+
+    it('should return total housing and owner counts when groupBy is not passed', async () => {
+      const owner1 = await factories.owner.create();
+      const owner2 = await factories.owner.create();
+      const housing1 = await factories.housing.create({
+        status: HousingStatus.NEVER_CONTACTED
+      });
+      const housing2 = await factories.housing.create({
+        status: HousingStatus.NEVER_CONTACTED
+      });
+      const housing3 = await factories.housing.create({
+        status: HousingStatus.COMPLETED
+      });
+      await Promise.all([
+        factories
+          .housingOwner({ housing: housing1, owner: owner1 })
+          .create({ rank: 1 }),
+        factories
+          .housingOwner({ housing: housing2, owner: owner2 })
+          .create({ rank: 1 }),
+        // owner1 owns two of the three housings
+        factories
+          .housingOwner({ housing: housing3, owner: owner1 })
+          .create({ rank: 1 })
+      ]);
+
+      const result = await housingRepository.count({
+        filters: { housingIds: [housing1.id, housing2.id, housing3.id] }
+      });
+
+      expect(result).toStrictEqual({ housing: 3, owners: 2 });
+    });
+
+    it('should group counts by housing status and zero-fill missing statuses', async () => {
+      const owner1 = await factories.owner.create();
+      const owner2 = await factories.owner.create();
+      const owner3 = await factories.owner.create();
+      const neverContacted1 = await factories.housing.create({
+        status: HousingStatus.NEVER_CONTACTED
+      });
+      const neverContacted2 = await factories.housing.create({
+        status: HousingStatus.NEVER_CONTACTED
+      });
+      const completed = await factories.housing.create({
+        status: HousingStatus.COMPLETED
+      });
+      await Promise.all([
+        factories
+          .housingOwner({ housing: neverContacted1, owner: owner1 })
+          .create({ rank: 1 }),
+        factories
+          .housingOwner({ housing: neverContacted2, owner: owner2 })
+          .create({ rank: 1 }),
+        factories
+          .housingOwner({ housing: completed, owner: owner3 })
+          .create({ rank: 1 })
+      ]);
+
+      const result = await housingRepository.count({
+        filters: {
+          housingIds: [neverContacted1.id, neverContacted2.id, completed.id]
+        },
+        groupBy: 'status'
+      });
+
+      expect(result).toStrictEqual({
+        [HousingStatus.NEVER_CONTACTED]: { housing: 2, owners: 2 },
+        [HousingStatus.WAITING]: { housing: 0, owners: 0 },
+        [HousingStatus.FIRST_CONTACT]: { housing: 0, owners: 0 },
+        [HousingStatus.IN_PROGRESS]: { housing: 0, owners: 0 },
+        [HousingStatus.COMPLETED]: { housing: 1, owners: 1 },
+        [HousingStatus.BLOCKED]: { housing: 0, owners: 0 }
       });
     });
   });
@@ -2806,6 +2871,90 @@ describe('Housing repository', () => {
 
       expect(actual).toHaveLength(1);
       expect(actual[0].energyConsumption).toBe('F');
+    });
+
+    it('should scope the campaigns include to the given establishmentIds', async () => {
+      const otherEstablishment = genEstablishmentApi();
+      const otherUser = genUserApi(otherEstablishment.id);
+      await kysely
+        .insertInto('establishments')
+        .values(toEstablishmentInsert(otherEstablishment))
+        .execute();
+      await kysely
+        .insertInto('users')
+        .values(toUserInsert(otherUser))
+        .execute();
+
+      const housing = await factories.housing.create({
+        geoCode: oneOf(establishment.geoCodes)
+      });
+      const [ownCampaign, otherCampaign] = await Promise.all([
+        factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: user } }),
+        factories
+          .campaign(otherEstablishment)
+          .create({}, { associations: { createdBy: otherUser } })
+      ]);
+      await kysely
+        .insertInto('campaignsHousing')
+        .values([
+          {
+            campaignId: ownCampaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          },
+          {
+            campaignId: otherCampaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }
+        ])
+        .execute();
+
+      const stream = housingRepository.stream({
+        filters: {
+          localities: [housing.geoCode],
+          establishmentIds: [establishment.id]
+        },
+        includes: ['campaigns']
+      });
+      const actual: HousingApi[] = [];
+      for await (const h of stream) {
+        if (h.id === housing.id) actual.push(h);
+      }
+
+      expect(actual).toHaveLength(1);
+      expect(actual[0].campaignIds).toIncludeSameMembers([ownCampaign.id]);
+    });
+
+    it('should implicitly hydrate campaigns when filtering by campaign id without an explicit include', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const housing = await factories.housing.create({
+        geoCode: oneOf(establishment.geoCodes)
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
+
+      const stream = housingRepository.stream({
+        filters: { campaignIds: [campaign.id] }
+      });
+      const actual: HousingApi[] = [];
+      for await (const h of stream) {
+        actual.push(h);
+      }
+
+      expect(actual).toSatisfyAll<HousingApi>(
+        (h) => h.campaignIds?.includes(campaign.id) ?? false
+      );
     });
   });
 

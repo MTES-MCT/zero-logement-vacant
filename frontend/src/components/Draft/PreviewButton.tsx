@@ -30,7 +30,7 @@ function PreviewButton(props: Readonly<PreviewButtonProps>) {
     {
       selectFromResult: ({ data, ...rest }) => ({
         ...rest,
-        data: data?.entities?.filter((housing) => !!housing.owner)?.at(0)
+        data: data?.filter((housing) => !!housing.owner)?.at(0)
       })
     }
   );

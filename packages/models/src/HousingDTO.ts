@@ -74,6 +74,36 @@ export interface HousingDTO {
   plotArea: number | null;
 }
 
+/**
+ * The subset of housing fields the map view needs — to place markers/clusters
+ * (id, coordinates, status) and to fill the building detail panel (address,
+ * occupancy, sub-status). All map to scalar `fast_housing` columns, so the
+ * projection stays join-free. `owner` is intentionally excluded: it requires a
+ * join and should be lazy-loaded on selection instead.
+ *
+ * Single source of truth: the API `fields` query parameter and the projected
+ * {@link HousingPointDTO} type are both derived from this tuple, so they can
+ * never drift. Add a field here to widen both at once.
+ */
+export const HOUSING_POINT_FIELDS = [
+  'id',
+  'geoCode',
+  'latitude',
+  'longitude',
+  'status',
+  'occupancy',
+  'subStatus',
+  'rawAddress'
+] as const;
+
+export type HousingPointField = (typeof HOUSING_POINT_FIELDS)[number];
+
+/**
+ * A housing projected down to the fields required by the map view.
+ * Returned by `GET /housing?fields=id,geoCode,latitude,longitude,status`.
+ */
+export type HousingPointDTO = Pick<HousingDTO, HousingPointField>;
+
 export type HousingWithOwnerDTO = SetNonNullable<HousingDTO, 'owner'>;
 
 export function hasPrimaryOwner(

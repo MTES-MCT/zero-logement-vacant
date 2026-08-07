@@ -62,7 +62,7 @@ export function createExistingHousingCommand() {
         occupancies: [Occupancy.VACANT],
         statusList: [HousingStatus.NEVER_CONTACTED, HousingStatus.WAITING]
       };
-      const { housing: total } = await housingRepository.count(filters);
+      const { housing: total } = await housingRepository.count({ filters });
       console.log(`Counted ${total} housings.`);
 
       logger.info('Starting verification...', { total });

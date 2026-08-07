@@ -20,6 +20,7 @@ import { groupHousingPayload } from './group-housing-payload';
 import { housingBatchUpdatePayload } from './housing-batch-update-payload';
 import { housingDocumentPayload } from './housing-document-payload';
 import { housingFilters } from './housing-filters';
+import { housingListQuery } from './housing-list-query';
 import { housingUpdatePayload } from './housing-update-payload';
 import { id } from './id';
 import { notePayload } from './note-payload';
@@ -53,6 +54,7 @@ const schemas = {
   housingBatchUpdatePayload,
   housingDocumentPayload,
   housingFilters,
+  housingListQuery,
   housingUpdatePayload,
   id,
   notePayload,

@@ -36,6 +36,7 @@ import { AuthenticatedRequest } from 'express-jwt';
 import { match, Pattern } from 'ts-pattern';
 import { v4 as uuidv4 } from 'uuid';
 
+import { resolveHousingGeoScope } from '~/controllers/housingGeoScope';
 import DocumentMissingError from '~/errors/documentMissingError';
 import HousingExistsError from '~/errors/housingExistsError';
 import HousingMissingError from '~/errors/housingMissingError';
@@ -74,7 +75,6 @@ import banAddressesRepository from '~/repositories/banAddressesRepository';
 import createDatafoncierHousingRepository from '~/repositories/datafoncierHousingRepository';
 import createDatafoncierOwnersRepository from '~/repositories/datafoncierOwnersRepository';
 import documentRepository from '~/repositories/documentRepository';
-import establishmentRepository from '~/repositories/establishmentRepository';
 import eventRepository from '~/repositories/eventRepository';
 import housingDocumentRepository from '~/repositories/housingDocumentRepository';
 import housingOwnerRepository from '~/repositories/housingOwnerRepository';
@@ -157,29 +157,17 @@ const list: RequestHandler<
   const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
     user.role
   );
-  const intercommunalities =
-    query.intercommunalities !== undefined
-      ? await establishmentRepository
-          .find({ filters: { id: query.intercommunalities } })
-          .then((establishments) =>
-            establishments.flatMap((establishment) => establishment.geoCodes)
-          )
-      : null;
-  const localities = pipe(
-    establishment.geoCodes,
-    (geoCodes) =>
-      effectiveGeoCodes !== undefined
-        ? Array.intersection(geoCodes, effectiveGeoCodes)
-        : geoCodes,
-    (geoCodes) =>
-      intercommunalities !== null
-        ? Array.intersection(geoCodes, intercommunalities)
-        : geoCodes,
-    (geoCodes) =>
-      query.localities !== undefined
-        ? Array.intersection(geoCodes, query.localities)
-        : geoCodes
-  );
+  const establishmentIds =
+    isAdminOrVisitor && rawFilters.establishmentIds?.length
+      ? rawFilters.establishmentIds
+      : [auth.establishmentId];
+  const localities = await resolveHousingGeoScope({
+    ownGeoCodes: effectiveGeoCodes ?? establishment.geoCodes,
+    isAdminOrVisitor,
+    establishmentIds,
+    intercommunalities: query.intercommunalities,
+    localities: query.localities
+  });
 
   // No commune the user is allowed to see: short-circuit to an empty list
   // (find applies `localities` as-is and would otherwise scan all).
@@ -190,10 +178,7 @@ const list: RequestHandler<
 
   const filters: HousingFiltersApi = {
     ...rawFilters,
-    establishmentIds:
-      isAdminOrVisitor && rawFilters.establishmentIds?.length
-        ? rawFilters.establishmentIds
-        : [auth.establishmentId],
+    establishmentIds,
     localities
   };
 
@@ -242,36 +227,21 @@ const count: RequestHandler<
     auth.role
   );
 
-  const intercommunalities =
-    query.intercommunalities !== undefined
-      ? await establishmentRepository
-          .find({ filters: { id: query.intercommunalities } })
-          .then((establishments) =>
-            establishments.flatMap((establishment) => establishment.geoCodes)
-          )
-      : null;
-  const localities = pipe(
-    establishment.geoCodes,
-    (geoCodes) =>
-      effectiveGeoCodes !== undefined
-        ? Array.intersection(geoCodes, effectiveGeoCodes)
-        : geoCodes,
-    (geoCodes) =>
-      intercommunalities !== null
-        ? Array.intersection(geoCodes, intercommunalities)
-        : geoCodes,
-    (geoCodes) =>
-      query.localities !== undefined
-        ? Array.intersection(geoCodes, query.localities)
-        : geoCodes
-  );
+  const establishmentIds =
+    isAdminOrVisitor && query.establishmentIds?.length
+      ? query.establishmentIds
+      : [auth.establishmentId];
+  const localities = await resolveHousingGeoScope({
+    ownGeoCodes: effectiveGeoCodes ?? establishment.geoCodes,
+    isAdminOrVisitor,
+    establishmentIds,
+    intercommunalities: query.intercommunalities,
+    localities: query.localities
+  });
 
   const filters: CountOptions['filters'] = {
     ...queryFilters,
-    establishmentIds:
-      isAdminOrVisitor && query.establishmentIds?.length
-        ? query.establishmentIds
-        : [auth.establishmentId],
+    establishmentIds,
     localities
   };
 
@@ -635,21 +605,25 @@ const updateMany: RequestHandler<
   const isAdminOrVisitor = [UserRole.ADMIN, UserRole.VISITOR].includes(
     user.role
   );
-  // Geo resolution lives in the app layer: bound the update to the
-  // establishment's perimeter (the user's effective geo codes, falling back to
-  // the whole establishment) narrowed by any caller-provided localities.
-  const perimeter = effectiveGeoCodes ?? establishment.geoCodes;
-  const localities = body.filters.localities?.length
-    ? Array.intersection(perimeter, body.filters.localities)
-    : perimeter;
+  // Geo resolution lives in the app layer: bound the update to the queried
+  // establishment's perimeter (admin/visitor only) or the caller's own,
+  // narrowed by any caller-provided EPCI and commune filters.
+  const establishmentIds =
+    isAdminOrVisitor && body.filters.establishmentIds?.length
+      ? body.filters.establishmentIds
+      : [establishment.id];
+  const localities = await resolveHousingGeoScope({
+    ownGeoCodes: effectiveGeoCodes ?? establishment.geoCodes,
+    isAdminOrVisitor,
+    establishmentIds,
+    intercommunalities: body.filters.intercommunalities,
+    localities: body.filters.localities
+  });
   const [housings, referential] = await Promise.all([
     housingRepository.find({
       filters: {
         ...body.filters,
-        establishmentIds:
-          isAdminOrVisitor && body.filters.establishmentIds?.length
-            ? body.filters.establishmentIds
-            : [establishment.id],
+        establishmentIds,
         localities
       },
       includes: ['campaigns', 'owner', 'precisions'],

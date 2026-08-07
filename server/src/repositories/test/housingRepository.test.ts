@@ -2872,6 +2872,90 @@ describe('Housing repository', () => {
       expect(actual).toHaveLength(1);
       expect(actual[0].energyConsumption).toBe('F');
     });
+
+    it('should scope the campaigns include to the given establishmentIds', async () => {
+      const otherEstablishment = genEstablishmentApi();
+      const otherUser = genUserApi(otherEstablishment.id);
+      await kysely
+        .insertInto('establishments')
+        .values(toEstablishmentInsert(otherEstablishment))
+        .execute();
+      await kysely
+        .insertInto('users')
+        .values(toUserInsert(otherUser))
+        .execute();
+
+      const housing = await factories.housing.create({
+        geoCode: oneOf(establishment.geoCodes)
+      });
+      const [ownCampaign, otherCampaign] = await Promise.all([
+        factories
+          .campaign(establishment)
+          .create({}, { associations: { createdBy: user } }),
+        factories
+          .campaign(otherEstablishment)
+          .create({}, { associations: { createdBy: otherUser } })
+      ]);
+      await kysely
+        .insertInto('campaignsHousing')
+        .values([
+          {
+            campaignId: ownCampaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          },
+          {
+            campaignId: otherCampaign.id,
+            housingId: housing.id,
+            housingGeoCode: housing.geoCode
+          }
+        ])
+        .execute();
+
+      const stream = housingRepository.stream({
+        filters: {
+          localities: [housing.geoCode],
+          establishmentIds: [establishment.id]
+        },
+        includes: ['campaigns']
+      });
+      const actual: HousingApi[] = [];
+      for await (const h of stream) {
+        if (h.id === housing.id) actual.push(h);
+      }
+
+      expect(actual).toHaveLength(1);
+      expect(actual[0].campaignIds).toIncludeSameMembers([ownCampaign.id]);
+    });
+
+    it('should implicitly hydrate campaigns when filtering by campaign id without an explicit include', async () => {
+      const campaign = await factories
+        .campaign(establishment)
+        .create({}, { associations: { createdBy: user } });
+      const housing = await factories.housing.create({
+        geoCode: oneOf(establishment.geoCodes)
+      });
+      await kysely
+        .insertInto('campaignsHousing')
+        .values({
+          campaignId: campaign.id,
+          housingId: housing.id,
+          housingGeoCode: housing.geoCode
+        })
+        .execute();
+
+      const stream = housingRepository.stream({
+        filters: { campaignIds: [campaign.id] }
+      });
+      const actual: HousingApi[] = [];
+      for await (const h of stream) {
+        actual.push(h);
+      }
+
+      expect(actual).toSatisfyAll<HousingApi>(
+        (h) => h.campaignIds?.includes(campaign.id) ?? false
+      );
+    });
   });
 
   describe('save', () => {

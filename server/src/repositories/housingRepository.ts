@@ -154,6 +154,7 @@ async function find(
       kysely.selectFrom('fastHousing'),
       filterQuery(filters),
       projectQuery(options.fields),
+      sortQuery(),
       paginateQuery(options.pagination)
     ).execute();
     return rows;
@@ -279,10 +280,14 @@ interface StreamOptions {
 }
 
 function stream(opts?: StreamOptions): ReadableStream<HousingApi> {
+  const filters = opts?.filters ?? {};
   const query = pipe(
     kysely.selectFrom('fastHousing').selectAll('fastHousing'),
-    filterQuery(opts?.filters ?? {}),
-    includeQuery(opts?.includes),
+    filterQuery(filters),
+    includeQuery(
+      withImplicitIncludes(opts?.includes, filters),
+      filters.establishmentIds
+    ),
     sortQuery()
   );
   return ReadableStream.from(query.stream()).pipeThrough(
@@ -1739,20 +1744,11 @@ function includeQuery(
       )
       .$if(includes.includes('buildings'), (qb) =>
         qb
-          .select((eb) =>
-            eb
-              .selectFrom('buildings')
-              .whereRef('buildings.id', '=', 'fastHousing.buildingId')
-              .select('buildings.classDpe')
-              .as('buildingClassDpe')
-          )
-          .select((eb) =>
-            eb
-              .selectFrom('buildings')
-              .whereRef('buildings.id', '=', 'fastHousing.buildingId')
-              .select('buildings.dpeDateAt')
-              .as('buildingDpeDateAt')
-          )
+          .leftJoin('buildings', 'buildings.id', 'fastHousing.buildingId')
+          .select([
+            'buildings.classDpe as buildingClassDpe',
+            'buildings.dpeDateAt as buildingDpeDateAt'
+          ])
       )
       .$if(includes.includes('perimeters'), (qb) =>
         qb.select(

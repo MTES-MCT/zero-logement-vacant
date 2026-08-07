@@ -2,7 +2,6 @@ import {
   DataFileYear,
   HousingDTO,
   HousingKind,
-  HousingPointDTO,
   HousingStatus,
   Occupancy,
   Precision,
@@ -85,19 +84,6 @@ export function toHousingDTO(housing: HousingApi): HousingDTO {
     lastTransactionValue: housing.lastTransactionValue,
     plotId: housing.plotId,
     plotArea: housing.plotArea
-  };
-}
-
-export function toHousingPointDTO(housing: HousingApi): HousingPointDTO {
-  return {
-    id: housing.id,
-    geoCode: housing.geoCode,
-    latitude: housing.latitude,
-    longitude: housing.longitude,
-    status: housing.status,
-    occupancy: housing.occupancy,
-    subStatus: housing.subStatus,
-    rawAddress: housing.rawAddress
   };
 }
 

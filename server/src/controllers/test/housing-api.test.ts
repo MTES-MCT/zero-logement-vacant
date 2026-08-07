@@ -261,6 +261,35 @@ describe('Housing API', () => {
       expect(status).toBe(constants.HTTP_STATUS_OK);
     });
 
+    it('should let a visitor scope results to a queried establishment', async () => {
+      const { body, status } = await request(url)
+        .get(testRoute)
+        .query({ establishmentIds: [anotherEstablishment.id] })
+        .use(tokenProvider(visitor));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.length).toBeGreaterThan(0);
+      expect(body).toSatisfyAll<HousingApi>((housing) => {
+        return anotherEstablishment.geoCodes.includes(housing.geoCode);
+      });
+      expect(body).not.toSatisfyAny((housing: HousingApi) => {
+        return establishment.geoCodes.includes(housing.geoCode);
+      });
+    });
+
+    it('should ignore a queried establishment for a non-admin, non-visitor user', async () => {
+      const { body, status } = await request(url)
+        .get(testRoute)
+        .query({ establishmentIds: [anotherEstablishment.id] })
+        .use(tokenProvider(user));
+
+      expect(status).toBe(constants.HTTP_STATUS_OK);
+      expect(body.length).toBeGreaterThan(0);
+      expect(body).toSatisfyAll<HousingApi>((housing) => {
+        return establishment.geoCodes.includes(housing.geoCode);
+      });
+    });
+
     describe('Projection via ?fields=', () => {
       const pointFields = [...HOUSING_POINT_FIELDS] as string[];
 
@@ -287,6 +316,28 @@ describe('Housing API', () => {
           .use(tokenProvider(user));
 
         expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      });
+
+      it('should paginate deterministically across repeated and consecutive pages', async () => {
+        const query = { fields: 'id', perPage: 3, page: 1 };
+
+        const [first, second] = await Promise.all([
+          request(url).get(testRoute).query(query).use(tokenProvider(user)),
+          request(url).get(testRoute).query(query).use(tokenProvider(user))
+        ]);
+        expect(first.status).toBe(constants.HTTP_STATUS_OK);
+        expect(first.body.map((h: { id: string }) => h.id)).toStrictEqual(
+          second.body.map((h: { id: string }) => h.id)
+        );
+
+        const nextPage = await request(url)
+          .get(testRoute)
+          .query({ ...query, page: 2 })
+          .use(tokenProvider(user));
+        expect(nextPage.status).toBe(constants.HTTP_STATUS_OK);
+        const firstIds = first.body.map((h: { id: string }) => h.id);
+        const nextIds = nextPage.body.map((h: { id: string }) => h.id);
+        expect(firstIds).not.toIncludeAnyMembers(nextIds);
       });
     });
 
@@ -1973,6 +2024,102 @@ describe('Housing API', () => {
         .use(tokenProvider(user));
 
       expect(status).toBe(constants.HTTP_STATUS_OK);
+    });
+
+    describe('Geo scope', () => {
+      const scopedEstablishment: EstablishmentApi = genEstablishmentApi(
+        genGeoCode(),
+        genGeoCode()
+      );
+      const scopedUser = genUserApi(scopedEstablishment.id);
+      const intercommunality: EstablishmentApi = {
+        ...genEstablishmentApi(scopedEstablishment.geoCodes[0]),
+        kind: 'METRO'
+      };
+
+      beforeAll(async () => {
+        await kysely
+          .insertInto('establishments')
+          .values(
+            [scopedEstablishment, intercommunality].map(toEstablishmentInsert)
+          )
+          .execute();
+        await kysely
+          .insertInto('users')
+          .values(toUserInsert(scopedUser))
+          .execute();
+      });
+
+      it('should only update housing within the intercommunalities filter', async () => {
+        const [insideHousing, outsideHousing] = await Promise.all([
+          factories.housing.create({
+            geoCode: intercommunality.geoCodes[0],
+            status: HousingStatus.NEVER_CONTACTED
+          }),
+          factories.housing.create({
+            geoCode: scopedEstablishment.geoCodes[1],
+            status: HousingStatus.NEVER_CONTACTED
+          })
+        ]);
+        await Promise.all(
+          [insideHousing, outsideHousing].map(async (housing) => {
+            const owner = await factories.owner.create();
+            await factories
+              .housingOwner({ housing, owner })
+              .create({ rank: 1 as OwnerRank });
+          })
+        );
+
+        const { status, body } = await request(url)
+          .put(testRoute)
+          .send({
+            filters: { intercommunalities: [intercommunality.id] },
+            status: HousingStatus.WAITING
+          } satisfies HousingBatchUpdatePayload)
+          .use(tokenProvider(scopedUser));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toSatisfyAny(
+          (housing: HousingApi) =>
+            housing.id === insideHousing.id &&
+            housing.status === HousingStatus.WAITING
+        );
+        expect(body).not.toSatisfyAny(
+          (housing: HousingApi) => housing.id === outsideHousing.id
+        );
+
+        const { body: untouched } = await request(url)
+          .get(`/housing/${outsideHousing.id}`)
+          .use(tokenProvider(scopedUser));
+        expect(untouched.status).toBe(HousingStatus.NEVER_CONTACTED);
+      });
+
+      it('should not widen an explicit empty localities selection to the whole perimeter', async () => {
+        const housing = await factories.housing.create({
+          geoCode: scopedEstablishment.geoCodes[1],
+          status: HousingStatus.NEVER_CONTACTED
+        });
+        const owner = await factories.owner.create();
+        await factories
+          .housingOwner({ housing, owner })
+          .create({ rank: 1 as OwnerRank });
+
+        const { status, body } = await request(url)
+          .put(testRoute)
+          .send({
+            filters: { localities: [] },
+            status: HousingStatus.WAITING
+          } satisfies HousingBatchUpdatePayload)
+          .use(tokenProvider(scopedUser));
+
+        expect(status).toBe(constants.HTTP_STATUS_OK);
+        expect(body).toHaveLength(0);
+
+        const { body: untouched } = await request(url)
+          .get(`/housing/${housing.id}`)
+          .use(tokenProvider(scopedUser));
+        expect(untouched.status).toBe(HousingStatus.NEVER_CONTACTED);
+      });
     });
   });
 

@@ -12,6 +12,7 @@ import { AuthenticatedRequest } from 'express-jwt';
 import { differenceBy, uniqBy } from 'lodash-es';
 import { v4 as uuidv4 } from 'uuid';
 
+import { resolveHousingGeoScope } from '~/controllers/housingGeoScope';
 import GroupMissingError from '~/errors/groupMissingError';
 import { startKyselyTransaction } from '~/infra/database/kysely-transaction';
 import { logger } from '~/infra/logger';
@@ -22,21 +23,6 @@ import campaignRepository from '~/repositories/campaignRepository';
 import eventRepository from '~/repositories/eventRepository';
 import groupRepository from '~/repositories/groupRepository';
 import housingRepository from '~/repositories/housingRepository';
-
-/**
- * Bound a housing query to the establishment's perimeter (the user's effective
- * geo codes, falling back to the whole establishment), narrowed by any
- * caller-provided localities. Geo resolution lives in the app layer now that
- * the repository filters on `localities` directly.
- */
-function perimeterLocalities(
-  geoCodes: string[],
-  localities: string[] | undefined
-): string[] {
-  return localities?.length
-    ? Array.intersection(geoCodes, localities)
-    : geoCodes;
-}
 
 const list: RequestHandler<
   never,
@@ -73,6 +59,12 @@ const create: RequestHandler<never, GroupDTO, GroupPayloadDTO, never> = async (
   const { body, establishment, user, effectiveGeoCodes } =
     request as AuthenticatedRequest<never, GroupDTO, GroupPayloadDTO, never>;
 
+  const localities = await resolveHousingGeoScope({
+    ownGeoCodes: effectiveGeoCodes ?? establishment.geoCodes,
+    isAdminOrVisitor: false,
+    intercommunalities: body.housing.filters?.intercommunalities,
+    localities: body.housing.filters?.localities
+  });
   // Keep the housing list that are in the same establishment as the group
   const housings =
     body.housing.all !== undefined
@@ -81,10 +73,7 @@ const create: RequestHandler<never, GroupDTO, GroupPayloadDTO, never> = async (
             filters: {
               ...body.housing.filters,
               establishmentIds: [establishment.id],
-              localities: perimeterLocalities(
-                effectiveGeoCodes ?? establishment.geoCodes,
-                body.housing.filters?.localities
-              )
+              localities
             },
             includes: ['owner'],
             pagination: { paginate: false }
@@ -227,6 +216,12 @@ const addHousing: RequestHandler<
     throw new GroupMissingError(params.id);
   }
 
+  const localities = await resolveHousingGeoScope({
+    ownGeoCodes: effectiveGeoCodes ?? establishment.geoCodes,
+    isAdminOrVisitor: false,
+    intercommunalities: body.filters?.intercommunalities,
+    localities: body.filters?.localities
+  });
   // Keep the housing list that are in the same establishment as the group
   const [addingHousingList, existingHousingList] = await Promise.all([
     housingRepository
@@ -234,10 +229,7 @@ const addHousing: RequestHandler<
         filters: {
           ...body.filters,
           establishmentIds: [auth.establishmentId],
-          localities: perimeterLocalities(
-            effectiveGeoCodes ?? establishment.geoCodes,
-            body.filters?.localities
-          )
+          localities
         },
         includes: ['owner'],
         pagination: { paginate: false }
@@ -317,6 +309,12 @@ const removeHousing: RequestHandler<
     throw new GroupMissingError(params.id);
   }
 
+  const localities = await resolveHousingGeoScope({
+    ownGeoCodes: effectiveGeoCodes ?? establishment.geoCodes,
+    isAdminOrVisitor: false,
+    intercommunalities: body.filters?.intercommunalities,
+    localities: body.filters?.localities
+  });
   // Keep the housing list that are in the same establishment as the group
   const [removingHousingList, existingHousingList] = await Promise.all([
     housingRepository
@@ -324,10 +322,7 @@ const removeHousing: RequestHandler<
         filters: {
           ...body.filters,
           establishmentIds: [auth.establishmentId],
-          localities: perimeterLocalities(
-            effectiveGeoCodes ?? establishment.geoCodes,
-            body.filters?.localities
-          )
+          localities
         },
         includes: ['owner'],
         pagination: { paginate: false }

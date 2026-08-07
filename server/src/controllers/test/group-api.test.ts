@@ -26,6 +26,7 @@ import {
   VACANCY_RATE_VALUES,
   VACANCY_YEAR_VALUES
 } from '@zerologementvacant/models';
+import { genGeoCode } from '@zerologementvacant/models/fixtures';
 import type { Selectable } from 'kysely';
 import fp from 'lodash/fp';
 import request from 'supertest';
@@ -38,8 +39,15 @@ import { GroupApi } from '~/models/GroupApi';
 import { HousingApi } from '~/models/HousingApi';
 import { OwnerApi } from '~/models/OwnerApi';
 import { toUserDTO, UserApi } from '~/models/UserApi';
+import { toEstablishmentInsert } from '~/repositories/establishmentRepository';
+import { toUserInsert } from '~/repositories/userRepository';
 import { factories } from '~/test/factories';
-import { genGroupApi, genHousingApi } from '~/test/testFixtures';
+import {
+  genEstablishmentApi,
+  genGroupApi,
+  genHousingApi,
+  genUserApi
+} from '~/test/testFixtures';
 import { tokenProvider } from '~/test/testUtils';
 
 describe('Group API', () => {
@@ -457,6 +465,68 @@ describe('Group API', () => {
           nextNew: { name: payload.title },
           createdBy: user.id
         });
+      });
+    });
+
+    describe('Geo scope', () => {
+      const scopedEstablishment: EstablishmentApi = genEstablishmentApi(
+        genGeoCode(),
+        genGeoCode()
+      );
+      const scopedUser = genUserApi(scopedEstablishment.id);
+      const intercommunality: EstablishmentApi = {
+        ...genEstablishmentApi(scopedEstablishment.geoCodes[0]),
+        kind: 'METRO'
+      };
+
+      beforeAll(async () => {
+        await kysely
+          .insertInto('establishments')
+          .values(
+            [scopedEstablishment, intercommunality].map(toEstablishmentInsert)
+          )
+          .execute();
+        await kysely
+          .insertInto('users')
+          .values(toUserInsert(scopedUser))
+          .execute();
+      });
+
+      it('should only include housing within the intercommunalities filter', async () => {
+        const [insideHousing, outsideHousing] = await Promise.all([
+          factories.housing.create({ geoCode: intercommunality.geoCodes[0] }),
+          factories.housing.create({
+            geoCode: scopedEstablishment.geoCodes[1]
+          })
+        ]);
+
+        const payload: GroupPayloadDTO = {
+          ...basePayload,
+          housing: {
+            all: true,
+            ids: [],
+            filters: { intercommunalities: [intercommunality.id] }
+          }
+        };
+
+        const { body, status } = await request(url)
+          .post(testRoute)
+          .send(payload)
+          .set({ 'Content-Type': 'application/json' })
+          .use(tokenProvider(scopedUser));
+
+        expect(status).toBe(constants.HTTP_STATUS_CREATED);
+        const groupHousings = await kysely
+          .selectFrom('groupsHousing')
+          .selectAll('groupsHousing')
+          .where('groupId', '=', body.id)
+          .execute();
+        expect(groupHousings.map((row) => row.housingId)).toInclude(
+          insideHousing.id
+        );
+        expect(groupHousings.map((row) => row.housingId)).not.toInclude(
+          outsideHousing.id
+        );
       });
     });
   });

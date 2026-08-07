@@ -54,3 +54,63 @@ jobs:
           name: cypress-screenshots
           path: apps/e2e/cypress/screenshots
           retention-days: 7
+
+  playwright:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: Staging
+    # Pilot: advisory only. A Playwright failure surfaces on the run but does
+    # not fail the End-to-end workflow. Remove this line to make it a gate
+    # once the suite is trusted.
+    continue-on-error: true
+    strategy:
+      matrix:
+        node-version: [24.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+
+      - run: yarn --version
+
+      - name: Install
+        run: yarn --immutable
+        env:
+          # This job drives Playwright, not Cypress, so skip the binary download.
+          CYPRESS_INSTALL_BINARY: 0
+
+      - name: Install Playwright browsers
+        run: yarn workspace @zerologementvacant/front-e2e-pw exec playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: yarn nx e2e front-e2e-pw
+        env:
+          CYPRESS_API: ${{ vars.API_HOST }}
+          CYPRESS_BASE_URL: ${{ vars.HOST }}
+          CYPRESS_EMAIL: ${{ secrets.CYPRESS_EMAIL }}
+          CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
+          # Optional accounts: absent secrets resolve to '' and the specs skip.
+          CYPRESS_ADMIN_EMAIL: ${{ secrets.CYPRESS_ADMIN_EMAIL }}
+          CYPRESS_ADMIN_PASSWORD: ${{ secrets.CYPRESS_ADMIN_PASSWORD }}
+          CYPRESS_MULTI_EMAIL: ${{ secrets.CYPRESS_MULTI_EMAIL }}
+          CYPRESS_MULTI_PASSWORD: ${{ secrets.CYPRESS_MULTI_PASSWORD }}
+          CYPRESS_SUSPENDED_EMAIL: ${{ secrets.CYPRESS_SUSPENDED_EMAIL }}
+          CYPRESS_SUSPENDED_PASSWORD: ${{ secrets.CYPRESS_SUSPENDED_PASSWORD }}
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v6
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/front-e2e-pw/playwright-report
+          retention-days: 7

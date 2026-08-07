@@ -90,10 +90,10 @@ const countHandler = (path: string) =>
     return HttpResponse.json(countOf(subset));
   });
 
-const countNext = countHandler('/housings/count');
+const count = countHandler('/housings/count');
 
 // List: bare array of housings (paginated via LIMIT/OFFSET), no total.
-const listNext = http.get<
+const list = http.get<
   Record<string, never>,
   HousingPayload,
   Partial<HousingDTO>[]
@@ -152,8 +152,8 @@ type HousingPayload = {
 };
 
 export const housingHandlers: RequestHandler[] = [
-  listNext,
-  countNext,
+  list,
+  count,
 
   // Add a housing
   http.post<never, HousingPayloadDTO, HousingDTO | Error>(

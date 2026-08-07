@@ -54,21 +54,24 @@ The following environment variables must be configured on Clever Cloud:
 
 #### For Cerema API
 
+- `CEREMA_API`: Cerema Portail DF API URL (`https://portaildf.cerema.fr`)
 - `CEREMA_USERNAME`: Username for Cerema DF Portal API
 - `CEREMA_PASSWORD`: Password for Cerema DF Portal API
 
-> **Note**: The script automatically authenticates on each execution by calling `https://portaildf.cerema.fr/api/api-token-auth/` with these credentials as form-data. The JSON response contains the temporary token:
+> **Note**: Authentication uses the JWT endpoint `${CEREMA_API}/api/token/`
+> with a JSON payload. The response contains an access token and a refresh token:
 >
 > ```bash
-> # Request: POST https://portaildf.cerema.fr/api/api-token-auth/
-> # Form data: username=xxx&password=xxx
+> # Request: POST ${CEREMA_API}/api/token/
+> # JSON: {"username":"xxx","password":"xxx"}
 > # Response:
 > {
->   "token": "222a9ac058496742ff2922533d90847621314629"
+>   "access": "eyJ...",
+>   "refresh": "eyJ..."
 > }
 > ```
 >
-> This token is then used as `CEREMA_BEARER_TOKEN` for all API calls in the session.
+> The access token is then sent as `Authorization: Bearer <access>` for API calls.
 
 #### For Database (Clever Cloud naming convention)
 

@@ -35,11 +35,9 @@ const validRaw = {
   },
   cerema: {
     enabled: 'false',
-    api: 'https://getdf.cerema.fr',
+    api: 'https://datafoncier-dev.osc-fr1.scalingo.io',
     username: null,
-    password: null,
-    authVersion: 'v1',
-    apiV2: 'https://datafoncier-dev.osc-fr1.scalingo.io'
+    password: null
   },
   datafoncier: {
     api: 'https://apidf-preprod.cerema.fr',
@@ -165,15 +163,6 @@ describe('configSchema', () => {
     ).toThrow();
   });
 
-  it('rejects an invalid cerema authVersion', () => {
-    expect(() =>
-      configSchema.shape.cerema.parse({
-        ...validRaw.cerema,
-        authVersion: 'v3'
-      })
-    ).toThrow();
-  });
-
   it('rejects cerema config when enabled but username/password missing', () => {
     expect(() =>
       configSchema.parse({
@@ -200,6 +189,16 @@ describe('configSchema', () => {
         }
       })
     ).not.toThrow();
+  });
+
+  it('defaults to the JWT-compatible DataFoncier API', () => {
+    const result = configSchema.shape.cerema.parse({
+      enabled: 'false',
+      username: null,
+      password: null
+    });
+
+    expect(result.api).toBe('https://datafoncier-dev.osc-fr1.scalingo.io');
   });
 
   it('rejects datafoncier config when enabled but token missing', () => {

@@ -65,11 +65,15 @@ pip3 install --user -r /app/server/src/scripts/perimeters-portaildf/requirements
    pip3 list | grep -E "requests|click|psycopg2|dateutil"
    ```
 
-3. **Test the synchronization script**:
+3. **Check that the manual audit CLI loads**:
+
    ```bash
    cd /app/server/src/scripts/perimeters-portaildf
-   ./cerema-sync.sh
+   python3 01-cerema-scraper/cerema-scraper.py --help
    ```
+
+   For an authenticated audit, follow `README.md`. Cerema rights checks run in
+   the application during login/account creation and are not scheduled by cron.
 
 ### In Deployment Logs
 

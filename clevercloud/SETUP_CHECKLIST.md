@@ -11,14 +11,9 @@ Configure in Clever Cloud dashboard → "Environment variables" tab:
 CC_PYTHON_VERSION=3.11
 
 # Cerema API Authentication
+CEREMA_API=https://portaildf.cerema.fr
 CEREMA_USERNAME=your_cerema_username
 CEREMA_PASSWORD=your_cerema_password
-# Auth version: v1 (legacy Portail DF) or v2 (new DataFoncier API)
-CEREMA_AUTH_VERSION=v1
-# V1 API URL (default)
-CEREMA_API=https://portaildf.cerema.fr
-# V2 API URL (only used when CEREMA_AUTH_VERSION=v2)
-CEREMA_API_V2=https://datafoncier.cerema.fr
 
 # Database (automatically set by Clever Cloud PostgreSQL addon)
 POSTGRESQL_ADDON_HOST=your_postgresql_host
@@ -135,18 +130,11 @@ application logs, not cron logs.
 
 ### Cerema Authentication Fails
 
-1. Check `CEREMA_USERNAME` and `CEREMA_PASSWORD`
-2. Check `CEREMA_AUTH_VERSION` (v1 or v2)
-3. Test manually:
+1. Check `CEREMA_API`, `CEREMA_USERNAME`, and `CEREMA_PASSWORD`
+2. Test manually:
 
    ```bash
-   # V1 (legacy)
-   curl -X POST https://portaildf.cerema.fr/api/api-token-auth/ \
-     -d "username=XXX" \
-     -d "password=XXX"
-
-   # V2 (DataFoncier)
-   curl -X POST https://datafoncier.cerema.fr/api/token/ \
+   curl -X POST "$CEREMA_API/api/token/" \
      -H "Content-Type: application/json" \
      -d '{"username": "XXX", "password": "XXX"}'
    ```

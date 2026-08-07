@@ -214,28 +214,31 @@ CREATE INDEX CONCURRENTLY idx_name ON table(column);
 
 ---
 
-### 2.7 Cerema Sync Failures (P3)
+### 2.7 Portail DF Rights Check Failures (P3)
 
-**Symptoms:** Users/establishments not syncing
+**Symptoms:** Users cannot complete login/account creation, or their Portail DF
+rights are not reflected in ZLV.
 
 **Diagnosis:**
 
 ```bash
-# Check cron logs
-clever logs | grep cerema
+# Check application logs (the check is not a cron task)
+clever logs | grep -i "cerema\|portail df"
 
-# Check state files
-cat server/src/scripts/perimeters-portaildf/01-cerema-scraper/api_*_state.json
+# Confirm that the JWT route exists; 400 JSON is expected without credentials
+curl -sS -o /dev/null -w "%{http_code} %{content_type}\n" \
+  -X POST -H "Content-Type: application/json" -d '{}' \
+  "https://portaildf.cerema.fr/api/token/"
 ```
 
 **Resolution:**
 
-```bash
-# Reset and retry manually
-cd server/src/scripts/perimeters-portaildf
-rm -f 01-cerema-scraper/api_*_state.json
-./cerema-sync.sh
-```
+1. Verify in the Clever Cloud dashboard that `CEREMA_API` is
+   `https://portaildf.cerema.fr` and that the credentials are configured.
+2. Validate a login on staging while watching the application logs.
+3. If a full manual audit is required, follow
+   `server/src/scripts/perimeters-portaildf/README.md`; no Cerema cron is
+   configured.
 
 ---
 

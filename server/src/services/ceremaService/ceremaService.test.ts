@@ -6,8 +6,7 @@ import config from '~/infra/config';
 import { CeremaService } from './ceremaService';
 import type { CeremaGroup, CeremaPerimeter } from './consultUserService';
 
-const BASE_URL =
-  config.cerema.authVersion === 'v2' ? config.cerema.apiV2 : config.cerema.api;
+const BASE_URL = config.cerema.api;
 const TOKEN = 'test-token';
 
 const lovacGroup: CeremaGroup = {
@@ -37,23 +36,13 @@ const pastDate = new Date(Date.now() - 86_400_000).toISOString();
 const structure = { siret: '12345678900001', acces_lovac: futureDate };
 
 function interceptAuth() {
-  if (config.cerema.authVersion === 'v2') {
-    nock(BASE_URL)
-      .post('/api/token/')
-      .reply(200, { access: TOKEN, refresh: 'refresh-token' });
-    return;
-  }
-
-  nock(BASE_URL).post('/api/api-token-auth/').reply(200, { token: TOKEN });
+  nock(BASE_URL)
+    .post('/api/token/')
+    .reply(200, { access: TOKEN, refresh: 'refresh-token' });
 }
 
 function interceptAuthFailure() {
-  if (config.cerema.authVersion === 'v2') {
-    nock(BASE_URL).post('/api/token/').reply(401, 'Unauthorized');
-    return;
-  }
-
-  nock(BASE_URL).post('/api/api-token-auth/').reply(401, 'Unauthorized');
+  nock(BASE_URL).post('/api/token/').reply(401, 'Unauthorized');
 }
 
 function interceptUsers(email: string, users: object[]) {
@@ -87,6 +76,28 @@ afterEach(() => {
 
 describe('CeremaService', () => {
   describe('consultUsers', () => {
+    it('authenticates with JWT and uses the Bearer access token', async () => {
+      const email = 'user@test.fr';
+      const authScope = nock(BASE_URL)
+        .post('/api/token/', {
+          username: config.cerema.username,
+          password: config.cerema.password
+        })
+        .reply(200, { access: TOKEN, refresh: 'refresh-token' });
+      const usersScope = nock(BASE_URL)
+        .matchHeader('Authorization', `Bearer ${TOKEN}`)
+        .get('/api/utilisateurs')
+        .query({ email })
+        .reply(200, { results: [] });
+      const service = new CeremaService();
+
+      const result = await service.consultUsers(email);
+
+      expect(result).toEqual([]);
+      expect(authScope.isDone()).toBe(true);
+      expect(usersScope.isDone()).toBe(true);
+    });
+
     it('returns [] when auth fails', async () => {
       interceptAuthFailure();
       const service = new CeremaService();

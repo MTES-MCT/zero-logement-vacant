@@ -39,10 +39,17 @@ graph TD
 # Install dependencies
 pip install requests click psycopg2-binary python-dateutil
 
-# Set up Cerema API credentials (username and password)
-# The script will automatically authenticate and get a temporary token
+# Set up Cerema API credentials and canonical API URL
+export CEREMA_API="https://portaildf.cerema.fr"
 export CEREMA_USERNAME="your_cerema_username"
 export CEREMA_PASSWORD="your_cerema_password"
+
+# Request a JWT access token for the scraper
+export CEREMA_BEARER_TOKEN="$(curl -sS -X POST "$CEREMA_API/api/token/" \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"$CEREMA_USERNAME\",\"password\":\"$CEREMA_PASSWORD\"}" \
+  | python -c 'import json, sys; print(json.load(sys.stdin)["access"])')"
+export CEREMA_BASE_URL="$CEREMA_API/api"
 
 # Set up database credentials (Clever Cloud naming convention)
 export POSTGRESQL_ADDON_HOST="localhost"
@@ -52,25 +59,20 @@ export POSTGRESQL_ADDON_USER="your_username"
 export POSTGRESQL_ADDON_PASSWORD="your_password"
 ```
 
-### Authentication Versions
+### JWT Authentication
 
-L'API Portail DF supporte deux versions d'authentification :
+L'API Portail DF utilise des jetons JWT :
 
-| Version              | Endpoint                    | Response                                | Header                           | URL                             |
-| -------------------- | --------------------------- | --------------------------------------- | -------------------------------- | ------------------------------- |
-| **V1** (legacy)      | `POST /api/api-token-auth/` | `{ "token": "..." }`                    | `Authorization: Token <token>`   | `https://portaildf.cerema.fr`   |
-| **V2** (DataFoncier) | `POST /api/token/`          | `{ "access": "...", "refresh": "..." }` | `Authorization: Bearer <access>` | `https://datafoncier.cerema.fr` |
+| Endpoint           | Response                                | Header                           | URL                           |
+| ------------------ | --------------------------------------- | -------------------------------- | ----------------------------- |
+| `POST /api/token/` | `{ "access": "...", "refresh": "..." }` | `Authorization: Bearer <access>` | `https://portaildf.cerema.fr` |
 
 #### Configuration (variables d'environnement)
 
 ```bash
-# V1 (défaut)
-export CEREMA_AUTH_VERSION=v1
 export CEREMA_API=https://portaildf.cerema.fr
-
-# V2 (nouvelle API DataFoncier)
-export CEREMA_AUTH_VERSION=v2
-export CEREMA_API_V2=https://datafoncier.cerema.fr
+export CEREMA_USERNAME=your_cerema_username
+export CEREMA_PASSWORD=your_cerema_password
 ```
 
 ### 2. Data Retrieval
@@ -252,12 +254,12 @@ export CEREMA_PASSWORD="your_cerema_password"
 export DB_PASSWORD="your_database_password"
 
 # Manual token retrieval (for testing only)
-curl -X POST https://portaildf.cerema.fr/api/api-token-auth/ \
-  -d "username=your_cerema_username" \
-  -d "password=your_cerema_password"
+curl -X POST "$CEREMA_API/api/token/" \
+  -H "Content-Type: application/json" \
+  -d '{"username": "your_cerema_username", "password": "your_cerema_password"}'
 
 # Response format:
-# {"token": "222a9ac058496742ff2922533d90847621314629"}
+# {"access": "eyJ...", "refresh": "eyJ..."}
 ```
 
 ### File Permissions
@@ -308,23 +310,9 @@ python cerema-scraper.py --max-retries 5
 
 ### API Token Authentication
 
-#### V1 Authentication (Legacy)
-
 ```bash
 # Using curl
-curl -X POST https://portaildf.cerema.fr/api/api-token-auth/ \
-    -H "Content-Type: application/json" \
-    -d '{"username": "your_username", "password": "your_password"}'
-
-# Response: { "token": "abcd1234..." }
-# Use as: Authorization: Token abcd1234...
-```
-
-#### V2 Authentication (DataFoncier)
-
-```bash
-# Using curl
-curl -X POST https://datafoncier.cerema.fr/api/token/ \
+curl -X POST "$CEREMA_API/api/token/" \
     -H "Content-Type: application/json" \
     -d '{"username": "your_username", "password": "your_password"}'
 
@@ -335,20 +323,12 @@ curl -X POST https://datafoncier.cerema.fr/api/token/ \
 #### Using Python
 
 ```python
+import os
 import requests
 
-# V1
+api_url = os.environ['CEREMA_API'].rstrip('/')
 response = requests.post(
-    'https://portaildf.cerema.fr/api/api-token-auth/',
-    headers={'Content-Type': 'application/json'},
-    json={'username': 'your_username', 'password': 'your_password'}
-)
-token = response.json()['token']
-print(f'Authorization: Token {token}')
-
-# V2
-response = requests.post(
-    'https://datafoncier.cerema.fr/api/token/',
+    f'{api_url}/api/token/',
     headers={'Content-Type': 'application/json'},
     json={'username': 'your_username', 'password': 'your_password'}
 )
@@ -358,8 +338,7 @@ print(f'Authorization: Bearer {access}')
 
 **Important Notes:**
 
-- V1 tokens don't expire automatically but may be revoked
-- V2 tokens (JWT) have expiration times
+- JWT access tokens expire and can be renewed with the refresh token
 - Store tokens securely using environment variables
 - Never commit tokens to version control
 

@@ -1,7 +1,7 @@
 import config from '~/infra/config';
 import { logger } from '~/infra/logger';
 
-import { createAuthProvider } from './ceremaAuthProvider';
+import { authenticate } from './ceremaAuthProvider';
 
 export interface PortailDFUser {
   id_user: number;
@@ -45,8 +45,6 @@ export function determineUserKind(
   }
 }
 
-const authProvider = createAuthProvider();
-
 /**
  * Fetch user kind from Portail DF API.
  *
@@ -63,7 +61,7 @@ export async function fetchUserKind(email: string): Promise<string | null> {
   }
 
   try {
-    const { token, authPrefix, apiUrl } = await authProvider.authenticate();
+    const { apiUrl, authorization } = await authenticate();
 
     // Fetch user data from Portail DF
     const userResponse = await fetch(
@@ -71,7 +69,7 @@ export async function fetchUserKind(email: string): Promise<string | null> {
       {
         method: 'GET',
         headers: {
-          Authorization: `${authPrefix} ${token}`,
+          Authorization: authorization,
           'Content-Type': 'application/json'
         }
       }

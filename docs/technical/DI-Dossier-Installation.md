@@ -579,10 +579,11 @@ clever env set S3_BUCKET=zlv-production
 # Monitoring (Sentry)
 clever env set SENTRY_DSN=<dsn-sentry>
 
-# Python pour les scripts cron
+# Python pour les scripts opérationnels
 clever env set CC_PYTHON_VERSION=3.11
 
-# API Cerema (synchronisation des périmètres)
+# API Cerema (contrôle des droits utilisateurs)
+clever env set CEREMA_API=https://portaildf.cerema.fr
 clever env set CEREMA_USERNAME=<username>
 clever env set CEREMA_PASSWORD=<password>
 ```
@@ -604,16 +605,16 @@ clevercloud/
 #### Fichier cron.json (tâches planifiées)
 
 ```json
-[
-  "*/30 * * * * $ROOT/server/src/scripts/perimeters-portaildf/cerema-sync.sh",
-  "0 3 1 * * $ROOT/server/src/scripts/logs/export-monthly-logs.sh"
-]
+["0 3 1 * * $ROOT/server/src/scripts/logs/export-monthly-logs.sh"]
 ```
 
 **Explication de la syntaxe :**
 
-- `*/30 * * * *` = toutes les 30 minutes
 - `0 3 1 * *` = le 1er du mois à 3h du matin
+
+Il n'existe plus de tâche planifiée pour la synchronisation Cerema. Le contrôle
+des droits est effectué par l'application lors de la connexion ou de la création
+du compte ; les scripts Portail DF restent disponibles pour les audits manuels.
 
 #### Script post_build.sh
 
@@ -716,15 +717,19 @@ curl -X GET "https://api.brevo.com/v3/account" \
 
 1. Obtenir les identifiants API Cerema
 2. Configurer les variables :
+   - `CEREMA_API=https://portaildf.cerema.fr`
    - `CEREMA_USERNAME`
    - `CEREMA_PASSWORD`
 
 **Tester l'authentification :**
 
 ```bash
-curl -X POST https://portaildf.cerema.fr/api/api-token-auth/ \
-  -d "username=$CEREMA_USERNAME" \
-  -d "password=$CEREMA_PASSWORD"
+curl -X POST "$CEREMA_API/api/token/" \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"$CEREMA_USERNAME\",\"password\":\"$CEREMA_PASSWORD\"}"
+
+# Réponse : {"access": "eyJ...", "refresh": "eyJ..."}
+# Utilisation : Authorization: Bearer <access>
 ```
 
 ### 6.5 BAN (Base Adresse Nationale)
@@ -981,7 +986,7 @@ Pour tester manuellement un script :
 
 ```bash
 clever ssh
-/app/server/src/scripts/perimeters-portaildf/cerema-sync.sh
+/app/server/src/scripts/logs/export-monthly-logs.sh
 ```
 
 #### Python non trouvé (pour les scripts)

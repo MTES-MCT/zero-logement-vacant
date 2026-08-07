@@ -40,7 +40,6 @@ class UserKindSync:
         dry_run: bool = False,
         batch_size: int = 1000,
         num_workers: int = 4,
-        auth_version: str = "v1",
     ):
         """
         Initialize the sync processor.
@@ -53,7 +52,6 @@ class UserKindSync:
             dry_run: Simulation mode (no database modifications)
             batch_size: Batch size for database operations
             num_workers: Number of parallel workers
-            auth_version: Authentication version ('v1' or 'v2')
         """
         self.db_url = db_url
         self.api_url = api_url.rstrip("/")
@@ -62,7 +60,6 @@ class UserKindSync:
         self.dry_run = dry_run
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.auth_version = auth_version
         self.conn = None
         self.cursor = None
         self.auth_token = None
@@ -87,48 +84,29 @@ class UserKindSync:
     def authenticate(self):
         """Authenticate with Portail DF API and get token."""
         try:
-            if self.auth_version == "v2":
-                # V2: POST /api/token/ with JSON body, returns { access, refresh }
-                auth_url = f"{self.api_url}/token/"
-                response = requests.post(
-                    auth_url,
-                    json={
-                        "username": self.username,
-                        "password": self.password,
-                    },
-                    headers={"Content-Type": "application/json"},
-                    timeout=60,
-                )
-                response.raise_for_status()
+            auth_url = f"{self.api_url}/token/"
+            response = requests.post(
+                auth_url,
+                json={
+                    "username": self.username,
+                    "password": self.password,
+                },
+                headers={"Content-Type": "application/json"},
+                timeout=60,
+            )
+            response.raise_for_status()
 
-                data = response.json()
-                self.auth_token = data.get("access")
-                auth_prefix = "Bearer"
-            else:
-                # V1: POST /api-token-auth/ with form-data, returns { token }
-                auth_url = f"{self.api_url}/api-token-auth/"
-                response = requests.post(
-                    auth_url,
-                    files={
-                        "username": (None, self.username),
-                        "password": (None, self.password),
-                    },
-                    timeout=60,
-                )
-                response.raise_for_status()
-
-                data = response.json()
-                self.auth_token = data.get("token")
-                auth_prefix = "Token"
+            data = response.json()
+            self.auth_token = data.get("access")
 
             if not self.auth_token:
                 raise ValueError("No token in authentication response")
 
             # Update session headers with token
             self.session.headers.update(
-                {"Authorization": f"{auth_prefix} {self.auth_token}"}
+                {"Authorization": f"Bearer {self.auth_token}"}
             )
-            logging.info(f"✅ Portail DF API authentication successful (version: {self.auth_version})")
+            logging.info("✅ Portail DF API authentication successful")
 
         except requests.exceptions.RequestException as e:
             print(f"❌ Portail DF API authentication failed: {e}")
@@ -491,12 +469,6 @@ def main():
         help="API password for authentication",
     )
     parser.add_argument(
-        "--auth-version",
-        choices=["v1", "v2"],
-        default="v1",
-        help="API authentication version: v1 (legacy) or v2 (new DataFoncier API)",
-    )
-    parser.add_argument(
         "--dry-run", action="store_true", help="Simulation mode (no database changes)"
     )
     parser.add_argument(
@@ -547,7 +519,6 @@ def main():
         dry_run=args.dry_run,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
-        auth_version=args.auth_version,
     )
 
     try:

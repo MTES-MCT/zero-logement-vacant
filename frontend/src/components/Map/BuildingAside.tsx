@@ -34,8 +34,13 @@ function BuildingAside(props: BuildingAsideProps) {
 
   // The map projection omits owner/campaigns to stay fast; lazily fetch the
   // fully-hydrated housing for the one currently shown in the panel.
-  const { data: housingDetails, isFetching: isHousingFetching } =
-    useGetHousingQuery(housing?.id ?? skipToken);
+  // `currentData` (unlike `data`) is undefined while a new housing id is
+  // loading, so the previous housing's owner can't leak into the panel.
+  const {
+    currentData: housingDetails,
+    isFetching: isHousingFetching,
+    isError: isHousingError
+  } = useGetHousingQuery(housing?.id ?? skipToken);
 
   const establishmentCampaignsQuery = useFindCampaignsQuery();
   const campaigns = establishmentCampaignsQuery.data?.filter((campaign) => {
@@ -119,8 +124,8 @@ function BuildingAside(props: BuildingAsideProps) {
               }
             >
               <Stack
+                role="status"
                 aria-busy={isHousingFetching}
-                aria-live="polite"
                 sx={{ alignItems: 'flex-start' }}
               >
                 <Label>
@@ -140,6 +145,10 @@ function BuildingAside(props: BuildingAsideProps) {
                   </AppLink>
                 ) : isHousingFetching ? (
                   <Typography variant="body2">Chargement…</Typography>
+                ) : isHousingError ? (
+                  <Typography variant="body2" role="alert">
+                    Erreur lors du chargement du propriétaire
+                  </Typography>
                 ) : (
                   <Typography variant="body2">Pas d’information</Typography>
                 )}

@@ -100,7 +100,17 @@ export const housingApi = zlvApi.injectEndpoints({
           paginate: false
         }
       }),
-      providesTags: ['Housing']
+      providesTags: (result) =>
+        result
+          ? [
+              // `id` is always selected by the server regardless of `fields`.
+              ...result.map((housing) => ({
+                type: 'Housing' as const,
+                id: housing.id as string
+              })),
+              { type: 'Housing', id: 'LIST' }
+            ]
+          : [{ type: 'Housing', id: 'LIST' }]
     }),
 
     // Map view counts hit `GET /housings/count`.
@@ -161,6 +171,7 @@ export const housingApi = zlvApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, payload) => [
         { type: 'Housing', id: payload.id },
+        { type: 'Housing', id: 'LIST' },
         'HousingByStatus',
         'HousingCountByStatus',
         'Event',

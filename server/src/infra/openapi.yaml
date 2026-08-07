@@ -1526,24 +1526,6 @@ components:
 
     # ── Pagination ────────────────────────────────────────────────────────────
 
-    PaginatedHousing:
-      type: object
-      required: [entities, page, perPage, totalCount]
-      properties:
-        entities:
-          type: array
-          items:
-            $ref: '#/components/schemas/Housing'
-        page:
-          type: integer
-          example: 1
-        perPage:
-          type: integer
-          example: 50
-        totalCount:
-          type: integer
-          example: 1234
-
     PaginatedOwners:
       type: object
       required: [entities, page, perPage, totalCount]
@@ -2171,7 +2153,7 @@ paths:
           description: Non authentifié
 
   # ── Housing ──────────────────────────────────────────────────────────────────
-  /housing:
+  /housings:
     get:
       summary: Lister les logements
       tags: [Housing]
@@ -2192,13 +2174,31 @@ paths:
             type: string
       responses:
         '200':
-          description: Liste paginée
+          description: Liste des logements (tableau nu, non paginé dans la réponse)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedHousing'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Housing'
         '401':
           description: Non authentifié
+
+  /housings/count:
+    get:
+      summary: Compter les logements
+      tags: [Housing]
+      responses:
+        '200':
+          description: Comptage
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HousingCount'
+        '401':
+          description: Non authentifié
+
+  /housing:
     post:
       summary: Créer un logement
       tags: [Housing]
@@ -2236,20 +2236,6 @@ paths:
       responses:
         '200':
           description: Logements mis à jour
-        '401':
-          description: Non authentifié
-
-  /housing/count:
-    get:
-      summary: Compter les logements
-      tags: [Housing]
-      responses:
-        '200':
-          description: Comptage
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HousingCount'
         '401':
           description: Non authentifié
 

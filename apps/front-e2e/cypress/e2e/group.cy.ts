@@ -2,7 +2,7 @@ describe('Group', () => {
   describe('Create a group', () => {
     it('should create a group and add housings to it', () => {
       cy.intercept('GET', '/api/housing*').as('listHousings');
-      cy.intercept('GET', '/api/housing/count*').as('countHousings');
+      cy.intercept('GET', '/api/housings/count*').as('countHousings');
       cy.intercept('GET', '/api/groups').as('listGroups');
 
       cy.logIn();
@@ -34,7 +34,7 @@ describe('Group', () => {
 
     it('should delete a group', () => {
       cy.intercept('GET', '/api/housing*').as('listHousings');
-      cy.intercept('GET', '/api/housing/count*').as('countHousings');
+      cy.intercept('GET', '/api/housings/count*').as('countHousings');
       cy.intercept('GET', '/api/groups').as('listGroups');
 
       cy.logIn();

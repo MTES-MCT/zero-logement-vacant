@@ -41,8 +41,7 @@ import {
   type CampaignCreationPayload,
   type CampaignDTO,
   type GroupDTO,
-  type HousingDTO,
-  type PaginatedResponse
+  type HousingDTO
 } from '@zerologementvacant/models';
 
 declare global {
@@ -52,7 +51,7 @@ declare global {
       logIn(email?: string, password?: string): Chainable<void>;
       authenticateApi(email?: string, password?: string): Chainable<void>;
       // API SDK
-      listHousings(): Chainable<Response<PaginatedResponse<HousingDTO>>>;
+      listHousings(): Chainable<Response<ReadonlyArray<HousingDTO>>>;
       createGroup(payload: GroupPayload): Chainable<Response<GroupDTO>>;
       createCampaignFromGroup(
         groupId: GroupDTO['id'],
@@ -97,7 +96,7 @@ Cypress.Commands.add('listHousings', () => {
   return cy.authenticateApi().then(() => {
     return cy.request({
       method: 'GET',
-      url: Cypress.env('API') + '/housing',
+      url: Cypress.env('API') + '/housings',
       qs: {
         page: 1,
         perPage: 10

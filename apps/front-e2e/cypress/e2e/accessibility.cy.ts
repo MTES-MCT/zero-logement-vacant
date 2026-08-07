@@ -22,7 +22,7 @@ describe('Accessibility', () => {
 
   it('should be accessible on /parc-de-logements', () => {
     cy.intercept('GET', '/api/housing*').as('listHousings');
-    cy.intercept('GET', '/api/housing/count*').as('countHousings');
+    cy.intercept('GET', '/api/housings/count*').as('countHousings');
     cy.intercept('GET', '/api/groups').as('listGroups');
 
     cy.logIn();

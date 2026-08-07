@@ -20,19 +20,9 @@ on:
         type: boolean
         default: false
 
-env:
-  CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
-  CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
-  CLEVER_ORG: ${{ secrets.CLEVER_ORG }}
-  MAILER_HOST: ${{ secrets.MAILER_HOST }}
-  MAILER_PORT: ${{ secrets.MAILER_PORT }}
-  MAILER_USER: ${{ secrets.MAILER_USER }}
-  MAILER_PASSWORD: ${{ secrets.MAILER_PASSWORD }}
-  TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
-  METABASE_DOMAIN: ${{ secrets.METABASE_DOMAIN }}
-  METABASE_API_TOKEN: ${{ secrets.METABASE_API_TOKEN }}
-  E2E_EMAIL: ${{ secrets.CYPRESS_EMAIL }}
-  E2E_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   resolve-pr:
@@ -46,11 +36,15 @@ jobs:
         id: get-pr
         env:
           GH_TOKEN: ${{ github.token }}
+          # Routed through env instead of interpolated into the script below:
+          # a PR title is attacker-controlled text and could otherwise inject
+          # arbitrary shell commands into this pull_request_target job.
+          PR_TITLE_INPUT: ${{ github.event.pull_request.title }}
         run: |
           if [ "${{ github.event_name }}" == "pull_request_target" ]; then
             # PR closed event - use the PR number from the event
             PR_NUMBER="${{ github.event.number }}"
-            PR_TITLE="${{ github.event.pull_request.title }}"
+            PR_TITLE="$PR_TITLE_INPUT"
           else
             # workflow_dispatch - find PR from branch
             BRANCH="${{ github.ref_name }}"
@@ -80,13 +74,16 @@ jobs:
           echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
 
       - name: Display summary
+        env:
+          # Same reasoning as above: pr_title carries the raw PR title.
+          PR_TITLE: ${{ steps.get-pr.outputs.pr_title }}
         run: |
           echo "### 🚀 Review App Configuration" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| **PR** | #${{ steps.get-pr.outputs.pr_number }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Title** | ${{ steps.get-pr.outputs.pr_title }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Title** | $PR_TITLE |" >> $GITHUB_STEP_SUMMARY
           echo "| **App prefix** | ${{ steps.get-pr.outputs.pr_name }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Iso prod** | ${{ github.event.inputs.iso_prod || 'false' }} |" >> $GITHUB_STEP_SUMMARY
   check-duplicates:
@@ -95,6 +92,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
+      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+      CLEVER_ORG: ${{ secrets.CLEVER_ORG }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -181,6 +181,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
+      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+      CLEVER_ORG: ${{ secrets.CLEVER_ORG }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -210,6 +213,9 @@ jobs:
     env:
       PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
       APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-api
+      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+      CLEVER_ORG: ${{ secrets.CLEVER_ORG }}
     steps:
       - name: Extract branch name
         shell: bash
@@ -364,6 +370,9 @@ jobs:
     env:
       PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
       APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-front
+      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+      CLEVER_ORG: ${{ secrets.CLEVER_ORG }}
     steps:
       - name: Extract branch name
         shell: bash
@@ -420,6 +429,9 @@ jobs:
     env:
       PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
       APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-api
+      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+      CLEVER_ORG: ${{ secrets.CLEVER_ORG }}
     steps:
       - name: Extract branch name
         shell: bash
@@ -462,6 +474,9 @@ jobs:
       url: https://${{ needs.resolve-pr.outputs.pr_name }}-front.cleverapps.io
     env:
       APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-front
+      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+      CLEVER_ORG: ${{ secrets.CLEVER_ORG }}
     steps:
       - name: Extract branch name
         shell: bash
@@ -496,6 +511,9 @@ jobs:
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
       APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-api
+      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+      CLEVER_ORG: ${{ secrets.CLEVER_ORG }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -516,6 +534,9 @@ jobs:
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
       APP_ALIAS: ${{ needs.resolve-pr.outputs.pr_name }}-front
+      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+      CLEVER_ORG: ${{ secrets.CLEVER_ORG }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -536,6 +557,9 @@ jobs:
     if: always() && (github.event.inputs.action_type == 'Supprimer' || (github.event_name == 'pull_request_target' && github.event.action == 'closed'))
     env:
       PR_NAME: ${{ needs.resolve-pr.outputs.pr_name }}
+      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+      CLEVER_ORG: ${{ secrets.CLEVER_ORG }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v6

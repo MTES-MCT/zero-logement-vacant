@@ -157,7 +157,8 @@ describe('repairCommand()', () => {
     const summary: ApplySummary = {
       updated: 7,
       eventsDeleted: 4,
-      eventsCreated: 2
+      eventsCreated: 2,
+      skipped: 0
     };
 
     async function registerRepair(bypassTriggers?: boolean): Promise<string> {
@@ -255,6 +256,29 @@ describe('repairCommand()', () => {
 
       expect(mockApply).toHaveBeenCalledWith(planFile, {
         bypassTriggers: false
+      });
+      await unregisterRepair();
+    });
+
+    it('forwards repair.revalidate to apply() when the repair defines it', async () => {
+      const { repairs } = await import('../index');
+      const revalidate = vi.fn(async () => new Set<string>());
+      (repairs as Record<string, unknown>)['my-repair'] = {
+        name: 'my-repair',
+        query: async () => [],
+        decide: () => ({ action: 'skip' as const }),
+        revalidate
+      };
+      const planFile = path.join(outDir, 'plan.jsonl');
+      fs.writeFileSync(planFile, '');
+      mockApply.mockResolvedValue(summary);
+
+      const cmd = repairCommand();
+      await cmd.parseAsync(['apply', 'my-repair', planFile], { from: 'user' });
+
+      expect(mockApply).toHaveBeenCalledWith(planFile, {
+        bypassTriggers: false,
+        revalidate
       });
       await unregisterRepair();
     });

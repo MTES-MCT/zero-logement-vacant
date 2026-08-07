@@ -27,14 +27,14 @@ un service déconcentré, l'attribution territoriale le créditait à environ 25
 
 Mesures du 2026-08-05 sur l'entrepôt `dwh`, sommes sur les 36 791 établissements :
 
-| Compteur | Attribution territoriale | Attribution événementielle |
-| --- | --- | --- |
-| `logements_maj_owners` | 686 752 | 9 882 |
-| `logements_maj_phone` | 144 826 | 5 042 |
-| `logements_maj_mails` | 104 776 | 3 582 |
-| `logements_maj_owners_address` | 61 966 | 2 331 |
-| `logements_maj_dpe` | 1 222 | 49 |
-| `logements_maj_enrichissement` | 1 057 574 | 68 006 |
+| Compteur                       | Attribution territoriale | Attribution événementielle |
+| ------------------------------ | ------------------------ | -------------------------- |
+| `logements_maj_owners`         | 686 752                  | 9 882                      |
+| `logements_maj_phone`          | 144 826                  | 5 042                      |
+| `logements_maj_mails`          | 104 776                  | 3 582                      |
+| `logements_maj_owners_address` | 61 966                   | 2 331                      |
+| `logements_maj_dpe`            | 1 222                    | 49                         |
+| `logements_maj_enrichissement` | 1 057 574                | 68 006                     |
 
 Trois autres défauts, indépendants de la règle d'attribution, aggravaient la
 lecture de la table :

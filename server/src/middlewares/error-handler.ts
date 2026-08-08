@@ -1,4 +1,5 @@
 import { constants } from 'http2';
+import { createHash } from 'node:crypto';
 
 import { errors as compose, ErrorHandler, Next } from 'compose-middleware';
 import { Request, Response } from 'express';
@@ -9,14 +10,44 @@ import { createLogger } from '~/infra/logger';
 
 const logger = createLogger('error-handler');
 
+function stackFrames(error: Error): string | undefined {
+  return (
+    error.stack
+      ?.split('\n')
+      .filter((line) => /^\s+at\s/.test(line))
+      .join('\n') || undefined
+  );
+}
+
+function diagnosticId(error: Error): string {
+  const firstStackFrame = stackFrames(error)?.split('\n')[0] ?? 'unknown';
+  return createHash('sha256')
+    .update(`${error.name}:${firstStackFrame}`)
+    .digest('hex')
+    .slice(0, 12);
+}
+
 function log(
   error: Error,
   request: Request,
   response: Response,
   next: Next
 ): void {
-  // Should later be enhanced with relevant info like Request ID, user ID, etc.
-  logger.error('API Error', error);
+  const status = isHttpError(error)
+    ? error.status
+    : constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
+  const isServerError = status >= constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
+  logger.error({
+    event: 'API Error',
+    errorName: error.name,
+    status,
+    method: request.method,
+    route: request.route?.path,
+    errorId: (response as Response & { sentry?: string }).sentry,
+    diagnosticId: isServerError ? diagnosticId(error) : undefined,
+    diagnostic: isHttpError(error) ? error.diagnostic : undefined,
+    stack: isServerError ? stackFrames(error) : undefined
+  });
   next(error);
 }
 

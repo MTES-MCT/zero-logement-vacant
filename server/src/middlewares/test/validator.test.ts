@@ -40,7 +40,7 @@ describe('Validator middleware', () => {
       });
     });
 
-    it('should validate wrong input', async () => {
+    it('should return safe diagnostics for invalid input', async () => {
       const { body, status } = await request(app)
         .post(testRoute)
         .send({
@@ -50,8 +50,24 @@ describe('Validator middleware', () => {
 
       expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
       expect(body).toMatchObject({
-        name: 'ValidationError'
+        name: 'ValidationError',
+        diagnostic: {
+          path: 'body.geoCode',
+          type: 'length'
+        }
       });
+    });
+
+    it('should not expose invalid request values in the response', async () => {
+      const sensitiveValue = 'SensitiveValue123';
+
+      const { body, status } = await request(app)
+        .post(testRoute)
+        .send({ geoCode: { secret: sensitiveValue } })
+        .set('Content-Type', 'application/json');
+
+      expect(status).toBe(constants.HTTP_STATUS_BAD_REQUEST);
+      expect(JSON.stringify(body)).not.toContain(sensitiveValue);
     });
 
     it('should strip unknown body keys', async () => {

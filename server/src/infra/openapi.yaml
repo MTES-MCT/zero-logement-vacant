@@ -1738,12 +1738,17 @@ paths:
                 password:
                   type: string
                   minLength: 12
-                  description: Min 12 chars, must include uppercase, lowercase, digit, and special character
+                  pattern: '^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).+$'
+                  description: Au moins 12 caractères, avec une majuscule, une minuscule et un chiffre
       responses:
         '200':
           description: Mot de passe réinitialisé avec succès
         '400':
-          description: Lien invalide ou expiré
+          description: Corps de requête invalide
+        '404':
+          description: Lien de réinitialisation introuvable
+        '410':
+          description: Lien de réinitialisation expiré ou déjà utilisé
 
   /reset-links:
     post:
@@ -1762,10 +1767,8 @@ paths:
                   type: string
                   format: email
       responses:
-        '201':
-          description: Lien de réinitialisation créé (email envoyé)
-        '404':
-          description: Email non trouvé
+        '200':
+          description: Demande prise en compte, que le compte existe ou non
 
   /reset-links/{id}:
     get:
@@ -1773,12 +1776,28 @@ paths:
       tags: [Authentication]
       security: []
       parameters:
-        - $ref: '#/components/parameters/IdParam'
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9]+$'
       responses:
         '200':
           description: Lien valide
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [valid]
+                properties:
+                  valid:
+                    type: boolean
+                    const: true
         '404':
-          description: Lien invalide ou expiré
+          description: Lien introuvable
+        '410':
+          description: Lien expiré ou déjà utilisé
 
   # ── Users (public) ───────────────────────────────────────────────────────────
   /users/creation:
@@ -1801,8 +1820,9 @@ paths:
                   example: nouveau@collectivite.fr
                 password:
                   type: string
-                  minLength: 8
-                  description: Mot de passe (min 8 caractères)
+                  minLength: 12
+                  pattern: '^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).+$'
+                  description: Au moins 12 caractères, avec une majuscule, une minuscule et un chiffre
                 firstName:
                   type: string
                   example: Jean

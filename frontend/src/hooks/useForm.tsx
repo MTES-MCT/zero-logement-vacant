@@ -1,3 +1,4 @@
+import schemas from '@zerologementvacant/schemas';
 import { isDate } from 'date-fns';
 import { Array, pipe, Predicate, Record } from 'effect';
 import { useEffect, useRef, useState } from 'react';
@@ -14,26 +15,9 @@ export const emailValidator = yup
     'L’adresse doit être un email valide. Exemple de format valide : exemple@gmail.com'
   );
 
-export const passwordFormatValidator = yup
-  .string()
-  .min(12, 'Au moins 12 caractères.')
-  .matches(/[A-Z]/g, {
-    name: 'uppercase',
-    message: 'Au moins une majuscule.'
-  })
-  .matches(/[a-z]/g, {
-    name: 'lowercase',
-    message: 'Au moins une minuscule.'
-  })
-  .matches(/[0-9]/g, {
-    name: 'number',
-    message: 'Au moins un chiffre.'
-  });
+export const passwordFormatValidator = schemas.password;
 
-export const passwordConfirmationValidator = yup
-  .string()
-  .required('Veuillez confirmer votre mot de passe.')
-  .oneOf([yup.ref('password')], 'Les mots de passe doivent être identiques.');
+export const passwordConfirmationValidator = schemas.passwordConfirmation();
 
 export const campaignTitleValidator = yup
   .string()
@@ -95,6 +79,10 @@ export function useForm<
   const previousInput = useRef<U>();
 
   const isDirty = touchedKeys.size > 0;
+
+  function isTouched<K extends keyof U>(key: K): boolean {
+    return touchedKeys.has(key);
+  }
 
   function error<K extends keyof U>(key?: K): yup.ValidationError | undefined {
     return key && touchedKeys.has(key)
@@ -174,8 +162,12 @@ export function useForm<
       await schema.validate(input, { abortEarly: false });
       setErrors(undefined);
       await onValid?.();
-    } catch (errors) {
-      setErrors((errors as yup.ValidationError).inner);
+    } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        setErrors(error.inner);
+        return;
+      }
+      throw error;
     }
   }
 
@@ -212,16 +204,9 @@ export function useForm<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...Object.values(input)]);
 
-  useEffect(() => {
-    const validations = (fullValidationKeys ?? []).map((key) =>
-      validateAt(key)
-    );
-    (async () => await Promise.all(validations))();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, fullValidationKeys);
-
   return {
     isDirty,
+    isTouched,
     isValid,
     hasError,
     messageList,

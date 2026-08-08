@@ -1,6 +1,7 @@
 import { constants } from 'http2';
 
 import { UserAccountDTO, UserRole } from '@zerologementvacant/models';
+import schemas from '@zerologementvacant/schemas';
 import { hashPassword } from 'better-auth/crypto';
 import { fromNodeHeaders } from 'better-auth/node';
 import { Request, Response } from 'express';
@@ -165,16 +166,7 @@ const resetPasswordSchema = object({
   key: string()
     .required()
     .matches(/^[a-zA-Z0-9]+$/),
-  password: string()
-    .required()
-    .min(12, 'Le mot de passe doit contenir au moins 12 caractères')
-    .matches(/[A-Z]/, 'Le mot de passe doit contenir au moins une majuscule')
-    .matches(/[a-z]/, 'Le mot de passe doit contenir au moins une minuscule')
-    .matches(/[0-9]/, 'Le mot de passe doit contenir au moins un chiffre')
-    .matches(
-      /[^A-Za-z0-9]/,
-      'Le mot de passe doit contenir au moins un caractère spécial'
-    )
+  password: schemas.password.required()
 });
 
 const resetPasswordValidators = {

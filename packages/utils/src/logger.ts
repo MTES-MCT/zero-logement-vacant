@@ -1,6 +1,7 @@
 import pino, { LoggerOptions as PinoLoggerOptions } from 'pino';
 
 import { LogLevel } from './log-level';
+import { redactSensitiveData, redactSensitiveUrl } from './redaction';
 
 interface LoggerOptions {
   isProduction?: boolean;
@@ -41,20 +42,53 @@ export function createLogger(name: string, opts: LoggerOptions): Logger {
   // Provide a child logger to avoid overhead
   const logger = baseLogger.child({ name }, { level });
   return {
-    trace: toPinoLogFn(logger.trace.bind(logger)),
-    debug: toPinoLogFn(logger.debug.bind(logger)),
-    info: toPinoLogFn(logger.info.bind(logger)),
-    warn: toPinoLogFn(logger.warn.bind(logger)),
-    error: toPinoLogFn(logger.error.bind(logger))
+    trace: toPinoLogFn(logger.trace.bind(logger), () =>
+      logger.isLevelEnabled(LogLevel.TRACE)
+    ),
+    debug: toPinoLogFn(logger.debug.bind(logger), () =>
+      logger.isLevelEnabled(LogLevel.DEBUG)
+    ),
+    info: toPinoLogFn(logger.info.bind(logger), () =>
+      logger.isLevelEnabled(LogLevel.INFO)
+    ),
+    warn: toPinoLogFn(logger.warn.bind(logger), () =>
+      logger.isLevelEnabled(LogLevel.WARN)
+    ),
+    error: toPinoLogFn(logger.error.bind(logger), () =>
+      logger.isLevelEnabled(LogLevel.ERROR)
+    )
   };
 }
 
-function toPinoLogFn(log: pino.LogFn): LogFn {
+function toPinoLogFn(log: pino.LogFn, isEnabled: () => boolean): LogFn {
   return (messageOrData: string | object | unknown, data?: unknown) => {
-    if (typeof messageOrData === 'string') {
-      log(data, messageOrData);
-    } else {
-      log(messageOrData);
+    if (!isEnabled()) {
+      return;
     }
+    if (typeof messageOrData === 'string') {
+      log(redactLogData(data), redactSensitiveUrl(messageOrData));
+    } else {
+      log(redactLogData(messageOrData));
+    }
+  };
+}
+
+function redactLogData(value: unknown): unknown {
+  return redactSensitiveData(value, { transformError: redactError });
+}
+
+function redactError(error: Error): Record<string, unknown> {
+  const code = (error as Error & { code?: unknown }).code;
+  return {
+    name: error.name,
+    code:
+      typeof code === 'string' && /^[a-z0-9_.:-]{1,64}$/i.test(code)
+        ? code
+        : undefined,
+    stack:
+      error.stack
+        ?.split('\n')
+        .filter((line) => /^\s+at\s/.test(line))
+        .join('\n') || undefined
   };
 }

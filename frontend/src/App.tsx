@@ -7,6 +7,7 @@ import {
   RouterProvider
 } from 'react-router';
 
+import TelemetryInitializer from '~/components/TelemetryInitializer';
 import { AuthProvider } from '~/contexts/AuthContext';
 import { useAppDispatch, useAppSelector } from '~/hooks/useStore';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout';
@@ -60,7 +61,7 @@ const SiteMapView = lazy(() => import('~/views/SiteMapView'));
 
 const router = sentry.createBrowserRouter(
   createRoutesFromElements(
-    <Route>
+    <Route element={<TelemetryInitializer />}>
       <Route element={<AuthenticatedLayout />}>
         <Route path="/" element={<Navigate to="/parc-de-logements" />} />
         <Route path="/plan-du-site" element={<SiteMapView />} />

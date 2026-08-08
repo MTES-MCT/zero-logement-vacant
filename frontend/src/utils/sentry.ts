@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react';
+import { redactSensitiveData } from '@zerologementvacant/utils';
 import { useEffect } from 'react';
 import {
   createBrowserRouter,
@@ -9,6 +10,24 @@ import {
 } from 'react-router';
 
 import config from './config';
+
+export function sanitizeEvent<T extends Sentry.Event>(event: T): T {
+  return redactSensitiveData(event);
+}
+
+export function sanitizeBreadcrumb<T extends Sentry.Breadcrumb>(
+  breadcrumb: T
+): T {
+  return redactSensitiveData(breadcrumb);
+}
+
+function describeException(
+  exception: unknown
+): Readonly<Record<string, string>> {
+  return exception instanceof Error
+    ? { name: exception.name }
+    : { type: typeof exception };
+}
 
 function init(): void {
   if (config.sentry.enabled) {
@@ -39,8 +58,14 @@ function init(): void {
         Sentry.browserProfilingIntegration(),
         // Replay for debugging
         Sentry.replayIntegration({
-          maskAllText: false,
-          blockAllMedia: false
+          maskAllInputs: true,
+          maskAllText: true,
+          blockAllMedia: false,
+          networkDetailDenyUrls: [
+            /\/reset-links(?:\/|$)/,
+            /\/account\/reset-password(?:\/|$)/
+          ],
+          beforeAddRecordingEvent: redactSensitiveData
         })
       ],
       sampleRate: config.sentry.sampleRate,
@@ -54,9 +79,10 @@ function init(): void {
 
       // Enhanced error handling
       beforeSend(event) {
+        const sanitized = sanitizeEvent(event);
         // Add custom tags for better organization
-        event.tags = {
-          ...event.tags,
+        sanitized.tags = {
+          ...sanitized.tags,
           component: 'frontend',
           framework: 'react',
           bundler: 'vite'
@@ -64,40 +90,45 @@ function init(): void {
 
         // Log errors to console in development
         if (config.sentry.env === 'development') {
-          console.error('Sentry error:', event);
+          console.error('Sentry error:', sanitized);
         }
-        return event;
+        return sanitized;
       },
 
       // Enhanced transaction processing
       beforeSendTransaction(event) {
+        const sanitized = sanitizeEvent(event);
         // Add performance context
-        event.tags = {
-          ...event.tags,
+        sanitized.tags = {
+          ...sanitized.tags,
           component: 'frontend',
           framework: 'react'
         };
-        return event;
+        return sanitized;
       },
 
       // Auto-capture console errors
       beforeBreadcrumb(breadcrumb) {
+        const sanitized = sanitizeBreadcrumb(breadcrumb);
         if (breadcrumb.category === 'console' && breadcrumb.level === 'error') {
           // This will help track console errors
-          return breadcrumb;
+          return sanitized;
         }
-        return breadcrumb;
+        return sanitized;
       }
     });
 
     // Global error handlers for uncaught errors
     window.addEventListener('error', (event) => {
-      console.error('Global error:', event.error);
+      console.error('Global error:', describeException(event.error));
       Sentry.captureException(event.error);
     });
 
     window.addEventListener('unhandledrejection', (event) => {
-      console.error('Unhandled promise rejection:', event.reason);
+      console.error(
+        'Unhandled promise rejection:',
+        describeException(event.reason)
+      );
       Sentry.captureException(event.reason);
     });
 

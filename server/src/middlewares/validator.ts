@@ -40,12 +40,17 @@ function validate(schema: RequestSchema) {
 
 class ValidationError extends HttpError implements HttpError {
   constructor(error: YupValidationError) {
+    const message =
+      error.type === 'typeError'
+        ? `Valeur invalide pour ${error.path ?? 'la requête'}.`
+        : error.message;
     super({
       name: error.name,
-      message: error.message,
+      message,
       status: constants.HTTP_STATUS_BAD_REQUEST,
-      data: {
-        ...error
+      diagnostic: {
+        path: error.path,
+        type: error.type
       }
     });
   }
